@@ -3,12 +3,13 @@
 
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { AdminProvider } from "@/context/AdminContext";
 
 
 export default function AdminLayout({ children }) {
 
   return (
-
+  <AdminProvider>
     <div className="min-h-screen flex bg-gray-50">
       {/* Sidebar fixed column */}
       <div className="flex-shrink-0">
@@ -23,6 +24,6 @@ export default function AdminLayout({ children }) {
         </main>
       </div>
     </div>
-
+  </AdminProvider>
   );
 }

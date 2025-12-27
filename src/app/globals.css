@@ -55,3 +55,44 @@ body {
 .ant-layout-sider-dark .anticon {
   color: inherit !important;
 }
+.soft-input {
+  @apply w-full rounded-md border border-gray-200 px-3 py-2 text-sm
+         focus:outline-none focus:ring-2 focus:ring-blue-100
+         focus:border-blue-400 bg-white;
+}
+
+.soft-select {
+  @apply w-full rounded-md border border-gray-200 px-3 py-2 text-sm
+         focus:outline-none focus:ring-2 focus:ring-blue-100
+         bg-white;
+}
+
+.soft-file {
+  @apply w-full rounded-md border border-gray-200 px-3 py-2 text-sm bg-white;
+}
+
+.soft-btn {
+  @apply px-4 py-2 rounded-md bg-sky-500 text-white text-sm hover:bg-sky-600;
+}
+
+.soft-input {
+  @apply w-full rounded-md border border-gray-200 px-3 py-2 text-sm
+  focus:ring-2 focus:ring-blue-100 focus:border-blue-400;
+}
+
+.soft-select {
+  @apply rounded-md border border-gray-200 px-2 py-1 text-sm bg-white
+  focus:ring-2 focus:ring-blue-100;
+}
+
+
+
+.soft-input-sm {
+  @apply h-9 text-sm;
+}
+.soft-textarea-sm {
+  @apply min-h-[80px] text-sm;
+}
+.soft-label {
+  @apply text-xs font-medium text-gray-600 mb-1 block;
+}

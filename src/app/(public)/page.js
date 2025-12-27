@@ -12,8 +12,8 @@ export default function Home() {
   const router = useRouter();
 
   // 🔹 FORM STATE
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("school@dps.com");
+  const [password, setPassword] = useState("School@123");
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {

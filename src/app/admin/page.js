@@ -1,8 +1,14 @@
 "use client";
 
 import React from "react";
+import { useAdmin } from "@/context/AdminContext";
 
 export default function AdminPage() {
+  const { dashboard } = useAdmin();
+
+  const students = dashboard?.stats?.students ?? 0;
+  const teachers = dashboard?.stats?.teachers ?? 0;
+
   return (
     <div className="space-y-8">
 
@@ -10,18 +16,18 @@ export default function AdminPage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
         <Metric
           title="Total Students"
-          value="1,240"
+          value={students}
           color="from-blue-500 to-blue-400"
         />
         <Metric
           title="Teachers"
-          value="68"
+          value={teachers}
           color="from-indigo-500 to-indigo-400"
         />
         <Metric
           title="Attendance Today"
           value="92%"
-          color="from-emerald-500 to-emerald-400"
+          color="from-blue-500 to-blue-400"
         />
         <Metric
           title="Pending Fees"
@@ -35,7 +41,7 @@ export default function AdminPage() {
 
         {/* ATTENDANCE BAR */}
         <Card title="Attendance Overview">
-          <Progress label="Present" value={92} color="bg-emerald-500" />
+          <Progress label="Present" value={92} color="bg-blue-500" />
           <Progress label="Absent" value={8} color="bg-rose-400" />
         </Card>
 

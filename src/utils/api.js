@@ -1,29 +1,39 @@
 import axios from "axios";
+import { getSession, signOut } from "next-auth/react";
 
-export const authApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_AUTH_SERVICE,
+export const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-authApi.interceptors.request.use(
-  (config) => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+  async (config) => {
+    const session = await getSession();
+
+    if (session?.accessToken) {
+      config.headers.Authorization = `Bearer ${session.accessToken}`;
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error.response?.status;
 
-export const userApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_USER_SERVICE,
-});
+    if (status === 401 && typeof window !== "undefined") {
+      if (!window.__SIGNING_OUT__) {
+        window.__SIGNING_OUT__ = true;
+        await signOut({ callbackUrl: "/" });
+      }
+    }
 
-userApi.interceptors.request.use(
-  (config) => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
+    return Promise.reject(error);
+  }
 );

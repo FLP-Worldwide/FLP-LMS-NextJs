@@ -29,14 +29,34 @@ export const schoolNav = [
   { key: "dashboard", label: "Dashboard", href: "/admin", icon: <DashboardOutlined /> },
 
   {
+    key: "leads",
+    label: "Leads",
+    icon: <UserOutlined />,
+    children: [
+      { key: "setup", label: "Setup", href: "/admin/leads/setup" },
+      { key: "enquiries", label: "Enquiry", href: "/admin/leads/enquiries" },
+
+    ],
+  },
+  {
+    key: "classes",
+    label: "Classes",
+    icon: <UserOutlined />,
+    children: [
+      { key: "setup", label: "Setup", href: "/admin/classes/setup" },
+      { key: "batches", label: "Batches", href: "/admin/classes/batches" },
+
+    ],
+  },
+  {
     key: "students",
     label: "Students",
     icon: <UserOutlined />,
     children: [
+      { key: "new-admission", label: "Onboard Admission", href: "/admin/students/admission" },
       { key: "students-all", label: "All Students", href: "/admin/students" },
-      { key: "students-add", label: "Add Student", href: "/admin/students/add" },
       { key: "students-promote", label: "Promote / Transfer", href: "/admin/students/promote" },
-      { key: "students-docs", label: "Documents", href: "/admin/students/documents" },
+
     ],
   },
 
@@ -67,13 +87,23 @@ export const schoolNav = [
   },
 
   {
+    key: "finance",
+    label: "Income/Expense",
+    icon: <DollarOutlined />,
+    children: [
+      { key: "setup", label: "Setup", href: "/admin/finance/setup" },
+      { key: "manage-income", label: "Manage Income", href: "/admin/finance/manage-income" },
+      { key: "manage-expense", label: "Manage Expense", href: "/admin/finance/manage-expense" },
+    ],
+  },
+  {
     key: "fees",
     label: "Fees & Accounts",
     icon: <DollarOutlined />,
     children: [
       { key: "fee-structure", label: "Fee Structure", href: "/admin/fees/structure" },
       { key: "fee-collection", label: "Fee Collection", href: "/admin/fees/collection" },
-      { key: "fee-due", label: "Due Fees", href: "/admin/fees/due" },
+      { key: "fee-dues", label: "Due Fees", href: "/admin/fees/dues" },
       { key: "expenses", label: "Expenses", href: "/admin/fees/expenses" },
     ],
   },
@@ -86,6 +116,7 @@ export const schoolNav = [
       { key: "staff-list", label: "Staff List", href: "/admin/staff" },
       { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
       { key: "payroll", label: "Payroll", href: "/admin/staff/payroll" },
+      { key: "salary-templates", label: "Salary Templates", href: "/admin/staff/salary-templates" },
     ],
   },
 

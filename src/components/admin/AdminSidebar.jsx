@@ -41,20 +41,37 @@ export default function AdminSidebar() {
     );
   }
 
+  useEffect(() => {
+  if (!pathname) return;
+
+  // find parent menu whose child matches current path
+  const parent = nav.find(
+    (item) =>
+      item.children &&
+      item.children.some((child) => child.href === pathname)
+  );
+
+  if (parent) {
+    setOpenKeys([parent.key]);
+  }
+}, [pathname, nav]);
+
+
+
   return (
     <aside
       className={`h-screen ${
         collapsed ? "w-20" : "w-64"
       } transition-all duration-200`}
     >
-      <div className="h-full bg-white shadow-sm flex flex-col p-4">
+      <div className="h-full bg-gray-700 text-white shadow-sm flex flex-col p-4">
 
         {/* BRAND */}
         <div className="flex items-center justify-between mb-4">
           {!collapsed && (
             <div>
               <div className="font-semibold">FLP ERP</div>
-              <div className="text-xs text-gray-500 capitalize">
+              <div className="text-xs text-gray-50 capitalize ">
                 {mode.replace("_", " ")} Admin
               </div>
             </div>
@@ -74,10 +91,10 @@ export default function AdminSidebar() {
               return (
                 <Link key={item.key} href={item.href}>
                   <div
-                    className={`px-3 py-2 rounded-lg text-sm flex gap-3 hover:bg-gray-50
+                    className={`px-3 py-2 rounded-lg text-sm flex gap-3 hover:bg-gray-50 hover:text-black 
                     ${
                       pathname === item.href
-                        ? "bg-emerald-50 text-emerald-700"
+                        ? "bg-blue-50 text-blue-700"
                         : ""
                     }`}
                   >
@@ -92,7 +109,7 @@ export default function AdminSidebar() {
               <div key={item.key}>
                 <button
                   onClick={() => toggle(item.key)}
-                  className="w-full px-3 py-2 flex justify-between rounded-lg hover:bg-gray-50"
+                  className="w-full px-3 py-2 flex justify-between rounded-lg hover:bg-gray-50 hover:text-black"
                 >
                   <div className="flex gap-3 text-sm">
                     {item.icon}
@@ -115,8 +132,8 @@ export default function AdminSidebar() {
                           className={`px-3 py-1.5 text-sm rounded
                           ${
                             pathname === sub.href
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "hover:bg-gray-50"
+                              ? "bg-blue-50 text-blue-700"
+                              : "hover:bg-gray-50 hover:text-black"
                           }`}
                         >
                           {sub.label}

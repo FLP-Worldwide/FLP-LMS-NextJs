@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import axios from "axios";
 
 const authOptions = {
   session: {
@@ -9,6 +10,7 @@ const authOptions = {
   providers: [
     CredentialsProvider({
       name: "ERP Login",
+
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
@@ -20,39 +22,43 @@ const authOptions = {
         }
 
         try {
-          const res = await fetch(
+          // ⚠️ SERVER-SIDE AXIOS (NO interceptors, NO token)
+          const res = await axios.post(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/login`,
             {
-              method: "POST",
+              email: credentials.email,
+              password: credentials.password,
+            },
+            {
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({
-                email: credentials.email,
-                password: credentials.password,
-              }),
+              timeout: 10000,
             }
           );
 
-          const json = await res.json();
+          const data = res.data?.data;
 
-          if (!res.ok || !json?.data?.access_token) {
+          if (!data?.access_token) {
             return null;
           }
 
           /**
-           * IMPORTANT:
-           * Whatever you return here becomes `user`
+           * Everything returned here becomes `user`
+           * and is available in jwt() callback
            */
           return {
-            id: json.data.role, // required by next-auth
-            accessToken: json.data.access_token,
-            role: json.data.role, // super_admin | school_admin | coaching_admin
-            accountType: json.data.account_type, // school | coaching | null
-            expiresIn: json.data.expires_in,
+            id: data.role, // required by next-auth
+            accessToken: data.access_token,
+            role: data.role, // super_admin | school_admin | coaching_admin
+            accountType: data.account_type, // school | coaching | null
+            expiresIn: data.expires_in,
           };
         } catch (error) {
-          console.error("AUTH ERROR:", error);
+          console.error(
+            "AUTH ERROR:",
+            error?.response?.data || error.message
+          );
           return null;
         }
       },
@@ -61,7 +67,7 @@ const authOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      // First login
+      // Runs on first login and on every request
       if (user) {
         token.accessToken = user.accessToken;
         token.role = user.role;
@@ -71,6 +77,7 @@ const authOptions = {
     },
 
     async session({ session, token }) {
+      // Expose values to client
       session.accessToken = token.accessToken;
       session.role = token.role;
       session.accountType = token.accountType;
