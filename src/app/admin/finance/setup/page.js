@@ -10,7 +10,7 @@ import CategoryTab from "@/components/admin/finance/CategoryTab";
 import AccountTab from "@/components/admin/finance/AccountTab";
 
 const financeMenus = [
-  { label: "Payee", href: "/admin/finance/setup?type=payee" },
+  { label: "Payee", href: "/admin/finance/setup" },
   { label: "Payer", href: "/admin/finance/setup?type=payer" },
   { label: "Category", href: "/admin/finance/setup?type=category" },
   { label: "Account", href: "/admin/finance/setup?type=account" },

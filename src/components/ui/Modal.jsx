@@ -1,16 +1,18 @@
 "use client";
 
-export default function Modal({ title, children, onClose }) {
+export default function Modal({ title, children, onClose, zIndex = 50 , className = "",}) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ zIndex }}>
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/30"
+        
         onClick={onClose}
       />
 
       {/* Modal box */}
-      <div className="relative bg-white rounded-xl border border-gray-200 p-5 w-full max-w-2xl shadow-lg">
+      <div 
+      className={`relative bg-white rounded-xl border border-gray-200 p-5 w-full max-w-4xl shadow-lg ${className}`}  >
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-semibold">{title}</h3>
           <button

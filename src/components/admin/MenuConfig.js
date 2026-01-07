@@ -97,6 +97,18 @@ export const schoolNav = [
     ],
   },
   {
+    key: "assets",
+    label: "Assets",
+    icon: <DollarOutlined />,
+    children: [
+      { key: "setup", label: "Assets Inventory", href: "/admin/assets/setup" },
+      { key: "supplier-master", label: "Supplier Master", href: "/admin/assets/supplier-master" },
+      { key: "purchase-assets", label: "Purchase Assets", href: "/admin/assets/purchase-assets" },
+      { key: "assets-assignment", label: "Assets Assignment", href: "/admin/assets/assets-assignment" },
+    ],
+  },
+
+  {
     key: "fees",
     label: "Fees & Accounts",
     icon: <DollarOutlined />,
@@ -189,6 +201,26 @@ export const schoolNav = [
       { key: "school-profile", label: "School Profile", href: "/admin/settings/school" },
       { key: "roles", label: "Roles & Permissions", href: "/admin/settings/roles" },
       { key: "backup", label: "Backup & Security", href: "/admin/settings/backup" },
+    ],
+  },
+  {
+    key: "inventory",
+    label: "Inventory",
+    icon: <SettingOutlined />,
+    children: [
+      { key: "items", label: "Items", href: "/admin/inventory/items" },
+      { key: "suppliers", label: "Suppliers", href: "/admin/inventory/suppliers" },
+      { key: "purchase", label: "Purchases", href: "/admin/inventory/purchase" },
+      { key: "sale-allocation", label: "Sale/Allocation", href: "/admin/inventory/sale-allocation" },
+    ],
+  },
+  {
+    key: "leave",
+    label: "Leave",
+    icon: <SettingOutlined />,
+    children: [
+      { key: "leave-category", label: "Leave Category", href: "/admin/leave/leave-category" },
+      { key: "leave-permission", label: "Leave Permission", href: "/admin/leave/leave-permission" },
     ],
   },
 ];
