@@ -53,7 +53,7 @@ export const schoolNav = [
     label: "Students",
     icon: <UserOutlined />,
     children: [
-      { key: "new-admission", label: "Onboard Admission", href: "/admin/students/admission" },
+      // { key: "new-admission", label: "Onboard Admission", href: "/admin/students/admission" },
       { key: "students-all", label: "All Students", href: "/admin/students" },
       { key: "students-promote", label: "Promote / Transfer", href: "/admin/students/promote" },
 

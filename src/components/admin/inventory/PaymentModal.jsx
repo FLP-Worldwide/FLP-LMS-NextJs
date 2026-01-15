@@ -17,23 +17,47 @@ export default function PaymentModal({
     note: editPayment?.note || "",
   });
 
-  const submit = async () => {
+const [error, setError] = useState("");
+const [loading, setLoading] = useState(false);
+
+const submit = async () => {
+  try {
+    setError("");
+    setLoading(true);
+
     const payload = {
       inventory_purchase_id: purchaseId,
       ...form,
     };
 
+    let res;
+
     if (editPayment) {
-      await api.post(
+      res = await api.post(
         `/inventory/purchase/payment/${editPayment.id}`,
         payload
       );
     } else {
-      await api.post("/inventory/purchase/payment", payload);
+      res = await api.post("/inventory/purchase/payment", payload);
+    }
+
+    // Backend logical error handling
+    if (res.data?.status === "error") {
+      setError(res.data.message || "Something went wrong");
+      return;
     }
 
     onSaved();
-  };
+  } catch (err) {
+    // Laravel validation or server error
+    setError(
+      err?.response?.data?.message ||
+        "Unable to save payment. Please try again."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -126,7 +150,13 @@ export default function PaymentModal({
             {editPayment ? "Update" : "Add"}
           </button>
         </div>
+        {error && (
+          <div className="mx-6 mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            {error}
+          </div>
+        )}
       </div>
+      
     </div>
   );
 }

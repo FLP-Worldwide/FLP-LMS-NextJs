@@ -1,11 +1,11 @@
 export const SECTIONS = [
     "Pre",
     "Pre-Primary",
-  "A",
-  "B",
-  "C",
-  "D",
-  "E",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
 ];
 
 

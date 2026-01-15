@@ -151,12 +151,12 @@ export default function InventoryItemTab() {
 
                   {/* TOTAL UNITS (default 0 for now) */}
                   <td className="px-4 py-2 text-center">
-                    {i.total_units ?? 0}
+                    {i.quantity ?? 0}
                   </td>
 
                   {/* AVAILABLE UNITS (red when 0) */}
                   <td className="px-4 py-2 text-center text-red-500 font-medium">
-                    {i.available_units ?? 0}
+                    {i.quantity ?? 0}
                   </td>
 
                   <td className="px-4 py-2 text-center">

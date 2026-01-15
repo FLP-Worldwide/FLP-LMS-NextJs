@@ -1,19 +1,28 @@
 import { useState } from "react";
 import { DownOutlined, SettingOutlined } from "@ant-design/icons";
+import PrimaryButton from "../ui/PrimaryButton";
 export default function StudentsHeaderActions() {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-2 relative">
       {/* MORE BUTTON */}
+      
       <button
         onClick={() => setOpen((v) => !v)}
-        className="px-3 py-2 rounded-lg border border-gray-200 text-sm gap-1.5 flex
-                   hover:bg-gray-50 transition"
+        className="px-4 py-1 rounded-lg border border-gray-200 text-sm gap-1.5 flex
+                   hover:bg-gray-100 transition"
       >
         More
         <SettingOutlined className="text-xs text-gray-500" />
       </button>
+
+       <div className="flex items-center gap-3">
+       
+          <a href="/admin/students/admission/new">
+             <PrimaryButton name="+ New Admission" />
+          </a>
+        </div>
 
       {/* DROPDOWN */}
       {open && (

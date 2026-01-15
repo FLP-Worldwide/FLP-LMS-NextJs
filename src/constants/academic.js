@@ -19,7 +19,7 @@ export const CLASSES = [
   "Class 12",
 ];
 
-export const SECTIONS = ["A", "B", "C", "D"];
+
 
 export const DEPARTMENTS = [
   "Mathematics",
