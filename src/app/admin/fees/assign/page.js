@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { api } from "@/utils/api";
-
+import { formatRupees } from "@/lib/formatHelper";
 /* ================= CONSTANTS ================= */
 
 const ASSIGN_DATE_OPTIONS = [
@@ -22,6 +22,8 @@ export default function AssignFeesPage() {
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
   const [students, setStudents] = useState([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+
 
   const [filters, setFilters] = useState({
     course_id: "",
@@ -39,6 +41,42 @@ export default function AssignFeesPage() {
   const [selectedStructureId, setSelectedStructureId] = useState("");
   const [installments, setInstallments] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
+const [feeTypes, setFeeTypes] = useState([]);
+  const [extraInstallments, setExtraInstallments] = useState([
+  {
+    fee_type_id: "",
+    assign_type: "TRIGGER",
+    offset: "",
+    amount: "",
+  },
+]);
+
+const addExtraRow = () => {
+  setExtraInstallments((p) => [
+    ...p,
+    { fee_type_id: "", assign_type: "TRIGGER", offset: "", amount: "" },
+  ]);
+};
+const fetchFeeTypes = async () => {
+  const res = await api.get("/fees/types");
+  setFeeTypes(res.data?.data || []);
+};
+
+useEffect(() => {
+  fetchFeeTypes();
+}, []);
+const removeExtraRow = (index) => {
+  setExtraInstallments((p) => p.filter((_, i) => i !== index));
+};
+
+const updateExtraRow = (index, key, value) => {
+  setExtraInstallments((p) => {
+    const copy = [...p];
+    copy[index][key] = value;
+    return copy;
+  });
+};
+
 
   /* ================= FETCH ================= */
 
@@ -58,9 +96,22 @@ export default function AssignFeesPage() {
   };
 
   const searchStudents = async () => {
-    const res = await api.get("/students/filter", { params: filters });
-    setStudents(res.data?.data || []);
+    setLoadingStudents(true);
+
+    try {
+      const res = await api.get("/students/filter", {
+        params: filters,
+      });
+
+      setStudents(res.data?.data || []);
+    } catch (error) {
+      console.error("Failed to filter students", error);
+      setStudents([]);
+    } finally {
+      setLoadingStudents(false);
+    }
   };
+
 
   const fetchFeeStructures = async () => {
     const res = await api.get("/fees/structure/installments", {
@@ -80,27 +131,73 @@ export default function AssignFeesPage() {
       (s) => s.id === Number(structureId)
     );
 
-    if (!structure) return;
+   if (!structure) {
+      setInstallments([]);
+      setTotalAmount(0);
+      return;
+    }
+
 
     setInstallments(structure.installments || []);
+
     setTotalAmount(
       structure.installments.reduce(
         (sum, i) => sum + Number(i.amount),
         0
       )
     );
+
+    
   };
+
+  useEffect(() => {
+    const baseTotal = installments.reduce(
+      (s, i) => s + Number(i.amount || 0),
+      0
+    );
+
+    const extraTotal = extraInstallments.reduce(
+      (s, i) => s + Number(i.amount || 0),
+      0
+    );
+
+    setTotalAmount(baseTotal + extraTotal);
+  }, [installments, extraInstallments]);
 
   /* ================= ASSIGN ================= */
+const fetchStructuresByClass = async (classId) => {
+  try {
+    const res = await api.get(`/fees/structures/by-class/${classId}`);
+    setFeeStructures(res.data?.data || []);
+  } catch (error) {
+    console.error("Failed to load fee structures", error);
+    setFeeStructures([]);
+  }
+};
 
-  const assignFees = async () => {
-    await api.post("/fees/assign", {
-      student_id: selectedStudent.id,
-      fees_structure_id: selectedStructureId,
-    });
+const assignFees = async () => {
+  if (!selectedStructureId) {
+    alert("Please select a Fee Structure");
+    return;
+  }
 
-    setShowAssignModal(false);
-  };
+  await api.post("/fees/assign-to-student", {
+    student_id: selectedStudent.id,
+    fees_structure_id: selectedStructureId,
+    extra_installments: extraInstallments
+      .filter((i) => i.fee_type_id && i.amount)
+      .map((i) => ({
+        ...i,
+        offset: Number(i.offset || 0),
+        amount: Number(i.amount),
+      })),
+
+  });
+
+  setShowAssignModal(false);
+};
+
+
 
   /* ================= UI ================= */
 
@@ -160,13 +257,23 @@ export default function AssignFeesPage() {
             <tr>
               <th className="p-3 text-left">Student Id</th>
               <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Class</th>
               <th className="p-3 text-left">Total Fee (Rs)</th>
+              <th className="p-3 text-left">Total Assign Fee (Rs)</th>
               <th className="p-3 text-right">Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {students.length === 0 && (
+            {loadingStudents && (
+              <tr>
+                <td colSpan="4" className="p-6 text-center text-gray-400">
+                  Loading...
+                </td>
+              </tr>
+            )}
+
+            {!loadingStudents && students.length === 0 && (
               <tr>
                 <td colSpan="4" className="p-6 text-center text-gray-400">
                   No Student found !
@@ -174,26 +281,65 @@ export default function AssignFeesPage() {
               </tr>
             )}
 
-            {students.map((s) => (
-              <tr key={s.id} className="border-t border-gray-100">
-                <td className="p-3">{s.student_uid}</td>
-                <td className="p-3">{s.name}</td>
-                <td className="p-3">₹{s.total_fee}</td>
-                <td className="p-3 text-right">
-                  <button
-                    onClick={() => {
-                      setSelectedStudent(s);
-                      fetchFeeStructures();
-                      setShowAssignModal(true);
-                    }}
-                    className="text-blue-600"
-                  >
-                    Assign
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {!loadingStudents &&
+              students.map((s) => (
+                <tr key={s.id} className="border-t border-gray-100">
+                  {/* Student ID */}
+                  <td className="p-3 font-mono">
+                    {s.admission_no}
+                  </td>
+
+                  {/* Name */}
+                  <td className="p-3">
+                    {s.first_name} {s.last_name}
+                  </td>
+
+                  {/* Total Fee (not in API yet) */}
+                  <td className="p-3">
+                    Class {s.class} - {s.section}
+                  </td>
+                  <td className="p-3">
+                    {formatRupees(s.total_fees) || "N/A"}
+                  </td>
+                  <td className="p-3">
+                    {formatRupees(s.assigned_fees) || "N/A"}
+                  </td>
+
+                  {/* Action */}
+                  <td className="p-3 text-right">
+                    <button
+                      onClick={() => {
+                        setSelectedStudent(s);
+
+                        // 🔥 fetch fee structures by student class
+                        fetchStructuresByClass(s.class);
+
+                        // reset modal state
+                        setSelectedStructureId("");
+                        setInstallments([]);
+                        setTotalAmount(0);
+
+                        setShowAssignModal(true);
+                        // ✅ RESET EXTRA FEES
+                        setExtraInstallments([
+                          {
+                            fee_type_id: "",
+                            assign_type: "TRIGGER",
+                            offset: "",
+                            amount: "",
+                          },
+                        ]);
+
+                      }}
+                      className="text-blue-600"
+                    >
+                      Assign
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
+
         </table>
       </div>
 
@@ -209,40 +355,156 @@ export default function AssignFeesPage() {
           }
         >
           <div className="space-y-4">
-            <select
+           <select
               className="soft-select w-80"
               value={selectedStructureId}
               onChange={(e) => onSelectStructure(e.target.value)}
             >
               <option value="">Select Fee Structure</option>
+
               {feeStructures.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.fee_structure_name}
+                  {s.name || s.fees_type?.name}
                 </option>
               ))}
             </select>
+              {/* ================= ADD EXTRA INSTALLMENTS ================= */}
+              <div className="mt-4 border-t pt-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-sm font-semibold text-gray-700">
+                    Add Extra Fee (Optional)
+                  </h4>
+                </div>
+
+                {extraInstallments.map((row, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-12 gap-2 items-center mb-2"
+                  >
+                    {/* Fee Type */}
+                    <div className="col-span-3">
+                      <select
+                        className="soft-select"
+                        value={row.fee_type_id}
+                        onChange={(e) =>
+                          updateExtraRow(index, "fee_type_id", e.target.value)
+                        }
+                      >
+                        <option value="">Fee Type</option>
+                          {feeTypes.map((f) => (
+                            <option key={f.id} value={f.id}>
+                              {f.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    {/* Trigger */}
+                    <div className="col-span-3">
+                      <select
+                        className="soft-select"
+                        value={row.assign_type}
+                        onChange={(e) =>
+                          updateExtraRow(index, "assign_type", e.target.value)
+                        }
+                      >
+                        <option value="TRIGGER">Trigger Date</option>
+                        <option value="BAD">Batch Assign Date (BAD)</option>
+                        <option value="DAYS_AFTER_BAD">Days after BAD</option>
+                        <option value="MONTH_AFTER_BAD">Months after BAD</option>
+                      </select>
+                    </div>
+
+                    {/* Offset */}
+                    <div className="col-span-2">
+                      <input
+                        type="number"
+                        className="soft-input"
+                        placeholder="Day/Month"
+                        value={row.offset}
+                        onChange={(e) =>
+                          updateExtraRow(index, "offset", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    {/* Amount */}
+                    <div className="col-span-3">
+                      <input
+                        type="number"
+                        className="soft-input"
+                        placeholder="Amount"
+                        value={row.amount}
+                        onChange={(e) =>
+                          updateExtraRow(index, "amount", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    {/* Action */}
+                    <div className="col-span-1 flex gap-1">
+                      {index === extraInstallments.length - 1 && (
+                        <button
+                          onClick={addExtraRow}
+                          className="text-blue-600 text-xl"
+                        >
+                          +
+                        </button>
+                      )}
+                      {extraInstallments.length > 1 && (
+                        <button
+                          onClick={() => removeExtraRow(index)}
+                          className="text-red-500 text-xl"
+                        >
+                          −
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
 
             <table className="w-full text-xs border border-gray-200">
               <thead className="bg-blue-50">
                 <tr>
-                  <th className="p-2">#</th>
-                  <th className="p-2">Fee Type</th>
-                  <th className="p-2">Trigger</th>
-                  <th className="p-2">Day/Month</th>
-                  <th className="p-2">Amount</th>
+                  <th className="p-2 text-left">#</th>
+                  <th className="p-2 text-left">Fee Type</th>
+                  <th className="p-2 text-left">Trigger</th>
+                  <th className="p-2 text-left">Day/Month</th>
+                  <th className="p-2 text-left">Amount</th>
                 </tr>
               </thead>
               <tbody>
+                {/* Structure Installments */}
                 {installments.map((i, idx) => (
-                  <tr key={idx} className="border-t border-gray-100">
+                  <tr key={`base-${idx}`}>
                     <td className="p-2">{idx + 1}</td>
-                    <td className="p-2">{i.fee_type?.name}</td>
+                    <td className="p-2">{i.fees_type?.name}</td>
                     <td className="p-2">{i.assign_type}</td>
                     <td className="p-2">{i.offset}</td>
                     <td className="p-2">₹{i.amount}</td>
                   </tr>
                 ))}
+
+                {/* Extra Installments */}
+                {extraInstallments
+                  .filter((e) => e.fee_type_id && e.amount)
+                  .map((e, idx) => (
+                    <tr key={`extra-${idx}`} className="bg-yellow-50">
+                      <td className="p-2">
+                        {installments.length + idx + 1}
+                      </td>
+                      <td className="p-2">
+                        {feeTypes.find((f) => f.id == e.fee_type_id)?.name}
+                      </td>
+                      <td className="p-2">{e.assign_type}</td>
+                      <td className="p-2">{e.offset}</td>
+                      <td className="p-2">₹{e.amount}</td>
+                    </tr>
+                  ))}
               </tbody>
+
             </table>
 
             <div className="flex justify-end gap-3 pt-4">
