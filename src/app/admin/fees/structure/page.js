@@ -6,7 +6,10 @@ import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import MultiSelectDropdown from "@/components/ui/MultiSelectDropdown";
 import SecondaryButton from "@/components/ui/SecodaryButton";
-
+import SubMenu from "@/components/ui/SubMenu";
+import { useSearchParams } from "next/navigation";
+import FineManagementTab from "@/components/admin/fees/FineManagementTab";
+import RefundReasonTab from "@/components/admin/fees/RefundResonTab";
 /* ================= CONSTANTS ================= */
 
 const ASSIGN_DATE_OPTIONS = [
@@ -16,10 +19,20 @@ const ASSIGN_DATE_OPTIONS = [
   { label: "No of Month after BAD", value: "MONTH_AFTER_BAD" },
 ];
 
+const inventoryMenus = [
+  { label: "Fees Structure", href: "/admin/fees/structure" },
+  { label: "Fine Management", href: "/admin/fees/structure?type=fine" },
+  { label: "Refund Reasons", href: "/admin/fees/structure?type=refund" },
+];
+
+
+
 /* ================= PAGE ================= */
 
 export default function FeesStructurePage() {
   /* ================= STATE ================= */
+  const searchParams = useSearchParams();
+  const type = searchParams.get("type") || "fees-structure";
 
   const [feeTypes, setFeeTypes] = useState([]);
   const [selectedFeeId, setSelectedFeeId] = useState(null);
@@ -253,7 +266,13 @@ const addClassStructure = async () => {
   /* ================= UI ================= */
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <>
+       <SubMenu items={inventoryMenus} />
+      
+    {type === "fees-structure" && 
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-2">
+
       {/* LEFT – FEES TYPES */}
       <div className="lg:col-span-4 bg-white rounded-xl border border-gray-200 p-3 space-y-2">
         <div className="flex justify-between">
@@ -278,7 +297,7 @@ const addClassStructure = async () => {
           >
             <div className="text-sm font-medium">{f.name}</div>
             <div className="text-xs text-gray-500">
-              {f.structures?.length || 0} classes
+              {/* {f.structures?.length || 0} classes */}
             </div>
           </button>
         ))}
@@ -433,263 +452,268 @@ const addClassStructure = async () => {
       {/* ================= INSTALLMENT MODAL ================= */}
 
       {showInstallmentModal && (
-  <Modal
-    title="Add Fee Structure"
-    onClose={() => setShowInstallmentModal(false)}
-    rightSlot={
-      <div className="bg-blue-50 px-3 py-1 rounded-md text-sm font-medium">
-        Total Amount: {totalAmount}
-      </div>
-    }
-  >
-    {/* ================= TOP FORM ================= */}
-    <div className="grid grid-cols-3 gap-4 mb-4">
-      <div>
-        <label className="text-xs font-medium">
-          Fee Structure Name<span className="text-red-500">*</span>
-        </label>
-        <input
-          className="soft-input mt-1"
-          placeholder="Please Enter Fee Structure"
-          value={feeStructureName}
-          onChange={(e) => setFeeStructureName(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <label className="text-xs font-medium">
-          Category / Course<span className="text-red-500">*</span>
-        </label>
-        <select
-          className="soft-select mt-1"
-          value={selectedCourseId}
-          onChange={(e) => {
-            setSelectedCourseId(e.target.value);
-
-          }}
-        >
-          <option value="">Select Course</option>
-          {courses.map((course) => (
-            <option key={course.id} value={course.id}>
-              {course.name}
-            </option>
-          ))}
-        </select>
-
-      </div>
-
-      <div>
-        <label className="text-xs font-medium">
-          Batch(es)<span className="text-red-500">*</span>
-        </label>
-
-        <MultiSelectDropdown
-          options={batchOptions}
-          value={selectedBatchIds}
-          onChange={setSelectedBatchIds}
-          placeholder="Select"
-        />
-      </div>
-
-    </div>
-
-    {/* ================= TABLE HEADER ================= */}
-    <div className="grid grid-cols-12 bg-gray-50 px-3 py-2 text-xs font-medium border border-gray-200">
-      <div className="col-span-1">#</div>
-      <div className="col-span-3">Fee Type</div>
-      <div className="col-span-3">Assign Date</div>
-      <div className="col-span-2">Day/Month</div>
-      <div className="col-span-2">Total Fees (Rs)</div>
-      <div className="col-span-1"></div>
-    </div>
-
-    {/* ================= ROWS ================= */}
-    {installments.map((row, i) => (
-      <div
-        key={i}
-        className="grid grid-cols-12 gap-2 px-3 py-2 items-center border border-t-0 border-gray-200"
-      >
-        <div className="col-span-1 text-xs">{i + 1}</div>
-
-        {/* ✅ Fee Type (NO FILTERING) */}
-        <div className="col-span-3">
-          <select
-            className="soft-select"
-            value={row.fee_type_id || ""}
-            onChange={(e) =>
-              updateInstallment(i, "fee_type_id", Number(e.target.value))
+          <Modal
+            title="Add Fee Structure"
+            onClose={() => setShowInstallmentModal(false)}
+            rightSlot={
+              <div className="bg-blue-50 px-3 py-1 rounded-md text-sm font-medium">
+                Total Amount: {totalAmount}
+              </div>
             }
           >
-            <option value="">Select Fee Type</option>
-            {feeTypes.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
+            {/* ================= TOP FORM ================= */}
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-medium">
+                  Fee Structure Name<span className="text-red-500">*</span>
+                </label>
+                <input
+                  className="soft-input mt-1"
+                  placeholder="Please Enter Fee Structure"
+                  value={feeStructureName}
+                  onChange={(e) => setFeeStructureName(e.target.value)}
+                />
+              </div>
 
-        {/* Assign Date */}
-        <div className="col-span-3">
-          <select
-            className="soft-select"
-            value={row.assign_type}
-            onChange={(e) =>
-              updateInstallment(i, "assign_type", e.target.value)
-            }
+              <div>
+                <label className="text-xs font-medium">
+                  Category / Course<span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="soft-select mt-1"
+                  value={selectedCourseId}
+                  onChange={(e) => {
+                    setSelectedCourseId(e.target.value);
+
+                  }}
+                >
+                  <option value="">Select Course</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.name}
+                    </option>
+                  ))}
+                </select>
+
+              </div>
+
+              <div>
+                <label className="text-xs font-medium">
+                  Batch(es)<span className="text-red-500">*</span>
+                </label>
+
+                <MultiSelectDropdown
+                  options={batchOptions}
+                  value={selectedBatchIds}
+                  onChange={setSelectedBatchIds}
+                  placeholder="Select"
+                />
+              </div>
+
+            </div>
+
+            {/* ================= TABLE HEADER ================= */}
+            <div className="grid grid-cols-12 bg-gray-50 px-3 py-2 text-xs font-medium border border-gray-200">
+              <div className="col-span-1">#</div>
+              <div className="col-span-3">Fee Type</div>
+              <div className="col-span-3">Assign Date</div>
+              <div className="col-span-2">Day/Month</div>
+              <div className="col-span-2">Total Fees (Rs)</div>
+              <div className="col-span-1"></div>
+            </div>
+
+            {/* ================= ROWS ================= */}
+            {installments.map((row, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-12 gap-2 px-3 py-2 items-center border border-t-0 border-gray-200"
+              >
+                <div className="col-span-1 text-xs">{i + 1}</div>
+
+                {/* ✅ Fee Type (NO FILTERING) */}
+                <div className="col-span-3">
+                  <select
+                    className="soft-select"
+                    value={row.fee_type_id || ""}
+                    onChange={(e) =>
+                      updateInstallment(i, "fee_type_id", Number(e.target.value))
+                    }
+                  >
+                    <option value="">Select Fee Type</option>
+                    {feeTypes.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Assign Date */}
+                <div className="col-span-3">
+                  <select
+                    className="soft-select"
+                    value={row.assign_type}
+                    onChange={(e) =>
+                      updateInstallment(i, "assign_type", e.target.value)
+                    }
+                  >
+                    {ASSIGN_DATE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Day / Month */}
+                <div className="col-span-2">
+                  <input
+                    type="number"
+                    className="soft-input"
+                    value={row.offset}
+                    onChange={(e) =>
+                      updateInstallment(i, "offset", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Amount */}
+                <div className="col-span-2">
+                  <input
+                    type="number"
+                    className="soft-input"
+                    value={row.amount}
+                    onChange={(e) =>
+                      updateInstallment(i, "amount", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Remove */}
+                <div className="col-span-1">
+                  {installments.length > 1 && (
+                    <button
+                      onClick={() => removeInstallmentRow(i)}
+                      className="text-red-500 text-lg"
+                    >
+                      −
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* ================= ADD ROW ================= */}
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={addInstallmentRow}
+                className="soft-btn-outline text-blue-600"
+              >
+                + Add Installments
+              </button>
+            </div>
+
+            {/* ================= FOOTER ================= */}
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowInstallmentModal(false)}
+                className="soft-btn-outline"
+              >
+                Cancel
+              </button>
+            <PrimaryButton name="Save" onClick={saveInstallments} />
+
+
+            </div>
+          </Modal>
+        )}
+        {showFeeModal && (
+          <Modal
+            title="Create Fee Type"
+            onClose={() => setShowFeeModal(false)}
           >
-            {ASSIGN_DATE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div>
+              <label className="text-xs font-medium">
+                Fee Type Name<span className="text-red-500">*</span>
+              </label>
+              <input
+                className="soft-input mt-1"
+                placeholder="Enter Fee Type Name"
+                value={newFeeName}
+                onChange={(e) => setNewFeeName(e.target.value)}
+              />
+            </div>
 
-        {/* Day / Month */}
-        <div className="col-span-2">
-          <input
-            type="number"
-            className="soft-input"
-            value={row.offset}
-            onChange={(e) =>
-              updateInstallment(i, "offset", e.target.value)
-            }
-          />
-        </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <SecondaryButton
+                name="Cancel"
+                onClick={() => setShowFeeModal(false)}
+              />
+              <PrimaryButton
+                name="Save"
+                onClick={createFeeType}
+              />
+            </div>
+          </Modal>
+        )}
+        {showClassModal && (
+          <Modal
+            title="Add Class Fees"
+            onClose={() => setShowClassModal(false)}
+          >
+            <div>
+              <label className="text-xs font-medium">
+                Class<span className="text-red-500">*</span>
+              </label>
+              <select
+                className="soft-select mt-1"
+                value={classForm.class_id}
+                onChange={(e) =>
+                  setClassForm({ ...classForm, class_id: e.target.value })
+                }
+              >
+                <option value="">Select Class</option>
+                {classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Amount */}
-        <div className="col-span-2">
-          <input
-            type="number"
-            className="soft-input"
-            value={row.amount}
-            onChange={(e) =>
-              updateInstallment(i, "amount", e.target.value)
-            }
-          />
-        </div>
+            <div className="mt-4">
+              <label className="text-xs font-medium">
+                Total Amount<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                className="soft-input mt-1"
+                placeholder="Enter total fees"
+                value={classForm.amount}
+                onChange={(e) =>
+                  setClassForm({ ...classForm, amount: e.target.value })
+                }
+              />
+            </div>
 
-        {/* Remove */}
-        <div className="col-span-1">
-          {installments.length > 1 && (
-            <button
-              onClick={() => removeInstallmentRow(i)}
-              className="text-red-500 text-lg"
-            >
-              −
-            </button>
-          )}
-        </div>
-      </div>
-    ))}
-
-    {/* ================= ADD ROW ================= */}
-    <div className="flex justify-end mt-4">
-      <button
-        onClick={addInstallmentRow}
-        className="soft-btn-outline text-blue-600"
-      >
-        + Add Installments
-      </button>
-    </div>
-
-    {/* ================= FOOTER ================= */}
-    <div className="flex justify-end gap-3 mt-6">
-      <button
-        onClick={() => setShowInstallmentModal(false)}
-        className="soft-btn-outline"
-      >
-        Cancel
-      </button>
-     <PrimaryButton name="Save" onClick={saveInstallments} />
-
-
-    </div>
-  </Modal>
-)}
-{showFeeModal && (
-  <Modal
-    title="Create Fee Type"
-    onClose={() => setShowFeeModal(false)}
-  >
-    <div>
-      <label className="text-xs font-medium">
-        Fee Type Name<span className="text-red-500">*</span>
-      </label>
-      <input
-        className="soft-input mt-1"
-        placeholder="Enter Fee Type Name"
-        value={newFeeName}
-        onChange={(e) => setNewFeeName(e.target.value)}
-      />
-    </div>
-
-    <div className="flex justify-end gap-3 mt-6">
-      <SecondaryButton
-        name="Cancel"
-        onClick={() => setShowFeeModal(false)}
-      />
-      <PrimaryButton
-        name="Save"
-        onClick={createFeeType}
-      />
-    </div>
-  </Modal>
-)}
-{showClassModal && (
-  <Modal
-    title="Add Class Fees"
-    onClose={() => setShowClassModal(false)}
-  >
-    <div>
-      <label className="text-xs font-medium">
-        Class<span className="text-red-500">*</span>
-      </label>
-      <select
-        className="soft-select mt-1"
-        value={classForm.class_id}
-        onChange={(e) =>
-          setClassForm({ ...classForm, class_id: e.target.value })
-        }
-      >
-        <option value="">Select Class</option>
-        {classes.map((cls) => (
-          <option key={cls.id} value={cls.id}>
-            {cls.name}
-          </option>
-        ))}
-      </select>
-    </div>
-
-    <div className="mt-4">
-      <label className="text-xs font-medium">
-        Total Amount<span className="text-red-500">*</span>
-      </label>
-      <input
-        type="number"
-        className="soft-input mt-1"
-        placeholder="Enter total fees"
-        value={classForm.amount}
-        onChange={(e) =>
-          setClassForm({ ...classForm, amount: e.target.value })
-        }
-      />
-    </div>
-
-    <div className="flex justify-end gap-3 mt-6">
-      <SecondaryButton
-        name="Cancel"
-        onClick={() => setShowClassModal(false)}
-      />
-      <PrimaryButton
-        name="Save"
-        onClick={addClassStructure}
-      />
-    </div>
-  </Modal>
-)}
+            <div className="flex justify-end gap-3 mt-6">
+              <SecondaryButton
+                name="Cancel"
+                onClick={() => setShowClassModal(false)}
+              />
+              <PrimaryButton
+                name="Save"
+                onClick={addClassStructure}
+              />
+            </div>
+          </Modal>
+        )}
 
     </div>
+}
+
+    {type === "fine" && <FineManagementTab />}
+    {type === "refund" && <RefundReasonTab />}
+    </>
   );
 }

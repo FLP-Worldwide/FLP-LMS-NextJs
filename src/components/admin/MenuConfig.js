@@ -60,31 +60,31 @@ export const schoolNav = [
     ],
   },
 
-  {
-    key: "academics",
-    label: "Academics",
-    icon: <BookOutlined />,
-    children: [
-      { key: "classes", label: "Classes & Sections", href: "/admin/classes" },
-      { key: "subjects", label: "Subjects", href: "/admin/subjects" },
-      { key: "attendance", label: "Attendance", href: "/admin/attendance" },
-      { key: "timetable", label: "Timetable", href: "/admin/timetable" },
-      { key: "homework", label: "Homework", href: "/admin/homework" },
-      { key: "lesson-plan", label: "Lesson Planning", href: "/admin/lesson-plan" },
-    ],
-  },
+  // {
+  //   key: "academics",
+  //   label: "Academics",
+  //   icon: <BookOutlined />,
+  //   children: [
+  //     { key: "classes", label: "Classes & Sections", href: "/admin/classes" },
+  //     { key: "subjects", label: "Subjects", href: "/admin/subjects" },
+  //     { key: "attendance", label: "Attendance", href: "/admin/attendance" },
+  //     { key: "timetable", label: "Timetable", href: "/admin/timetable" },
+  //     { key: "homework", label: "Homework", href: "/admin/homework" },
+  //     { key: "lesson-plan", label: "Lesson Planning", href: "/admin/lesson-plan" },
+  //   ],
+  // },
 
-  {
-    key: "exams",
-    label: "Examinations",
-    icon: <FileDoneOutlined />,
-    children: [
-      { key: "exam-schedule", label: "Exam Schedule", href: "/admin/exams" },
-      { key: "marks-entry", label: "Marks Entry", href: "/admin/exams/marks" },
-      { key: "results", label: "Results", href: "/admin/results" },
-      { key: "report-cards", label: "Report Cards", href: "/admin/report-cards" },
-    ],
-  },
+  // {
+  //   key: "exams",
+  //   label: "Examinations",
+  //   icon: <FileDoneOutlined />,
+  //   children: [
+  //     { key: "exam-schedule", label: "Exam Schedule", href: "/admin/exams" },
+  //     { key: "marks-entry", label: "Marks Entry", href: "/admin/exams/marks" },
+  //     { key: "results", label: "Results", href: "/admin/results" },
+  //     { key: "report-cards", label: "Report Cards", href: "/admin/report-cards" },
+  //   ],
+  // },
 
   {
     key: "finance",
@@ -114,9 +114,10 @@ export const schoolNav = [
     icon: <DollarOutlined />,
     children: [
       { key: "fee-structure", label: "Fee Structure", href: "/admin/fees/structure" },
-      { key: "fee-collection", label: "Fee Collection", href: "/admin/fees/collection" },
-      { key: "fee-dues", label: "Due Fees", href: "/admin/fees/dues" },
-      { key: "expenses", label: "Expenses", href: "/admin/fees/expenses" },
+      { key: "fee-assign", label: "Assign", href: "/admin/fees/assign" },
+      // { key: "fee-collection", label: "Fee Collection", href: "/admin/fees/collection" },
+      // { key: "fee-dues", label: "Due Fees", href: "/admin/fees/dues" },
+      // { key: "expenses", label: "Expenses", href: "/admin/fees/expenses" },
     ],
   },
 
@@ -126,9 +127,9 @@ export const schoolNav = [
     icon: <TeamOutlined />,
     children: [
       { key: "staff-list", label: "Staff List", href: "/admin/staff" },
-      { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
-      { key: "payroll", label: "Payroll", href: "/admin/staff/payroll" },
-      { key: "salary-templates", label: "Salary Templates", href: "/admin/staff/salary-templates" },
+      // { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
+      // { key: "payroll", label: "Payroll", href: "/admin/staff/payroll" },
+      // { key: "salary-templates", label: "Salary Templates", href: "/admin/staff/salary-templates" },
     ],
   },
 
@@ -143,66 +144,67 @@ export const schoolNav = [
     ],
   },
 
-  {
-    key: "hostel",
-    label: "Hostel",
-    icon: <HomeOutlined />,
-    children: [
-      { key: "rooms", label: "Rooms", href: "/admin/hostel/rooms" },
-      { key: "allocation", label: "Room Allocation", href: "/admin/hostel/allocation" },
-      { key: "hostel-fees", label: "Hostel Fees", href: "/admin/hostel/fees" },
-    ],
-  },
+  // {
+  //   key: "hostel",
+  //   label: "Hostel",
+  //   icon: <HomeOutlined />,
+  //   children: [
+  //     { key: "rooms", label: "Rooms", href: "/admin/hostel/rooms" },
+  //     { key: "allocation", label: "Room Allocation", href: "/admin/hostel/allocation" },
+  //     { key: "hostel-fees", label: "Hostel Fees", href: "/admin/hostel/fees" },
+  //   ],
+  // },
 
-  {
-    key: "library",
-    label: "Library",
-    icon: <BankOutlined />,
-    children: [
-      { key: "books", label: "Books", href: "/admin/library/books" },
-      { key: "issue", label: "Issue / Return", href: "/admin/library/issue" },
-      { key: "fines", label: "Fines", href: "/admin/library/fines" },
-    ],
-  },
+  // {
+  //   key: "library",
+  //   label: "Library",
+  //   icon: <BankOutlined />,
+  //   children: [
+  //     { key: "books", label: "Books", href: "/admin/library/books" },
+  //     { key: "issue", label: "Issue / Return", href: "/admin/library/issue" },
+  //     { key: "fines", label: "Fines", href: "/admin/library/fines" },
+  //   ],
+  // },
 
-  {
-    key: "communication",
-    label: "Communication",
-    icon: <MessageOutlined />,
-    children: [
-      { key: "notice", label: "Notices", href: "/admin/communication/notices" },
-      { key: "sms", label: "SMS / WhatsApp", href: "/admin/communication/sms" },
-    ],
-  },
+  // {
+  //   key: "communication",
+  //   label: "Communication",
+  //   icon: <MessageOutlined />,
+  //   children: [
+  //     { key: "notice", label: "Notices", href: "/admin/communication/notices" },
+  //     { key: "sms", label: "SMS / WhatsApp", href: "/admin/communication/sms" },
+  //   ],
+  // },
 
-  {
-    key: "notifications",
-    label: "Notifications",
-    icon: <BellOutlined />,
-    href: "/admin/notifications",
-  },
+  // {
+  //   key: "notifications",
+  //   label: "Notifications",
+  //   icon: <BellOutlined />,
+  //   href: "/admin/notifications",
+  // },
 
-  {
-    key: "reports",
-    label: "Reports",
-    icon: <BarChartOutlined />,
-    children: [
-      { key: "attendance-report", label: "Attendance", href: "/admin/reports/attendance" },
-      { key: "fee-report", label: "Fees", href: "/admin/reports/fees" },
-      { key: "exam-report", label: "Academics", href: "/admin/reports/exams" },
-    ],
-  },
+  // {
+  //   key: "reports",
+  //   label: "Reports",
+  //   icon: <BarChartOutlined />,
+  //   children: [
+  //     { key: "attendance-report", label: "Attendance", href: "/admin/reports/attendance" },
+  //     { key: "fee-report", label: "Fees", href: "/admin/reports/fees" },
+  //     { key: "exam-report", label: "Academics", href: "/admin/reports/exams" },
+  //   ],
+  // },
 
-  {
-    key: "settings",
-    label: "Settings",
-    icon: <SettingOutlined />,
-    children: [
-      { key: "school-profile", label: "School Profile", href: "/admin/settings/school" },
-      { key: "roles", label: "Roles & Permissions", href: "/admin/settings/roles" },
-      { key: "backup", label: "Backup & Security", href: "/admin/settings/backup" },
-    ],
-  },
+  // {
+  //   key: "settings",
+  //   label: "Settings",
+  //   icon: <SettingOutlined />,
+  //   children: [
+  //     { key: "school-profile", label: "School Profile", href: "/admin/settings/school" },
+  //     { key: "roles", label: "Roles & Permissions", href: "/admin/settings/roles" },
+  //     { key: "backup", label: "Backup & Security", href: "/admin/settings/backup" },
+  //   ],
+  // },
+
   {
     key: "inventory",
     label: "Inventory",
