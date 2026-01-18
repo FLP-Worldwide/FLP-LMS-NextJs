@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { formatRupees } from "@/lib/formatHelper";
@@ -20,7 +20,7 @@ export default function ApprovePaymentPage() {
   const [generateReceipt, setGenerateReceipt] = useState(true);
   const [sendEmail, setSendEmail] = useState(false);
 
-  /* ================= FETCH PAYMENT ================= */
+  /* ================= FETCH ================= */
   useEffect(() => {
     if (payment_id) fetchPayment();
   }, [payment_id]);
@@ -31,199 +31,206 @@ export default function ApprovePaymentPage() {
     setInstallments(res.data.data.installments || []);
   };
 
-  /* ================= CHECKBOX HANDLER ================= */
-  const toggleInstallment = (installmentId) => {
-    setSelected((prev) => ({
-      ...prev,
-      [installmentId]: !prev[installmentId],
-    }));
+  /* ================= TOTALS ================= */
+  const paymentAmount = Number(payment?.amount || 0);
 
-    if (selected[installmentId]) {
-      const copy = { ...allocations };
-      delete copy[installmentId];
-      setAllocations(copy);
+  const totalAllocated = useMemo(
+    () =>
+      Object.values(allocations).reduce(
+        (sum, amt) => sum + Number(amt || 0),
+        0
+      ),
+    [allocations]
+  );
+
+  const remainingAmount = paymentAmount - totalAllocated;
+
+  /* ================= TOGGLE INSTALLMENT ================= */
+  const toggleInstallment = (inst) => {
+    const id = inst.student_fee_installment_id;
+
+    // UNCHECK
+    if (selected[id]) {
+      const newAlloc = { ...allocations };
+      delete newAlloc[id];
+
+      setAllocations(newAlloc);
+      setSelected({ ...selected, [id]: false });
+      return;
     }
-  };
 
-  /* ================= AMOUNT HANDLER ================= */
-  const updateAllocation = (installmentId, value) => {
+    // CHECK → AUTO ALLOCATE
+    const allocatable = Math.min(
+      inst.pending_amount,
+      remainingAmount
+    );
+
+    if (allocatable <= 0) return;
+
+    setSelected({ ...selected, [id]: true });
     setAllocations({
       ...allocations,
-      [installmentId]: Number(value),
+      [id]: allocatable,
+    });
+  };
+
+  /* ================= MANUAL CHANGE ================= */
+  const updateAllocation = (inst, value) => {
+    const id = inst.student_fee_installment_id;
+    let amount = Number(value || 0);
+
+    if (amount > inst.pending_amount) {
+      amount = inst.pending_amount;
+    }
+
+    const otherAllocated =
+      totalAllocated - (allocations[id] || 0);
+
+    if (otherAllocated + amount > paymentAmount) {
+      amount = paymentAmount - otherAllocated;
+    }
+
+    setAllocations({
+      ...allocations,
+      [id]: amount,
     });
   };
 
   /* ================= APPROVE ================= */
- const approvePayment = async () => {
-  const allocationPayload = Object.entries(allocations)
-    .filter(([_, amt]) => Number(amt) > 0)
-    .map(([installmentId, amount]) => ({
-      student_fee_installment_id: Number(installmentId),
-      amount: Number(amount),
-    }));
+  const approvePayment = async () => {
+    if (remainingAmount !== 0) {
+      alert(
+        `Please allocate full amount. Remaining: ${formatRupees(
+          remainingAmount
+        )}`
+      );
+      return;
+    }
 
-  if (!allocationPayload.length) {
-    alert("Please select at least one installment and enter amount.");
-    return;
-  }
+    const allocationPayload = Object.entries(allocations)
+      .filter(([_, amt]) => amt > 0)
+      .map(([id, amount]) => ({
+        student_fee_installment_id: Number(id),
+        amount,
+      }));
 
-  // 🔹 CALCULATE TOTAL ALLOCATED
-  const totalAllocated = allocationPayload.reduce(
-    (sum, a) => sum + a.amount,
-    0
-  );
+    try {
+      await api.post(`/fees/payment/${payment_id}/approve`, {
+        allocations: allocationPayload,
+        remarks,
+        generate_receipt: generateReceipt,
+        send_email: sendEmail,
+      });
 
-  const paymentAmount = Number(payment.amount);
-
-  // 🔴 FRONTEND VALIDATION (IMPORTANT)
-  if (totalAllocated !== paymentAmount) {
-    alert(
-      `Allocated amount (${formatRupees(
-        totalAllocated
-      )}) must be equal to payment amount (${formatRupees(
-        paymentAmount
-      )}).`
-    );
-    return;
-  }
-
-  try {
-    await api.post(`/fees/payment/${payment_id}/approve`, {
-      allocations: allocationPayload,
-      remarks,
-      generate_receipt: generateReceipt,
-      send_email: sendEmail,
-    });
-
-    alert("Payment approved successfully");
-    router.back();
-  } catch (error) {
-    console.error("Approve payment failed", error);
-
-    // 🔥 BACKEND ERROR MESSAGE HANDLING
-    const message =
-      error?.response?.data?.message ||
-      "Failed to approve payment. Please try again.";
-
-    alert(message);
-  }
-};
-
+      alert("Payment approved successfully");
+      router.back();
+    } catch (error) {
+      alert(
+        error?.response?.data?.message ||
+          "Failed to approve payment"
+      );
+    }
+  };
 
   if (!payment) return null;
 
   return (
     <div className="space-y-6">
 
-      {/* ================= STUDENT HEADER ================= */}
+      {/* ================= HEADER ================= */}
       <div className="font-semibold text-blue-600">
         {payment.student.first_name} {payment.student.last_name} (
         Class {payment.student.class}-{payment.student.section})
       </div>
 
-      {/* ================= INSTALLMENTS TABLE ================= */}
+      {/* ================= INSTALLMENTS ================= */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-3 text-left"></th>
-              <th className="p-3 text-left">Installment</th>
-              <th className="p-3 text-left">Fee Type</th>
-              <th className="p-3 text-left">Assign Type</th>
-              <th className="p-3 text-left">Assigned</th>
-              <th className="p-3 text-left">Paid</th>
-              <th className="p-3 text-left">Pending</th>
-              <th className="p-3 text-left">Paying Now</th>
-              <th className="p-3 text-left">Payable</th>
-              <th className="p-3 text-left">Type</th>
+              <th className="p-2"></th>
+              <th className="p-2">Installment</th>
+              <th className="p-2">Fee Type</th>
+              <th className="p-2">Assigned</th>
+              <th className="p-2">Paid</th>
+              <th className="p-2">Pending</th>
+              <th className="p-2">Paying Now</th>
+              <th className="p-2">Type</th>
             </tr>
           </thead>
 
           <tbody>
             {installments.map((i) => (
-              <tr
-                key={i.student_fee_installment_id}
-                className="border-t border-gray-200"
-              >
-                <td className="p-3">
+              <tr key={i.student_fee_installment_id} className="border-t">
+                <td className="p-2">
                   <input
                     type="checkbox"
                     checked={!!selected[i.student_fee_installment_id]}
-                    onChange={() =>
-                      toggleInstallment(i.student_fee_installment_id)
-                    }
+                    onChange={() => toggleInstallment(i)}
                   />
                 </td>
 
-                <td className="p-3">{i.installment_name}</td>
-                <td className="p-3">{i.fee_type}</td>
-                <td className="p-3">
-                  {i.assign_type}
-                  {i.offset ? ` (+${i.offset})` : ""}
-                </td>
-
-                <td className="p-3">
-                  {formatRupees(i.assigned_amount)}
-                </td>
-
-                <td className="p-3">
-                  {formatRupees(i.paid_amount)}
-                </td>
-
-                <td className="p-3 text-rose-600">
+                <td className="p-2">{i.installment_name}</td>
+                <td className="p-2">{i.fee_type}</td>
+                <td className="p-2">{formatRupees(i.assigned_amount)}</td>
+                <td className="p-2">{formatRupees(i.paid_amount)}</td>
+                <td className="p-2 text-rose-600">
                   {formatRupees(i.pending_amount)}
                 </td>
 
-                <td className="p-3">
+                <td className="p-2">
                   {selected[i.student_fee_installment_id] && (
                     <input
                       type="number"
                       className="soft-input w-28"
-                      max={i.pending_amount}
                       value={
                         allocations[i.student_fee_installment_id] || ""
                       }
                       onChange={(e) =>
-                        updateAllocation(
-                          i.student_fee_installment_id,
-                          e.target.value
-                        )
+                        updateAllocation(i, e.target.value)
                       }
                     />
                   )}
                 </td>
 
-                <td className="p-3">
-                  {formatRupees(
-                    allocations[i.student_fee_installment_id] || 0
-                  )}
-                </td>
-
-                <td className="p-3">
+                <td className="p-2">
                   {i.is_extra ? "Extra" : "Regular"}
                 </td>
               </tr>
             ))}
           </tbody>
+
+          {/* ================= FOOTER ================= */}
+          <tfoot className="bg-gray-50">
+            <tr>
+              <td colSpan="5" className="p-3 text-right font-semibold">
+                Remaining Amount:
+              </td>
+              <td colSpan="3" className="p-3 font-semibold text-rose-600">
+                {formatRupees(remainingAmount)}
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 
       {/* ================= PAYMENT DETAILS ================= */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 grid grid-cols-3 gap-4 text-sm">
         <div>
-          <label>Payment Date</label>
-          <input
-            className="soft-input"
-            value={payment.payment_date}
-            disabled
-          />
+          <label>Payment Mode</label>
+          <input className="soft-input" value={payment.payment_mode} disabled />
         </div>
 
         <div>
-          <label>Payment Mode</label>
+          <label>Payment Date</label>
+          <input className="soft-input" value={payment.payment_date} disabled />
+        </div>
+
+        <div>
+          <label>Amount</label>
           <input
             className="soft-input"
-            value={payment.payment_mode}
+            value={formatRupees(payment.amount)}
             disabled
           />
         </div>
@@ -237,22 +244,13 @@ export default function ApprovePaymentPage() {
           />
         </div>
 
-        <div>
-          <label>Amount</label>
-          <input
-            className="soft-input"
-            value={formatRupees(payment.amount)}
-            disabled
-          />
-        </div>
-
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
             checked={generateReceipt}
             onChange={() => setGenerateReceipt(!generateReceipt)}
           />
-          Generate Fee Receipt
+          Generate Receipt
         </div>
 
         <div className="flex items-center gap-2">
@@ -261,16 +259,13 @@ export default function ApprovePaymentPage() {
             checked={sendEmail}
             onChange={() => setSendEmail(!sendEmail)}
           />
-          Send Email (Student/Parent)
+          Send Email
         </div>
       </div>
 
       {/* ================= ACTIONS ================= */}
       <div className="flex justify-end gap-3">
-        <button
-          className="soft-btn-outline"
-          onClick={() => router.back()}
-        >
+        <button className="soft-btn-outline" onClick={() => router.back()}>
           Cancel
         </button>
 

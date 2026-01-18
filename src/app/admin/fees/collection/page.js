@@ -5,12 +5,12 @@ import PrimaryButton from "@/components/ui/PrimaryButton";
 import { api } from "@/utils/api";
 import { formatRupees } from "@/lib/formatHelper";
 import Modal from "@/components/ui/Modal";
-
-
+import { useRouter } from "next/navigation";
 
 /* ---------------- PAGE ---------------- */
 export default function CollectionPage() {
   /* FILTER STATE (same as AssignFees) */
+  const router = useRouter();
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
   const [students, setStudents] = useState([]);
@@ -90,8 +90,9 @@ const fetchPayments = async (studentId) => {
   };
   
   const submitPayment = async () => {
+    // console.log(selectedStudent);
     await api.post("/fees/update/payments", {
-      student_id: selectedStudent.id,
+      student_id: selectedStudent.student_id,
       payment_mode: paymentForm.payment_mode,
       amount: Number(paymentForm.amount),
       payment_date: paymentForm.payment_date,
@@ -104,7 +105,7 @@ const fetchPayments = async (studentId) => {
     });
 
     setShowAddPayment(false);
-    fetchPayments(selectedStudent.id);
+    fetchPayments(selectedStudent.student_id);
   };
 
   return (
@@ -241,9 +242,12 @@ const fetchPayments = async (studentId) => {
       {/* ACTION */}
       <td className="p-3 text-right">
         <div className="flex justify-end gap-2">
-          <button className="soft-btn-outline">
-            View
-          </button>
+          <button
+              className=" underline text-xs bg-gray-200 px-2 py-1"
+              onClick={() => router.push(`/admin/fees/collection/view/${s.student_id}`)}
+            >
+              View
+            </button>
 
           {!s.is_fully_paid && (
             <button

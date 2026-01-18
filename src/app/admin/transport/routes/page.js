@@ -1,36 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
-
-/* ---------------- SAMPLE DATA ---------------- */
-
-const initialRoutes = [
-  {
-    id: 1,
-    name: "Route 1 – North City",
-    vehicleNo: "RJ14 AB 1234",
-    startPoint: "North City",
-    endPoint: "ABC Public School",
-    stops: ["Shastri Nagar", "Civil Lines", "Station Road"],
-  },
-];
+import React, { useEffect, useState } from "react";
+import { api } from "@/utils/api";
 
 export default function TransportRoutePage() {
-  const [routes, setRoutes] = useState(initialRoutes);
+  const [routes, setRoutes] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
   /* FORM STATE */
-  const [name, setName] = useState("");
-  const [vehicleNo, setVehicleNo] = useState("");
+  const [routeName, setRouteName] = useState("");
+
   const [startPoint, setStartPoint] = useState("");
   const [endPoint, setEndPoint] = useState("");
   const [stops, setStops] = useState([]);
   const [newStop, setNewStop] = useState("");
 
+  /* ================= FETCH ROUTES ================= */
+  useEffect(() => {
+    fetchRoutes();
+  }, []);
+
+  const fetchRoutes = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/transport/routes");
+      setRoutes(res.data?.data || []);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= MODAL HELPERS ================= */
   const resetForm = () => {
-    setName("");
-    setVehicleNo("");
+    setRouteName("");
+
     setStartPoint("");
     setEndPoint("");
     setStops([]);
@@ -45,58 +51,56 @@ export default function TransportRoutePage() {
 
   const openEdit = (route) => {
     setEditing(route);
-    setName(route.name);
-    setVehicleNo(route.vehicleNo);
-    setStartPoint(route.startPoint);
-    setEndPoint(route.endPoint);
-    setStops(route.stops);
+    setRouteName(route.route_name);
+
+    setStartPoint(route.start_point);
+    setEndPoint(route.end_point);
+    setStops(route.stops?.map((s) => s.stop_name) || []);
     setShowModal(true);
   };
 
-  const saveRoute = () => {
-    if (!name || !startPoint || !endPoint) {
+  /* ================= SAVE ================= */
+  const saveRoute = async () => {
+    if (!routeName || !startPoint || !endPoint) {
       alert("Route name, start and end point are required");
       return;
     }
 
-    if (editing) {
-      setRoutes((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-                ...r,
-                name,
-                vehicleNo,
-                startPoint,
-                endPoint,
-                stops,
-              }
-            : r
-        )
-      );
-    } else {
-      setRoutes((prev) => [
-        {
-          id: Date.now(),
-          name,
-          vehicleNo,
-          startPoint,
-          endPoint,
-          stops,
-        },
-        ...prev,
-      ]);
+    const payload = {
+      route_name: routeName,
+
+      start_point: startPoint,
+      end_point: endPoint,
+      stops: stops.map((s) => ({ stop_name: s })),
+    };
+
+    try {
+      if (editing) {
+        await api.put(`/transport/routes/${editing.id}`, payload);
+      } else {
+        await api.post("/transport/routes", payload);
+      }
+
+      setShowModal(false);
+      resetForm();
+      fetchRoutes();
+    } catch (e) {
+      alert("Failed to save route");
     }
-
-    setShowModal(false);
-    resetForm();
   };
 
-  const deleteRoute = (id) => {
+  /* ================= DELETE ================= */
+  const deleteRoute = async (id) => {
     if (!confirm("Delete this route?")) return;
-    setRoutes((prev) => prev.filter((r) => r.id !== id));
+    try {
+      await api.delete(`/transport/routes/${id}`);
+      fetchRoutes();
+    } catch {
+      alert("Failed to delete route");
+    }
   };
 
+  /* ================= STOPS ================= */
   const addStop = () => {
     if (!newStop.trim()) return;
     setStops((prev) => [...prev, newStop.trim()]);
@@ -109,6 +113,7 @@ export default function TransportRoutePage() {
 
   return (
     <div className="space-y-4">
+
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
@@ -136,65 +141,58 @@ export default function TransportRoutePage() {
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-xs text-gray-600">
-                  Route Name
-                </th>
-                <th className="px-4 py-2 text-xs text-gray-600">
-                  Vehicle
-                </th>
-                <th className="px-4 py-2 text-xs text-gray-600">
-                  Start
-                </th>
-                <th className="px-4 py-2 text-xs text-gray-600">
-                  End
-                </th>
-                <th className="px-4 py-2 text-xs text-gray-600">
-                  Stops
-                </th>
-                <th className="px-4 py-2 text-xs text-gray-600">
-                  Action
-                </th>
+                <th className="px-4 py-2 text-xs">Route</th>
+                <th className="px-4 py-2 text-xs">Vehicle</th>
+                <th className="px-4 py-2 text-xs">Start</th>
+                <th className="px-4 py-2 text-xs">End</th>
+                <th className="px-4 py-2 text-xs">Stops</th>
+                <th className="px-4 py-2 text-xs">Action</th>
               </tr>
             </thead>
 
             <tbody className="divide-y">
-              {routes.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-4 py-2 text-sm font-medium">
-                    {r.name}
-                  </td>
-                  <td className="px-4 py-2 text-sm">
-                    {r.vehicleNo || "—"}
-                  </td>
-                  <td className="px-4 py-2 text-sm">
-                    {r.startPoint}
-                  </td>
-                  <td className="px-4 py-2 text-sm">
-                    {r.endPoint}
-                  </td>
-                  <td className="px-4 py-2 text-sm">
-                    {r.stops.length
-                      ? r.stops.join(", ")
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-2 text-sm">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openEdit(r)}
-                        className="soft-btn-outline"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteRoute(r.id)}
-                        className="px-3 py-1 rounded-md border border-red-200 text-red-600 text-sm hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
-                    </div>
+              {loading && (
+                <tr>
+                  <td colSpan="6" className="p-6 text-center text-gray-400">
+                    Loading...
                   </td>
                 </tr>
-              ))}
+              )}
+
+              {!loading &&
+                routes.map((r) => (
+                  <tr key={r.id}>
+                    <td className="px-4 py-2 font-medium">
+                      {r.route_name}
+                    </td>
+                    <td className="px-4 py-2">
+                      {r.vehicle_number || "—"}
+                    </td>
+                    <td className="px-4 py-2">{r.start_point}</td>
+                    <td className="px-4 py-2">{r.end_point}</td>
+                    <td className="px-4 py-2 text-sm">
+                      {r.stops?.length
+                        ? r.stops.map((s) => s.stop_name).join(", ")
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-2">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openEdit(r)}
+                          className="soft-btn-outline"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteRoute(r.id)}
+                          className="px-3 py-1 rounded-md border border-red-200 text-red-600 text-sm hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -217,27 +215,22 @@ export default function TransportRoutePage() {
               <input
                 className="soft-input"
                 placeholder="Route Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={routeName}
+                onChange={(e) => setRouteName(e.target.value)}
               />
+
+
 
               <input
                 className="soft-input"
-                placeholder="Vehicle Number"
-                value={vehicleNo}
-                onChange={(e) => setVehicleNo(e.target.value)}
-              />
-
-              <input
-                className="soft-input"
-                placeholder="Start Point (City / Area)"
+                placeholder="Start Point"
                 value={startPoint}
                 onChange={(e) => setStartPoint(e.target.value)}
               />
 
               <input
                 className="soft-input"
-                placeholder="End Point (School)"
+                placeholder="End Point"
                 value={endPoint}
                 onChange={(e) => setEndPoint(e.target.value)}
               />
@@ -251,10 +244,7 @@ export default function TransportRoutePage() {
 
               <div className="space-y-2 mt-1">
                 {stops.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2"
-                  >
+                  <div key={i} className="flex gap-2">
                     <div className="flex-1 soft-input bg-gray-50">
                       {i + 1}. {s}
                     </div>
@@ -274,10 +264,7 @@ export default function TransportRoutePage() {
                     value={newStop}
                     onChange={(e) => setNewStop(e.target.value)}
                   />
-                  <button
-                    onClick={addStop}
-                    className="soft-btn-outline"
-                  >
+                  <button onClick={addStop} className="soft-btn-outline">
                     Add
                   </button>
                 </div>

@@ -16,6 +16,7 @@ const leadMenus = [
 
   { label: "Subject", href: "/admin/classes/setup?type=subject" },
   { label: "Routin", href: "/admin/classes/setup?type=routin" },
+  { label: "Topics", href: "/admin/classes/setup?type=topics" },
   // { label: "Topics", href: "/admin/classes/setup?type=topics" },
 ];
 
@@ -44,6 +45,7 @@ export default function ClassesSetupPage() {
       {type === "subject" && <SubjectTab />}
       {type === "topics" && <TopicsTab />}
       {type === "routin" && <RoutinTab />}
+
     </div>
   );
 }

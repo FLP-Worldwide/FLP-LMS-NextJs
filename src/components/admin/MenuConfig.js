@@ -117,6 +117,8 @@ export const schoolNav = [
       { key: "fee-assign", label: "Assign", href: "/admin/fees/assign" },
       { key: "fee-collection", label: "Fee Collection", href: "/admin/fees/collection" },
       { key: "payments-pending", label: "Payments", href: "/admin/fees/pending-payments" },
+      { key: "payments-refund", label: "Refund", href: "/admin/fees/refund" },
+      { key: "payments-concession", label: "Concession", href: "/admin/fees/concession" },
       // { key: "fee-dues", label: "Due Fees", href: "/admin/fees/dues" },
       // { key: "expenses", label: "Expenses", href: "/admin/fees/expenses" },
     ],
