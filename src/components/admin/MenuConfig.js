@@ -137,6 +137,18 @@ export const schoolNav = [
   },
 
   {
+    key: "exam",
+    label: "Exam",
+    icon: <CarOutlined />,
+    children: [
+      { key: "setup", label: "Setup", href: "/admin/exam/setup" },
+      { key: "schedule", label: "Schedule", href: "/admin/exam/schedule" },
+      { key: "attendance", label: "Attendance", href: "/admin/exam/exam-attendance" },
+      { key: "marks", label: "Marks", href: "/admin/exam/exam-marks" },
+      { key: "exam-dashboard", label: "Exam-Dashboard", href: "/admin/exam/exam-dashboard" },
+    ],
+  },
+  {
     key: "transport",
     label: "Transport",
     icon: <CarOutlined />,
@@ -146,6 +158,26 @@ export const schoolNav = [
       { key: "assign", label: "Student Transport", href: "/admin/transport/assign" },
     ],
   },
+  {
+    key: "live-class",
+    label: "Live Classes",
+    icon: <CarOutlined />,
+    children: [
+      { key: "setup", label: "Settings", href: "/admin/live-class/setting" },
+      { key: "zoom", label: "Zoom", href: "/admin/live-class/zoom" },
+    ],
+  },
+  {
+    key: "content-library",
+    label: "Content Library",
+    icon: <CarOutlined />,
+    children: [
+      { key: "study-materials", label: "Study Materials", href: "/admin/content-library/study-materials" },
+      { key: "file-manager", label: "File Manager", href: "/admin/content-library/file-manager" },
+    ],
+  },
+
+  { key: "assignments", label: "Assignments", href: "/admin/assignments", icon: <DashboardOutlined /> },
 
   // {
   //   key: "hostel",

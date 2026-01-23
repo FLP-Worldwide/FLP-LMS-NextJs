@@ -58,13 +58,14 @@ export default function AdminSidebar() {
 
 
 
-  return (
+  return (  
     <aside
-      className={`h-screen ${
+      className={`sticky top-0 h-screen ${
         collapsed ? "w-20" : "w-64"
-      } transition-all duration-200`}
+      } transition-all duration-200 flex-shrink-0`}
     >
       <div className="h-full bg-gray-700 text-white shadow-sm flex flex-col p-4">
+
 
         {/* BRAND */}
         <div className="flex items-center justify-between mb-4">

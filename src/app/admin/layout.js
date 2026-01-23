@@ -10,7 +10,8 @@ export default function AdminLayout({ children }) {
 
   return (
   <AdminProvider>
-    <div className="min-h-screen flex bg-gray-50">
+   <div className="h-screen flex bg-gray-50 overflow-hidden">
+
       {/* Sidebar fixed column */}
       <div className="flex-shrink-0">
         <AdminSidebar />
