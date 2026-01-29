@@ -92,51 +92,57 @@ const [toDate, setToDate] = useState(to);
 
   /* ---------------- FETCH ATTENDANCE ---------------- */
   useEffect(() => {
-    async function fetchAttendance() {
-      setLoading(true);
+  async function fetchAttendance() {
+    setLoading(true);
 
-      let params = {};
-
-      if (fromDate || toDate) {
-        params = { from: fromDate, to: toDate };
-      } else {
-        params = { month };
-      }
-
-      const res = await api.get("/teacher-attendance", { params });
-
-      const staff = [];
-      const map = {};
-
-      (res.data?.data || []).forEach((row) => {
-        staff.push(row.teacher);
-        map[row.teacher.id] = {};
-
-        // Month / range / year response
-        if (
-          row.attendance &&
-          typeof row.attendance === "object" &&
-          !row.attendance.date
-        ) {
-          Object.entries(row.attendance).forEach(([date, status]) => {
-            map[row.teacher.id][date] = status;
-          });
-        }
-
-        // Single date response
-        if (row.attendance?.date) {
-          map[row.teacher.id][row.attendance.date] =
-            row.attendance.status;
-        }
-      });
-
-      setStaffList(staff);
-      setAttendance(map);
-      setLoading(false);
+    let params = {};
+    if (fromDate || toDate) {
+      params = { from: fromDate, to: toDate };
+    } else {
+      params = { month };
     }
 
-    fetchAttendance();
-  }, [month, fromDate, toDate]);
+    const res = await api.get("/teacher-attendance", { params });
+
+    const staff = [];
+    const map = {};
+
+    const data = res.data?.data || {};
+    const allUsers = [
+      ...(data.teachers || []),
+      ...(data.staff || []),
+    ];
+
+    allUsers.forEach((row) => {
+      const profile = row.profile;
+
+      const user = {
+        id: profile.id,
+        name: profile.name,
+        department: profile.department || "—",
+        designation: profile.designation || "—",
+        type: row.type, // teacher / staff
+      };
+
+      staff.push(user);
+
+      map[user.id] = {};
+
+      if (row.attendance && typeof row.attendance === "object") {
+        Object.entries(row.attendance).forEach(([date, status]) => {
+          map[user.id][date] = status;
+        });
+      }
+    });
+
+    setStaffList(staff);
+    setAttendance(map);
+    setLoading(false);
+  }
+
+  fetchAttendance();
+}, [month, fromDate, toDate]);
+
 
   /* ---------------- FILTER STAFF ---------------- */
   const filteredStaff =
@@ -164,10 +170,18 @@ const [toDate, setToDate] = useState(to);
         const status = attendance?.[s.id]?.[todayKey];
         if (!status || status === "S") return null;
 
-        return {
+       if (s.type === "teacher") {
+          return {
             teacher_id: s.id,
             status,
+          };
+        }
+
+        return {
+          user_id: s.id,
+          status,
         };
+
         })
         .filter(Boolean);
 

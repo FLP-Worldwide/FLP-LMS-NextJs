@@ -1,16 +1,27 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-
+import React, { useEffect, useMemo, useState } from "react";
+import { api } from "@/utils/api";
+import { useParams } from "next/navigation";
 /* ================= CONSTANT ================= */
 const ATTENDANCE_STYLE = {
   P: "bg-green-100 text-green-700",
-  A: "text-red-500",
-  LP: "text-blue-500",
-  HP: "text-gray-700",
-  L: "text-gray-400",
-  S: "text-gray-300",
-  H: "text-orange-500",
+  A: "bg-red-100 text-red-600",
+  LP: "bg-blue-100 text-blue-600",
+  HP: "bg-purple-100 text-purple-600",
+  L: "bg-gray-100 text-gray-600",
+  S: "bg-yellow-50 text-yellow-600",
+  H: "bg-orange-100 text-orange-600",
+  "-": "bg-gray-50 text-gray-400",
+};
+const CELL_BG = {
+  P: "bg-green-50",
+  A: "bg-red-50",
+  LP: "bg-blue-50",
+  HP: "bg-purple-50",
+  L: "bg-gray-50",
+  H: "bg-orange-50",
+  S: "bg-yellow-50",
 };
 
 /* ================= DATE HELPERS ================= */
@@ -25,7 +36,7 @@ const getMonthDaysGrid = (year, month) => {
   const firstDay = new Date(year, month, 1);
   const lastDate = new Date(year, month + 1, 0).getDate();
 
-  const startWeekDay = firstDay.getDay(); // 0 = Sunday
+  const startWeekDay = firstDay.getDay();
   const cells = [];
 
   for (let i = 0; i < startWeekDay; i++) cells.push(null);
@@ -37,57 +48,123 @@ const getMonthDaysGrid = (year, month) => {
 
 /* ================= PAGE ================= */
 export default function ViewTeacherDetailPage() {
-  /* ===== DEFAULT MONTH SET TO DATA MONTH ===== */
-  const [year, setYear] = useState(2024);
-  const [month, setMonth] = useState(3); // April (0-based)
+  const params = useParams();
+  const staffId = params?.id;
 
-  /* ================= TEACHER DATA ================= */
-  const teacher = {
-    name: "Neha Verma",
-    department: "Mathematics",
-    designation: "Teacher",
-    phone: "9876543210",
-    email: "neha@gmail.com",
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [updating, setUpdating] = useState(false);
+
+  const [year, setYear] = useState(2026);
+  const [month, setMonth] = useState(0);
+
+  const [staff, setStaff] = useState({});
+  const [attendance, setAttendance] = useState({});
+  const [summary, setSummary] = useState({
+    P: 0,
+    A: 0,
+    LP: 0,
+    L: 0,
+    HP: 0,
+  });
+
+  /* ================= API ================= */
+  useEffect(() => {
+  const loadAttendance = async () => {
+    const params = {
+      month: `${year}-${String(month + 1).padStart(2, "0")}`,
+    };
+
+    const res = await api.get(
+      `/staff/attendance/${staffId}`,
+      { params }
+    );
+
+    const data = res.data || {}; // ✅ FIXED
+
+    setStaff(data.staff || {});
+
+    const map = {};
+    const sum = { P: 0, A: 0, LP: 0, L: 0, HP: 0 };
+
+    (data.attendance || []).forEach((a) => {
+      map[a.date] = a.status;
+      if (sum[a.status] !== undefined) {
+        sum[a.status]++;
+      }
+    });
+
+    setAttendance(map);
+    setSummary(sum);
   };
 
-  /* ================= ATTENDANCE DATA ================= */
-  const attendance = {
-    "2025-04-01": "A",
-    "2025-04-06": "A",
-    "2025-04-23": "P",
-  };
+  loadAttendance();
+}, [year, month, staffId]);
+
 
   const daysGrid = useMemo(
     () => getMonthDaysGrid(year, month),
     [year, month]
   );
 
-  const summary = { P: 1, A: 2, LP: 0, L: 0, HP: 0 };
+  const updateAttendance = async (status) => {
+  if (!selectedDate) return;
+
+  setUpdating(true);
+
+  await api.put(`/staff/attendance/${staffId}`, {
+    date: selectedDate,
+    status,
+  });
+
+  // Optimistic UI update
+  setAttendance((prev) => ({
+    ...prev,
+    [selectedDate]: status,
+  }));
+
+  setSummary((prev) => {
+    const next = { ...prev };
+
+    Object.keys(next).forEach((k) => {
+      if (attendance[selectedDate] === k) next[k]--;
+    });
+
+    if (next[status] !== undefined) next[status]++;
+    return next;
+  });
+
+  setSelectedDate(null);
+  setUpdating(false);
+};
+
 
   return (
     <div className="space-y-6">
-      {/* ================= TEACHER INFO ================= */}
+      {/* ================= STAFF INFO ================= */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          ["Name", teacher.name],
-          ["Department", teacher.department],
-          ["Designation", teacher.designation],
-          ["Contact", `${teacher.phone}\n${teacher.email}`],
+          ["Name", staff.name],
+          ["Department", staff.department],
+          ["Designation", staff.designation],
+          ["Contact", `${staff.phone}\n${staff.email}`],
         ].map(([label, value]) => (
           <div
             key={label}
             className="bg-white border border-gray-200 rounded-xl p-4"
           >
             <div className="text-xs text-gray-500">{label}</div>
-            <div className="font-semibold whitespace-pre-line">{value}</div>
+            <div className="font-semibold whitespace-pre-line">
+              {value || "-"}
+            </div>
           </div>
         ))}
       </div>
 
       {/* ================= FILTER ================= */}
       <div className="flex gap-3">
+        <div className="w-50">
         <select
-          className="soft-select w-40"
+          className="soft-select "
           value={month}
           onChange={(e) => setMonth(Number(e.target.value))}
         >
@@ -97,6 +174,9 @@ export default function ViewTeacherDetailPage() {
             </option>
           ))}
         </select>
+
+        </div>
+        <div className="w-50">
 
         <select
           className="soft-select w-32"
@@ -109,7 +189,39 @@ export default function ViewTeacherDetailPage() {
             </option>
           ))}
         </select>
+        </div>
       </div>
+
+        {selectedDate && (
+          <div className="mb-3 flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-2">
+            <div className="text-sm font-semibold">
+              Update Attendance: {selectedDate}
+            </div>
+
+            <div className="flex gap-2">
+              {["P", "A", "LP", "HP", "L", "H"].map((s) => (
+                <button
+                  key={s}
+                  disabled={updating}
+                  onClick={() => updateAttendance(s)}
+                  className={`px-3 py-1 rounded text-sm font-semibold ${
+                    ATTENDANCE_STYLE[s]
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setSelectedDate(null)}
+                className="px-3 py-1 text-sm text-gray-500"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
 
       {/* ================= CALENDAR + SUMMARY ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -122,7 +234,6 @@ export default function ViewTeacherDetailPage() {
             })}
           </div>
 
-          {/* Week Header */}
           <div className="grid grid-cols-7 text-xs text-gray-500 mb-2">
             {[
               "Sunday",
@@ -139,7 +250,6 @@ export default function ViewTeacherDetailPage() {
             ))}
           </div>
 
-          {/* Calendar Grid */}
           <div className="grid grid-cols-7 border border-gray-200">
             {daysGrid.map((date, idx) => {
               if (!date) {
@@ -157,15 +267,22 @@ export default function ViewTeacherDetailPage() {
               return (
                 <div
                   key={idx}
-                  className="h-24 border border-gray-200 p-2"
-                >
+                  onClick={() => {
+                    const today = new Date();
+                    if (date <= today) {
+                      setSelectedDate(getLocalDateKey(date));
+                    }
+                  }}
+                  className={`h-24 border border-gray-200 p-2 cursor-pointer
+                    ${CELL_BG[status] || ""}
+                    hover:bg-gray-50`}
+                  > 
+
                   <div className="text-sm">{date.getDate()}</div>
 
                   {status && (
                     <div
-                      className={`mt-2 inline-flex items-center justify-center px-2 py-1 rounded text-sm font-semibold ${
-                        ATTENDANCE_STYLE[status]
-                      }`}
+                      className={`mt-2 inline-flex items-center justify-center px-2 py-1 rounded text-sm font-semibold ${ATTENDANCE_STYLE[status]}`}
                     >
                       {status}
                     </div>

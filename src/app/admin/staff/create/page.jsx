@@ -7,10 +7,12 @@ import MultiSelectDropdown from "@/components/ui/MultiSelectDropdown";
 export default function CreateStaffPage() {
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
+const [roles, setRoles] = useState([]);
 
   const [form, setForm] = useState({
     name: "",
     phone: "",
+    role_id: "",
     altPhone: "",
     email: "",
     joiningDate: "",
@@ -36,6 +38,15 @@ export default function CreateStaffPage() {
     loadMeta();
   }, []);
 
+  useEffect(() => {
+    api.get("/settings/roles").then(res => {
+      if (res.data?.status === "success") {
+        setRoles(res.data.data.filter(r => r.is_active));
+      }
+    });
+  }, []);
+
+
   /* ================= HANDLERS ================= */
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -54,6 +65,7 @@ export default function CreateStaffPage() {
     const payload = {
       first_name,
       last_name: last_name || null,
+      role_id: Number(form.role_id),
       phone: form.phone,
       email: form.email || null,
       department: form.department || null,
@@ -63,19 +75,21 @@ export default function CreateStaffPage() {
       address: form.address || null,
 
       // mapping
-  class_room_ids: form.standards,
-subject_ids: form.subjects,
+      class_room_ids: form.standards,
+      subject_ids: form.subjects,
 
     };
 
     try {
-      await api.post("/teachers", payload);
+     await api.post("/staff/create", payload);
+
       alert("Teacher saved successfully");
 
       // reset form
       setForm({
         name: "",
         phone: "",
+        role_id: "",
         altPhone: "",
         email: "",
         joiningDate: "",
@@ -117,9 +131,9 @@ const handleMultiSelect = (e) => {
     <div className="space-y-6">
       {/* HEADER */}
       <div>
-        <h2 className="text-xl font-semibold">Teacher Details</h2>
+        <h2 className="text-xl font-semibold">Staff Details</h2>
         <p className="text-sm text-gray-500">
-          Add teacher personal and professional information
+          Add Staff personal and professional information
         </p>
       </div>
 
@@ -127,15 +141,37 @@ const handleMultiSelect = (e) => {
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Teacher Name */}
+
+            <div>
+              <label className="text-sm text-gray-600">
+                Role <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="role_id"
+                value={form.role_id}
+                onChange={handleChange}
+                className="soft-select"
+              >
+                <option value="">Select Role</option>
+                {roles.map(r => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+
+
           <div>
             <label className="text-sm text-gray-600">
-              Teacher Name <span className="text-red-500">*</span>
+              Staff Name <span className="text-red-500">*</span>
             </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="Enter Teacher Name"
+              placeholder="Enter Staff Name"
               className="soft-input"
             />
           </div>

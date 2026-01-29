@@ -126,11 +126,12 @@ export const schoolNav = [
 
   {
     key: "staff",
-    label: "Staff Management",
+    label: "Staff/Users",
     icon: <TeamOutlined />,
     children: [
+      { key: "role-manage", label: "Roles Management", href: "/admin/staff/role-manage" },
       { key: "staff-list", label: "Staff List", href: "/admin/staff" },
-      // { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
+      { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
       // { key: "payroll", label: "Payroll", href: "/admin/staff/payroll" },
       // { key: "salary-templates", label: "Salary Templates", href: "/admin/staff/salary-templates" },
     ],
@@ -260,6 +261,17 @@ export const schoolNav = [
       { key: "leave-permission", label: "Leave Permission", href: "/admin/leave/leave-permission" },
     ],
   },
+  {
+    key: "payroll",
+    label: "Payroll",
+    icon: <SettingOutlined />,
+    children: [
+      { key: "create-template", label: "Create Template", href: "/admin/payroll/create-template" },
+      { key: "salary-manage", label: "Manage Salary", href: "/admin/payroll/salary-manage" },
+      { key: "make-payment", label: "Make Payment", href: "/admin/payroll/make-payment" },
+    ],
+  },
+  { key: "reports", label: "Reports", href: "/admin/reports", icon: <DashboardOutlined /> },
 ];
 
 /* ========================= COACHING ERP MENU ========================= */
