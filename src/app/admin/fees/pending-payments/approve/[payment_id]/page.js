@@ -149,13 +149,13 @@ export default function ApprovePaymentPage() {
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2"></th>
-              <th className="p-2">Installment</th>
-              <th className="p-2">Fee Type</th>
-              <th className="p-2">Assigned</th>
-              <th className="p-2">Paid</th>
-              <th className="p-2">Pending</th>
-              <th className="p-2">Paying Now</th>
-              <th className="p-2">Type</th>
+              <th className="p-2 text-left">Installment</th>
+              <th className="p-2 text-left">Fee Type</th>
+              <th className="p-2 text-left">Assigned</th>
+              <th className="p-2 text-left">Paid</th>
+              <th className="p-2 text-left">Pending</th>
+              <th className="p-2 text-left">Paying Now</th>
+              <th className="p-2 text-left">Type</th>
             </tr>
           </thead>
 
