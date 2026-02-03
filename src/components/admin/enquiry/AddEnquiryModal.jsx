@@ -5,12 +5,26 @@ import EnquiryModal from "@/components/ui/EnquiryModal";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { api } from "@/utils/api";
 import { STATES } from "@/constants/locations";
+import Modal from "@/components/ui/Modal";
 import {
   MOTHER_TONGUES,
   CATEGORIES,
   RELIGIONS,
   BLOOD_GROUPS,PARENT_PROFESSIONS
 } from "@/constants/studentMeta";
+import SecondaryButton from "@/components/ui/SecodaryButton";
+
+function getDaysAgo(date) {
+  if (!date) return "—";
+
+  const diff = Math.floor(
+    (new Date() - new Date(date)) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  return `${diff} days ago`;
+}
 
 
 const Field = ({ label, children }) => (
@@ -23,6 +37,19 @@ const Field = ({ label, children }) => (
 
 export default function AddEnquiryModal({ onClose }) {
   const [loading, setLoading] = useState(false);
+const [lastEnquiry, setLastEnquiry] = useState(null);
+
+
+
+useEffect(() => {
+  api.get("/enquiries", { params: { limit: 1 } })
+    .then(res => {
+      const list = res.data?.data || [];
+      if (list.length > 0) {
+        setLastEnquiry(list[0]);
+      }
+    });
+}, []);
 
 
 
@@ -91,6 +118,43 @@ export default function AddEnquiryModal({ onClose }) {
   const [sources, setSources] = useState([]);
   const [areas, setAreas] = useState([]);
   const [referredBy, setReferredBy] = useState([]);
+  const [showSourceModal, setShowSourceModal] = useState(false);
+  const [sourceForm, setSourceForm] = useState({
+    name: "",
+    description: "",
+  });
+  const [savingSource, setSavingSource] = useState(false);
+const saveSource = async () => {
+  if (!sourceForm.name) return alert("Source name required");
+
+  try {
+    setSavingSource(true);
+
+    const res = await api.post("/lead-setup", sourceForm);
+
+    const newSource = res.data?.data;
+
+    // 🔁 Refresh dropdown
+    const list = await api.get("/lead-setup");
+    setSources(list.data?.data || []);
+
+    // ✅ Auto select new source
+    if (newSource?.id) {
+      setForm(prev => ({
+        ...prev,
+        source: newSource.id,
+      }));
+    }
+
+    setShowSourceModal(false);
+    setSourceForm({ name: "", description: "" });
+  } catch (e) {
+    console.error(e);
+    alert("Failed to add source");
+  } finally {
+    setSavingSource(false);
+  }
+};
 
   /* ================= LOAD MASTER DATA ================= */
   useEffect(() => {
@@ -169,21 +233,35 @@ export default function AddEnquiryModal({ onClose }) {
 
           <div className="grid grid-cols-3 gap-3">
             <Field label="Source">
-            <select
-                className="soft-select soft-input-sm"
-                name="source"
-                value={form.source}
-                onChange={handleChange}
-            >
-                <option value="">Select Source</option>
+              <div className="flex gap-2 items-center">
+                <select
+                  className="soft-select soft-input-sm flex-1"
+                  name="source"
+                  value={form.source}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Source</option>
+                  {sources.map(item => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
 
-                {sources.map(item => (
-                <option key={item.id} value={item.id}>
-                    {item.name}
-                </option>
-                ))}
-            </select>
+                {/* PLUS BUTTON */}
+                <button
+                  type="button"
+                  onClick={() => setShowSourceModal(true)}
+                  className="h-[34px] w-[34px] flex items-center justify-center
+                            rounded-md border border-gray-300
+                            text-blue-600 hover:bg-blue-50"
+                  title="Add Source"
+                >
+                  +
+                </button>
+              </div>
             </Field>
+
 
 
             <Field label="Student Name">
@@ -538,6 +616,49 @@ export default function AddEnquiryModal({ onClose }) {
         <div className="space-y-3 bg-amber-50 p-4 rounded-xl ">
           <h4 className="font-semibold text-sm">Enquiry Details</h4>
 
+
+            {lastEnquiry && (
+              <div className="bg-amber-100/40 border border-amber-200 rounded-lg p-3">
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Last Added To :</span>
+                    <span className="font-semibold">
+                      {lastEnquiry.student_name || "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Enquiry No. :</span>
+                    <span className="font-semibold">
+                      {lastEnquiry.enquiry_code}
+                    </span>
+                  </div>
+
+                  <div className="border-t border-amber-300 my-2" />
+
+                  <div className="flex justify-between items-center text-xs text-gray-500">
+                    <span>
+                      {getDaysAgo(lastEnquiry.created_at || lastEnquiry.enquiry_date)}
+                    </span>
+
+                    <button
+                      className="text-blue-600 hover:underline text-sm"
+                      onClick={() =>
+                        window.open(
+                          `/admin/leads/enquiries/${lastEnquiry.id}/view`,
+                          "_blank"
+                        )
+                      }
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
+
             <div className="grid grid-cols-2 gap-2">
           <Field label="Enquiry Date">
             <input type="date" className="soft-input soft-input-sm" 
@@ -661,9 +782,66 @@ export default function AddEnquiryModal({ onClose }) {
 
       {/* FOOTER */}
       <div className="flex justify-end gap-2 pt-4">
-        <PrimaryButton variant="outline" name="Cancel" onClick={onClose} />
+        <SecondaryButton variant="outline" name="Cancel" onClick={onClose} />
         <PrimaryButton name="Save Enquiry" onClick={handleSubmit} />
       </div>
+      {/* ADD SOURCE MODAL */}
+      {showSourceModal && (
+          <Modal
+            title="Add Lead Source"
+            onClose={() => setShowSourceModal(false)}
+            className="max-w-md"
+          >
+            <div className="grid grid-cols-1 gap-4">
+
+              <div>
+                <label className="soft-label">Source Name *</label>
+                <input
+                  className="soft-input"
+                  placeholder="Eg. Website, Walk-in"
+                  value={sourceForm.name}
+                  onChange={(e) =>
+                    setSourceForm({ ...sourceForm, name: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="soft-label">Description</label>
+                <textarea
+                  className="soft-input soft-textarea-sm"
+                  placeholder="Optional"
+                  value={sourceForm.description}
+                  onChange={(e) =>
+                    setSourceForm({
+                      ...sourceForm,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+            </div>
+
+            <div className="flex justify-end gap-2 pt-6">
+              <button
+                className="soft-btn-outline"
+                onClick={() => setShowSourceModal(false)}
+              >
+                Cancel
+              </button>
+              <PrimaryButton
+                name={savingSource ? "Saving..." : "Save Source"}
+                onClick={saveSource}
+              />
+            </div>
+          </Modal>
+        )}
+
+
+      
     </EnquiryModal>
+
+    
   );
 }

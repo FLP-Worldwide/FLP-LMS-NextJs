@@ -55,7 +55,7 @@ export const schoolNav = [
     children: [
       // { key: "new-admission", label: "Onboard Admission", href: "/admin/students/admission" },
       { key: "students-all", label: "All Students", href: "/admin/students" },
-      { key: "students-promote", label: "Promote / Transfer", href: "/admin/students/promote" },
+      // { key: "students-promote", label: "Promote / Transfer", href: "/admin/students/promote" },
 
     ],
   },
@@ -116,7 +116,7 @@ export const schoolNav = [
       { key: "fee-structure", label: "Fee Structure", href: "/admin/fees/structure" },
       { key: "fee-assign", label: "Assign", href: "/admin/fees/assign" },
       { key: "fee-collection", label: "Fee Collection", href: "/admin/fees/collection" },
-      { key: "payments-pending", label: "Payments", href: "/admin/fees/pending-payments" },
+      { key: "payments-pending", label: "Pending Payments", href: "/admin/fees/pending-payments" },
       { key: "payments-refund", label: "Refund", href: "/admin/fees/refund" },
       { key: "payments-concession", label: "Concession", href: "/admin/fees/concession" },
       // { key: "fee-dues", label: "Due Fees", href: "/admin/fees/dues" },

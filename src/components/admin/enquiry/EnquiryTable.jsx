@@ -2,18 +2,23 @@
 
 import { useEffect, useState } from "react";
 import {api} from "@/utils/api";
+import { useRouter } from "next/navigation";
 
-export default function EnquiryTable() {
+export default function EnquiryTable({ filters }) {
+
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  useEffect(() => {
-    api.get("/enquiries")
-      .then(res => {
-        setEnquiries(res.data?.data || []);
-      })
+
+useEffect(() => {
+    setLoading(true);
+
+    api
+      .get("/enquiries", { params: filters })
+      .then(res => setEnquiries(res.data?.data || []))
       .finally(() => setLoading(false));
-  }, []);
+  }, [filters]);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -51,7 +56,14 @@ export default function EnquiryTable() {
 
           {!loading &&
             enquiries.map(item => (
-              <tr key={item.id}>
+             <tr
+                key={item.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() =>
+                    router.push(`/admin/leads/enquiries/${item.id}/view`)
+                  }
+              >
+
                 <td className="px-4 py-2">{item.enquiry_code}</td>
                 <td className="px-4 py-2 font-medium">
                   {item.student_name}
@@ -90,7 +102,12 @@ export default function EnquiryTable() {
             ))}
         </tbody>
       </table>
+    
+ 
+
+
     </div>
+    
   );
 }
 

@@ -9,12 +9,14 @@ import ClosingReasonTab from "@/components/admin/Lead/ClosingReasonTab";
 import CityAreaTab from "@/components/admin/Lead/CityAreaTab";
 import ReferredByTab from "@/components/admin/Lead/ReferredByTab";
 import InstituteTab from "@/components/admin/Lead/InstituteTab";
+import CustomFieldTab from "@/components/admin/Lead/CustomFieldTab";
 
 const leadMenus = [
   { label: "Source", href: "/admin/leads/setup" },
   { label: "Closing Reason", href: "/admin/leads/setup?type=closing-reason" },
   { label: "City / Area", href: "/admin/leads/setup?type=city-area" },
   { label: "Referred By", href: "/admin/leads/setup?type=referred-by" },
+  { label: "Custom Fields", href: "/admin/leads/setup?type=custom-fields" },
   { label: "Institute Name", href: "/admin/leads/setup?type=institute" },
 ];
 
@@ -42,6 +44,7 @@ export default function LeadsSetupPage() {
       {type === "closing-reason" && <ClosingReasonTab />}
       {type === "city-area" && <CityAreaTab />}
       {type === "referred-by" && <ReferredByTab />}
+      {type === "custom-fields" && <CustomFieldTab />}
       {type === "institute" && <InstituteTab />}
     </div>
   );
