@@ -175,27 +175,41 @@ const fetchStructuresByClass = async (classId) => {
   }
 };
 
-const assignFees = async () => {
-  if (!selectedStructureId) {
-    alert("Please select a Fee Structure");
-    return;
-  }
+  const assignFees = async () => {
+    if (!selectedStructureId) {
+      alert("Please select a Fee Structure");
+      return;
+    }
 
-  await api.post("/fees/assign-to-student", {
-    student_id: selectedStudent.id,
-    fees_structure_id: selectedStructureId,
-    extra_installments: extraInstallments
-      .filter((i) => i.fee_type_id && i.amount)
-      .map((i) => ({
-        ...i,
-        offset: Number(i.offset || 0),
-        amount: Number(i.amount),
-      })),
+    try {
+      await api.post("/fees/assign-to-student", {
+        student_id: selectedStudent.id,
+        fees_structure_id: selectedStructureId,
+        extra_installments: extraInstallments
+          .filter((i) => i.fee_type_id && i.amount)
+          .map((i) => ({
+            ...i,
+            offset: Number(i.offset || 0),
+            amount: Number(i.amount),
+          })),
+      });
 
-  });
+      // ✅ CLOSE MODAL
+      setShowAssignModal(false);
 
-  setShowAssignModal(false);
-};
+      // ✅ CLEAR SELECTION (optional but clean)
+      setSelectedStudent(null);
+
+      // ✅ REFRESH STUDENT LIST WITH UPDATED FEES
+      await searchStudents();
+
+    } catch (error) {
+      alert(
+        error?.response?.data?.message ||
+        "Failed to assign fees"
+      );
+    }
+  };
 
 
 
@@ -514,7 +528,7 @@ const assignFees = async () => {
               >
                 Cancel
               </button>
-              <PrimaryButton name="Assign Fee" onClick={assignFees} />
+              <PrimaryButton name="Assign Fee" onClick={assignFees}  />
             </div>
           </div>
         </Modal>

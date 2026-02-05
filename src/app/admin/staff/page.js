@@ -68,6 +68,7 @@ export default function StaffPage() {
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
+            <option value="">Select Role</option>
             {roles.map(r => (
               <option key={r.id} value={r.slug}>
                 {r.name}

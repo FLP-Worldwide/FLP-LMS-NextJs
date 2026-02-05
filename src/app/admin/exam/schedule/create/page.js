@@ -52,23 +52,28 @@ export default function CreateExamPage() {
   };
 
   const fetchSubjects = async (batchId) => {
-    const res = await api.get("/subjects", {
+    const res = await api.get("/classes", {
       params: { batch_id: batchId },
     });
     setSubjectList(res.data?.data || []);
   };
 
-  const fetchTopics = async (subjectId, index) => {
-    if (!subjectId) return;
+  const fetchTopics = async (index) => {
+    if (!filters.batch_id) return;
 
-    const res = await api.get("/topics", {
-      params: { subject_id: subjectId },
+    const res = await api.get("/subjects", {
+      params: { class_id: filters.batch_id },
     });
 
     const updated = [...subjects];
-    updated[index].topics = res.data?.data || [];
+    updated[index] = {
+      ...updated[index],
+      topics: res.data?.data || [],
+    };
+
     setSubjects(updated);
   };
+
 
 
   /* ================= FETCH EXAMS ================= */
@@ -243,8 +248,8 @@ export default function CreateExamPage() {
                     <table className="w-full text-sm border border-gray-200">
                     <thead className="bg-blue-50">
                         <tr>
+                        <th className="p-2 text-left">Class</th>
                         <th className="p-2 text-left">Subject</th>
-                        <th className="p-2 text-left">Code</th>
                         <th className="p-2 text-left">Marks</th>
                         <th className="p-2 text-left">Room</th>
                         <th className="p-2 text-left">Topic/ID</th>
@@ -254,15 +259,11 @@ export default function CreateExamPage() {
                     <tbody>
                         {exam.subjects.map((s, idx) => (
                         <tr key={idx} className="border-t">
-                            <td className="p-2">
-                            {s.subject?.name || "--"}
-                            </td>
-                            <td className="p-2">
-                            {s.subject?.short_code || "--"}
-                            </td>
+                            <td className="p-2">{exam.class.name}</td>
+                           <td className="p-2">{s.name || "--"}</td>
                             <td className="p-2">{s.marks}</td>
-                            <td className="p-2">{s.room_no || "--"}</td>
-                            <td className="p-2">{s.topic?.name || "--"}</td>
+                            <td className="p-2">—</td>
+                            <td className="p-2">—</td>
                         </tr>
                         ))}
 
@@ -405,7 +406,7 @@ export default function CreateExamPage() {
                         Subject<span className="text-red-500">*</span>
                     </label>
                     <select
-                        className="soft-select w-full"
+                        className="soft-input w-full"
                         value={s.subject_id}
                         onChange={(e) => {
                           const subjectId = e.target.value;
@@ -413,7 +414,7 @@ export default function CreateExamPage() {
                           updateSubject(i, "subject_id", subjectId);
                           updateSubject(i, "topic_id", ""); // reset topic
 
-                          fetchTopics(subjectId, i); // ✅ pass row index
+                          fetchTopics(i); // ✅ pass row index
                         }}
                       >
 
@@ -445,7 +446,7 @@ export default function CreateExamPage() {
                     <div className="col-span-2">
                     <label className="text-xs text-gray-500">Topic</label>
                    <select
-                      className="soft-select w-full"
+                      className="soft-input w-full"
                       value={s.topic_id}
                       onChange={(e) =>
                         updateSubject(i, "topic_id", e.target.value)

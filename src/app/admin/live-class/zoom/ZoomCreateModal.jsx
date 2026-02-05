@@ -204,9 +204,9 @@ useEffect(() => {
 
   try {
     if (editData) {
-        await api.put(`/live-class/zoom-class/${editData.id}`, payload);
+        await api.put(`/live-class/zoom-classes/${editData.id}`, payload);
     } else {
-        await api.post("/live-class/zoom-class", payload);
+        await api.post("/live-class/zoom-classes", payload);
     }
 
     alert("Zoom class created successfully");

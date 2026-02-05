@@ -201,22 +201,17 @@ export default function ExamSchedulePage() {
 
       {!loading &&
         exams.map((exam) => {
-          const totalMarks = exam.subjects.reduce(
-            (sum, s) => sum + Number(s.marks || 0),
-            0
-          );
+         const subjectNames = exam.subjects
+          .map((s) => s.name)
+          .join(", ");
 
-          const subjects = exam.subjects
-            .map((s) => s.subject?.short_code || s.subject?.name)
-            .join(", ");
+        const subjectMarks = exam.subjects
+          .map((s) => `${s.name}: ${s.marks}`)
+          .join(", ");
 
-          const topics = exam.subjects
-            .map((s) => s.topic_id || "-")
-            .join(", ");
+        const topic = exam.topic || "-";
+        const room = exam.room || "-";
 
-          const rooms = exam.subjects
-            .map((s) => s.room_no || "-")
-            .join(", ");
 
           const status = getStatus(exam.exam_date);
 
@@ -242,18 +237,11 @@ export default function ExamSchedulePage() {
               </td>
 
               {/* Subjects */}
-              <td className="p-3">{subjects}</td>
+             <td className="p-3">{subjectNames}</td>
+              <td className="p-3">{topic}</td>
+              <td className="p-3">{subjectMarks}</td>
+              <td className="p-3">{room}</td>
 
-              {/* Topics */}
-              <td className="p-3">{topics || "-"}</td>
-
-              {/* Total Marks */}
-              <td className="p-3 font-semibold">
-                {totalMarks}
-              </td>
-
-              {/* Room */}
-              <td className="p-3">{rooms}</td>
 
               {/* Status */}
               <td className="p-3">

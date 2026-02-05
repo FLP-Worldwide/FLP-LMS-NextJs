@@ -281,7 +281,7 @@ export default function BatchPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {course.batches.map((batch) => (
-                      <a href="overview-detatils">
+                      <a href={`batches/${batch.id}/overview-details`}>
                       <div
                         key={batch.id}
                         className="bg-white border border-gray-200 rounded-lg overflow-visible cursor-pointer"

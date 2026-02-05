@@ -229,6 +229,7 @@ const handleMultiSelect = (e) => {
               value={form.department}
               onChange={handleChange}
               className="soft-input"
+              placeholder="Hindi Teacher"
             />
           </div>
 
@@ -240,6 +241,7 @@ const handleMultiSelect = (e) => {
               value={form.designation}
               onChange={handleChange}
               className="soft-input"
+              placeholder="Teacher"
             />
           </div>
 

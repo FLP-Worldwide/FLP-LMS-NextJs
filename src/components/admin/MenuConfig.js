@@ -38,7 +38,7 @@ export const schoolNav = [
 
     ],
   },
-  {
+ {
     key: "classes",
     label: "Classes",
     icon: <UserOutlined />,
@@ -48,6 +48,20 @@ export const schoolNav = [
 
     ],
   },
+  {
+    key: "staff",
+    label: "Staff",
+    icon: <TeamOutlined />,
+    children: [
+      { key: "role-manage", label: "Roles Management", href: "/admin/staff/role-manage" },
+      { key: "staff-list", label: "Staff List", href: "/admin/staff" },
+      { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
+      // { key: "payroll", label: "Payroll", href: "/admin/staff/payroll" },
+      // { key: "salary-templates", label: "Salary Templates", href: "/admin/staff/salary-templates" },
+    ],
+  },
+
+ 
   {
     key: "students",
     label: "Students",
@@ -60,31 +74,20 @@ export const schoolNav = [
     ],
   },
 
-  // {
-  //   key: "academics",
-  //   label: "Academics",
-  //   icon: <BookOutlined />,
-  //   children: [
-  //     { key: "classes", label: "Classes & Sections", href: "/admin/classes" },
-  //     { key: "subjects", label: "Subjects", href: "/admin/subjects" },
-  //     { key: "attendance", label: "Attendance", href: "/admin/attendance" },
-  //     { key: "timetable", label: "Timetable", href: "/admin/timetable" },
-  //     { key: "homework", label: "Homework", href: "/admin/homework" },
-  //     { key: "lesson-plan", label: "Lesson Planning", href: "/admin/lesson-plan" },
-  //   ],
-  // },
+  {
+    key: "fees",
+    label: "Fees",
+    icon: <DollarOutlined />,
+    children: [
+      { key: "fee-structure", label: "Setup", href: "/admin/fees/structure" },
+      { key: "fee-assign", label: "Assign", href: "/admin/fees/assign" },
+      { key: "fee-collection", label: "Fee Collection", href: "/admin/fees/collection" },
+      { key: "payments-pending", label: "Pending Payments", href: "/admin/fees/pending-payments" },
+      { key: "payments-refund", label: "Refund", href: "/admin/fees/refund" },
+      { key: "payments-concession", label: "Concession", href: "/admin/fees/concession" },
+    ],
+  },
 
-  // {
-  //   key: "exams",
-  //   label: "Examinations",
-  //   icon: <FileDoneOutlined />,
-  //   children: [
-  //     { key: "exam-schedule", label: "Exam Schedule", href: "/admin/exams" },
-  //     { key: "marks-entry", label: "Marks Entry", href: "/admin/exams/marks" },
-  //     { key: "results", label: "Results", href: "/admin/results" },
-  //     { key: "report-cards", label: "Report Cards", href: "/admin/report-cards" },
-  //   ],
-  // },
 
   {
     key: "finance",
@@ -108,34 +111,8 @@ export const schoolNav = [
     ],
   },
 
-  {
-    key: "fees",
-    label: "Fees & Accounts",
-    icon: <DollarOutlined />,
-    children: [
-      { key: "fee-structure", label: "Fee Structure", href: "/admin/fees/structure" },
-      { key: "fee-assign", label: "Assign", href: "/admin/fees/assign" },
-      { key: "fee-collection", label: "Fee Collection", href: "/admin/fees/collection" },
-      { key: "payments-pending", label: "Pending Payments", href: "/admin/fees/pending-payments" },
-      { key: "payments-refund", label: "Refund", href: "/admin/fees/refund" },
-      { key: "payments-concession", label: "Concession", href: "/admin/fees/concession" },
-      // { key: "fee-dues", label: "Due Fees", href: "/admin/fees/dues" },
-      // { key: "expenses", label: "Expenses", href: "/admin/fees/expenses" },
-    ],
-  },
+  
 
-  {
-    key: "staff",
-    label: "Staff/Users",
-    icon: <TeamOutlined />,
-    children: [
-      { key: "role-manage", label: "Roles Management", href: "/admin/staff/role-manage" },
-      { key: "staff-list", label: "Staff List", href: "/admin/staff" },
-      { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
-      // { key: "payroll", label: "Payroll", href: "/admin/staff/payroll" },
-      // { key: "salary-templates", label: "Salary Templates", href: "/admin/staff/salary-templates" },
-    ],
-  },
 
   {
     key: "exam",

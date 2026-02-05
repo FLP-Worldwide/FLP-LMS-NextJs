@@ -97,7 +97,7 @@ export default function NewAdmissionPage() {
       setLoading(true);
       await api.post("/students", payload);
       alert("Admission created successfully");
-      router.push("/admin/students/admission");
+      router.push("/admin/students");
     } catch (err) {
       console.error(err);
       alert("Failed to create admission");
@@ -222,7 +222,7 @@ export default function NewAdmissionPage() {
 
         {/* ACTIONS */}
         <div className="flex justify-between pt-4">
-          <button type="button" onClick={back} disabled={step === 0} className="px-4 py-2 border rounded">
+          <button type="button" onClick={back} disabled={step === 0} className="bg-gray-100 px-4 py-1  text-sm rounded-lg border border-gray-300 hover:bg-gray-200">
             Back
           </button>
 
@@ -231,12 +231,12 @@ export default function NewAdmissionPage() {
               type="button"
               disabled={loading}
               onClick={submitAdmission}
-              className="px-4 py-2 bg-blue-600 text-white rounded"
+              className="bg-blue-800 px-4 py-1 text-white text-sm rounded-lg border border-blue-900 hover:bg-blue-900"
             >
               {loading ? "Saving..." : "Submit Admission"}
             </button>
           ) : (
-            <button type="button" onClick={next} className="px-4 py-2 bg-blue-600 text-white rounded">
+            <button type="button" onClick={next} className="bg-blue-800 px-4 py-1 text-white text-sm rounded-lg border border-blue-900 hover:bg-blue-900">
               Next
             </button>
           )}
