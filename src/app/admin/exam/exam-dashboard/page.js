@@ -195,7 +195,7 @@ export default function ExamDashboardPage() {
                     <td className="p-3 ">{e.exam_date}</td>
                     <td className="p-3">{e.course?.name}</td>
                     <td className="p-3">{e.batch?.name}</td>
-                    <td className="p-3">Deleted</td>
+                    <td className="p-3">Status --</td>
                   </tr>
                 ))
               )}

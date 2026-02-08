@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { api } from "@/utils/api";
 
+import { Pencil, Bell, XCircle, Users } from "lucide-react";
+import AlertModal from "@/components/ui/AlertModal";
+import Modal from "@/components/ui/Modal";
+
+
+
 
 const formatDateWithDay = (dateStr) => {
   const d = new Date(dateStr);
@@ -26,11 +32,20 @@ const formatTime = (time) => {
   });
 };
 
-const getStatus = (examDate) => {
+const getExamStatus = (exam) => {
+  if (exam.is_today) {
+    return exam.is_attendance_marked
+      ? "Attendance Marked"
+      : "Attendance Pending";
+  }
+
   const today = new Date().setHours(0, 0, 0, 0);
-  const examDay = new Date(examDate).setHours(0, 0, 0, 0);
-  return examDay >= today ? "Upcoming" : "Completed";
+  const examDay = new Date(exam.exam_date).setHours(0, 0, 0, 0);
+
+  if (examDay > today) return "Upcoming";
+  return "Completed";
 };
+
 
 
 
@@ -50,6 +65,11 @@ export default function ExamSchedulePage() {
 
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [editExam, setEditExam] = useState(null);
+  const [cancelExam, setCancelExam] = useState(null);
+  const [saving, setSaving] = useState(false);
+
 
   /* ================= INIT ================= */
   useEffect(() => {
@@ -212,9 +232,6 @@ export default function ExamSchedulePage() {
         const topic = exam.topic || "-";
         const room = exam.room || "-";
 
-
-          const status = getStatus(exam.exam_date);
-
           return (
             <tr
               key={exam.id}
@@ -245,27 +262,191 @@ export default function ExamSchedulePage() {
 
               {/* Status */}
               <td className="p-3">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs text-white ${
-                    status === "Upcoming"
-                      ? "bg-orange-500"
-                      : "bg-gray-500"
-                  }`}
-                >
-                  {status}
-                </span>
+               {(() => {
+                  const status = getExamStatus(exam);
+
+                  return (
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs text-white ${
+                        status === "Attendance Pending"
+                          ? "bg-blue-600"
+                          : status === "Attendance Marked"
+                          ? "bg-green-600"
+                          : status === "Upcoming"
+                          ? "bg-orange-500"
+                          : "bg-gray-500"
+                      }`}
+                    >
+                      {status}
+                    </span>
+                  );
+                })()}
+
+
               </td>
 
               {/* Actions */}
-              <td className="p-3 text-right space-x-3">
-                
+              <td className="p-3 text-right">
+                <div className="inline-flex gap-2">
+                  {/* Edit */}
+                  <button
+                    className="soft-icon-btn"
+                    title="Edit Exam"
+                    onClick={() => setEditExam(exam)}
+                  >
+                    <Pencil size={16} />
+                  </button>
+
+                  {/* Cancel */}
+                  <button
+                    className="soft-icon-btn text-red-600"
+                    title="Cancel Exam"
+                    onClick={() => setCancelExam(exam)}
+                  >
+                    <XCircle size={16} />
+                  </button>
+
+                  {/* Notify */}
+                  <button
+                    className="soft-icon-btn"
+                    title="Send Notification"
+                    onClick={() => {
+                      // hook notification logic here
+                    }}
+                  >
+                    <Bell size={16} />
+                  </button>
+
+                  {/* Attendance */}
+                 <button
+                    className={`soft-icon-btn ${
+                      exam.is_today ? "" : "opacity-40 cursor-not-allowed"
+                    }`}
+                    title={
+                      exam.is_today
+                        ? exam.is_attendance_marked
+                          ? "Attendance already marked"
+                          : "Mark Attendance"
+                        : "Attendance allowed only on exam day"
+                    }
+                    disabled={!exam.is_today}
+                    onClick={() => {
+                      if (!exam.is_today) return;
+
+                      router.push(
+                        `/admin/exam/schedule/${exam.id}/attendance`
+                      );
+                    }}
+                  >
+                    <Users size={16} />
+                  </button>
+
+
+                </div>
               </td>
+
             </tr>
           );
         })}
     </tbody>
   </table>
 </div>
+  {editExam && (
+    <Modal
+      title="Edit Exam"
+      onClose={() => setEditExam(null)}
+      className="max-w-2xl"
+    >
+     <div className="grid grid-cols-2 gap-6">
+        {/* Description */}
+        <div>
+          <label className="soft-label">Description / Topic</label>
+          <input
+            className="soft-input"
+            value={editExam.topic || ""}
+            onChange={(e) =>
+              setEditExam({ ...editExam, topic: e.target.value })
+            }
+          />
+        </div>
+
+        {/* Subject Marks */}
+        <div className="space-y-3">
+          <label className="soft-label">Marks</label>
+
+          {editExam.subjects.map((s, i) => (
+            <div key={s.id} className="flex gap-3 items-center">
+              <div className="flex-1 text-sm">{s.name}</div>
+
+              <input
+                type="number"
+                className="soft-input w-32"
+                value={s.marks}
+                onChange={(e) => {
+                  const subjects = [...editExam.subjects];
+                  subjects[i] = {
+                    ...subjects[i],
+                    marks: e.target.value,
+                  };
+                  setEditExam({ ...editExam, subjects });
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-6">
+        <button
+          className="soft-btn-outline"
+          onClick={() => setEditExam(null)}
+        >
+          Cancel
+        </button>
+
+        <PrimaryButton
+          name={saving ? "Saving..." : "Save Changes"}
+          onClick={async () => {
+            setSaving(true);
+
+            await api.put(`/exams/${editExam.id}`, {
+              topic: editExam.topic,
+              subjects: editExam.subjects.map((s) => ({
+                id: s.id,
+                marks: s.marks,
+              })),
+            });
+
+            setSaving(false);
+            setEditExam(null);
+            searchExams(); // refresh list
+          }}
+        />
+      </div>
+    </Modal>
+  )}
+
+<AlertModal
+    open={!!cancelExam}
+    onClose={() => setCancelExam(null)}
+    onConfirm={async () => {
+      setSaving(true);
+
+      await api.post(`/exams/${cancelExam.id}/cancel`);
+
+      setSaving(false);
+      setCancelExam(null);
+      searchExams();
+    }}
+    title="Cancel Exam?"
+    message="This exam will be cancelled."
+    subMessage="Students and teachers will be notified."
+    confirmText="Yes, Cancel Exam"
+    cancelText="No"
+    type="danger"
+    loading={saving}
+  />
+
 
     </div>
   );
