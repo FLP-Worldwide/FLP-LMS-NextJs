@@ -5,11 +5,12 @@ import Modal from "@/components/ui/Modal";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function LeadSourceTab() {
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const toast = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: "", description: "" });
@@ -59,7 +60,16 @@ export default function LeadSourceTab() {
 
   const remove = async (id) => {
     if (!confirm("Delete this lead source?")) return;
-    await api.delete(`/lead-setup/${id}`);
+    
+    try {
+      
+    const res = await api.delete(`/lead-setup/${id}`);
+
+  } catch (error) {
+    toast.error(error?.response?.data?.message || "Failed to delete lead source");
+
+  }
+
     fetchSources();
   };
 
@@ -90,9 +100,13 @@ export default function LeadSourceTab() {
                   <button onClick={() => openEdit(s)} className="text-blue-600">
                     <EditOutlined />
                   </button>
-                  <button
-                    onClick={() => remove(s.id)}
-                    className="text-rose-600"
+                   <button
+                    disabled={s.enquiries_count > 0}
+                    className={
+                      s.enquiries_count > 0
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }
                   >
                     <DeleteOutlined />
                   </button>
@@ -103,7 +117,7 @@ export default function LeadSourceTab() {
                 <div>
                   <div className="text-xs text-gray-500">Total Leads</div>
                   <div className="text-lg font-semibold text-blue-600">
-                    32
+                    {s.enquiries_count || 0}
                   </div>
                 </div>
                 <div className="text-sm font-medium text-blue-600">

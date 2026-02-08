@@ -41,6 +41,7 @@ export default function FeesStructurePage() {
   const [courses, setCourses] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
+  const [isEditingInstallments, setIsEditingInstallments] = useState(false);
 
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showClassModal, setShowClassModal] = useState(false);
@@ -91,6 +92,31 @@ export default function FeesStructurePage() {
     setLoadingInstallments(false);
   }
 };
+
+  const openEditInstallments = (structure) => {
+    const existing = structureInstallments.find(
+      si => si.class_id === structure.class_id
+    );
+
+    if (!existing) return;
+
+    setFeeStructureName(existing.fee_structure_name || "");
+    setSelectedCourseId(existing.course_id || "");
+    setSelectedBatchIds(existing.batches?.map(b => b.id) || []);
+
+    setInstallments(
+      existing.installments.map(inst => ({
+        fee_type_id: inst.fee_type_id,
+        assign_type: inst.assign_type,
+        offset: inst.offset,
+        amount: inst.amount,
+        id: inst.id, // 🔥 keep id for update
+      }))
+    );
+
+    setIsEditingInstallments(true);
+    setShowInstallmentModal(true);
+  };
 
 
   const fetchCourses = async (classId) => {
@@ -179,7 +205,7 @@ export default function FeesStructurePage() {
 
   /* ================= SAVE INSTALLMENTS ================= */
 
-  const saveInstallments = async () => {
+    const saveInstallments = async () => {
     if (!feeStructureName || !selectedCourseId || !selectedBatchIds.length) {
       alert("All required fields must be filled");
       return;
@@ -192,7 +218,9 @@ export default function FeesStructurePage() {
       course_id: Number(selectedCourseId),
       batch_ids: selectedBatchIds,
       total_amount: totalAmount,
-      installments: installments.map((i) => ({
+
+      installments: installments.map(i => ({
+        id: i.id || null, // 🔥 existing vs new
         fee_type_id: i.fee_type_id,
         assign_type: i.assign_type,
         offset: Number(i.offset),
@@ -200,16 +228,26 @@ export default function FeesStructurePage() {
       })),
     };
 
-    await api.post("/fees/structure/installments", payload);
+    if (isEditingInstallments) {
+      // 🔁 UPDATE
+      await api.put(
+        `/fees/structure/installments/${activeStructure.id}`,
+        payload
+      );
+    } else {
+      // ➕ CREATE
+      await api.post("/fees/structure/installments", payload);
+    }
 
     setShowInstallmentModal(false);
-    setFeeStructureName("");
-    setSelectedCourseId("");
-    setSelectedBatchIds([]);
+    setIsEditingInstallments(false);
+
     fetchStructures(selectedFeeId);
     fetchStructureInstallments(activeStructure.class_id);
-
   };
+
+
+
 const createFeeType = async () => {
   if (!newFeeName.trim()) {
     alert("Fee Type name is required");
@@ -343,6 +381,15 @@ const addClassStructure = async () => {
 
                   <div className="flex gap-2">
                     {/* VIEW */}
+                    {/* <SecondaryButton
+                      name="Edit"
+                      onClick={async () => {
+                        setActiveStructure(s);
+                        await fetchStructureInstallments(s.class_id);
+                        openEditInstallments(s);
+                      }}
+                    /> */}
+
 
                     <SecondaryButton
                       name="View"
@@ -355,7 +402,7 @@ const addClassStructure = async () => {
                     {/* ADD INSTALLMENT */}
 
                     <PrimaryButton
-                      name="Add Installment"
+                      name="Add / Edit Installment"
                       onClick={() => {
                         setActiveStructure(s);        // needed for save payload
                         fetchCourses(s.class_id);
@@ -453,8 +500,11 @@ const addClassStructure = async () => {
 
       {showInstallmentModal && (
           <Modal
-            title="Add Fee Structure"
-            onClose={() => setShowInstallmentModal(false)}
+              title={isEditingInstallments ? "Edit Fee Structure" : "Add Fee Structure"}
+              onClose={() => {
+                setShowInstallmentModal(false);
+                setIsEditingInstallments(false);
+              }}
             rightSlot={
               <div className="bg-blue-50 px-3 py-1 rounded-md text-sm font-medium">
                 Total Amount: {totalAmount}

@@ -347,7 +347,7 @@ const fetchStructuresByClass = async (classId) => {
                       }}
                       className="text-blue-600"
                     >
-                      Assign
+                      Assign/ Manage Fee
                     </button>
                   </td>
                 </tr>

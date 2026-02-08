@@ -214,6 +214,7 @@ const saveSource = async () => {
 
       await api.post("/enquiries", fd);
       onClose();
+      window.location.reload();
     } catch (e) {
       console.error(e);
       alert("Failed to save enquiry");

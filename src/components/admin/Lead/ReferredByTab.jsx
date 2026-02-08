@@ -131,9 +131,16 @@ export default function ReferredByTab() {
                   >
                     <EditOutlined />
                   </button>
+
                   <button
+                    disabled={m.enquiries_count > 0}
+                    className={
+                      m.enquiries_count > 0
+                        ? "opacity-50 cursor-not-allowed text-red-400"
+                        : "text-red-700"
+                    }
                     onClick={() => deleteMember(m.id)}
-                    className="text-rose-600"
+
                   >
                     <DeleteOutlined />
                   </button>
@@ -146,7 +153,7 @@ export default function ReferredByTab() {
                     Total Leads
                   </div>
                   <div className="text-lg font-semibold text-blue-600">
-                    {m.total_leads ?? 0}
+                    {m.enquiries_count ?? 0}
                   </div>
                 </div>
 

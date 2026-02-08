@@ -17,7 +17,6 @@ const Field = ({ label, children }) => (
 const normalizeEnquiry = (data) => {
   const d = data.details || {};
 
-  // 🔥 latest first
   const sortedFollowUps = [...(data.follow_ups || [])].sort(
     (a, b) => new Date(b.created_at) - new Date(a.created_at)
   );
@@ -25,33 +24,57 @@ const normalizeEnquiry = (data) => {
   const latest = sortedFollowUps[0] || {};
 
   return {
+    // ===== MAIN =====
     enquiry_code: data.enquiry_code || "",
-
     student_name: data.student_name || "",
     phone: data.phone || "",
     enquiry_date: data.enquiry_date || "",
-    status: data.status || "Open",
+    status: data.status || "open",
     lead_temperature: data.lead_temperature || "Cold",
 
-    email: d.email || "",
-    gender: d.gender || "",
-    dob: d.dob?.slice(0, 10) || "",
-
-    // 🔥 referred by auto-select
     referred_by: data.referred_by_id
       ? String(data.referred_by_id)
       : "",
 
-    // 🔥 latest follow-up (right panel top)
+    // ===== DETAILS =====
+    email: d.email || "",
+    gender: d.gender || "",
+    dob: d.dob ? d.dob.slice(0, 10) : "",
+
+    state: d.state || "",
+    city: d.city || "",
+    area: d.area || "",
+    pincode: d.pincode || "",
+
+    current_address: d.current_address || "",
+    residential_address: d.residential_address || "",
+
+    nationality: d.nationality || "",
+    birth_place: d.birth_place || "",
+    mother_tongue: d.mother_tongue || "",
+    category: d.category || "",
+    religion: d.religion || "",
+    blood_group: d.blood_group || "",
+    aadhar_no: d.aadhar_no || "",
+
+    parent_name: d.parent_name || "",
+    parent_contact: d.parent_contact || "",
+    parent_email: d.parent_email || "",
+    parent_profession: d.parent_profession || "",
+    parent_aadhar_no: d.parent_aadhar_no || "",
+    guardian_name: d.guardian_name || "",
+
+    // ===== FOLLOW UP =====
     follow_up_type: latest.follow_up_type || "",
     followup_date: latest.followup_date || "",
-    followup_time: latest.followup_time || "",
+    followup_hh: latest.followup_time?.split(":")[0] || "",
+    followup_mm: latest.followup_time?.split(":")[1] || "",
     comment: latest.comment || "",
 
-    // 🔥 FULL HISTORY (right panel bottom)
     follow_ups: sortedFollowUps,
   };
 };
+
 
 
 
@@ -60,7 +83,8 @@ export default function EditEnquiryPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState(normalizeEnquiry({}));
+
   const [customFieldValues, setCustomFieldValues] = useState([]);
 const [customFields, setCustomFields] = useState([]);
 const [referredBy, setReferredBy] = useState([]);
@@ -251,6 +275,7 @@ return (
                     name="student_name"
                     value={form.student_name}
                     onChange={handleChange}
+                    placeholder="Enter student name"
                   />
                 </Field>
 
@@ -260,6 +285,7 @@ return (
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
+                    placeholder="Enter phone number"
                   />
                 </Field>
 
@@ -269,12 +295,13 @@ return (
                     name="email"
                     value={form.email}
                     onChange={handleChange}
+                    placeholder="Enter email address"
                   />
                 </Field>
 
                 <Field label="Gender">
                   <select
-                    className="soft-select"
+                    className="soft-input"
                     name="gender"
                     value={form.gender}
                     onChange={handleChange}
@@ -292,6 +319,7 @@ return (
                     name="dob"
                     value={form.dob}
                     onChange={handleChange}
+                    placeholder="Enter date of birth"
                   />
                 </Field>
 
@@ -301,6 +329,7 @@ return (
                     name="blood_group"
                     value={form.blood_group}
                     onChange={handleChange}
+                    placeholder="Enter blood group"
                   />
                 </Field>
               </div>
@@ -316,6 +345,7 @@ return (
                   name="current_address"
                   value={form.current_address}
                   onChange={handleChange}
+                  placeholder="Enter current address"
                   className="w-full min-h-[90px] rounded-md
                             border border-gray-200
                             px-3 py-2 text-sm
@@ -331,6 +361,7 @@ return (
                   name="residential_address"
                   value={form.residential_address}
                   onChange={handleChange}
+                  placeholder="Enter residential address"
                   className="w-full min-h-[90px] rounded-md
                             border border-gray-200
                             px-3 py-2 text-sm
@@ -355,6 +386,7 @@ return (
                     name="nationality"
                     value={form.nationality}
                     onChange={handleChange}
+                    placeholder="Enter nationality"
                   />
                 </Field>
 
@@ -364,6 +396,7 @@ return (
                     name="birth_place"
                     value={form.birth_place}
                     onChange={handleChange}
+                    placeholder="Enter birth place"
                   />
                 </Field>
 
@@ -373,6 +406,7 @@ return (
                     name="mother_tongue"
                     value={form.mother_tongue}
                     onChange={handleChange}
+                    placeholder="Enter mother tongue"
                   />
                 </Field>
 
@@ -382,6 +416,7 @@ return (
                     name="category"
                     value={form.category}
                     onChange={handleChange}
+                    placeholder="Enter category"
                   />
                 </Field>
 
@@ -391,6 +426,7 @@ return (
                     name="religion"
                     value={form.religion}
                     onChange={handleChange}
+                    placeholder="Enter religion"
                   />
                 </Field>
 
@@ -400,6 +436,7 @@ return (
                     name="aadhar_no"
                     value={form.aadhar_no}
                     onChange={handleChange}
+                    placeholder="Enter Aadhar number"
                   />
                 </Field>
               </div>

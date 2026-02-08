@@ -21,7 +21,7 @@ const [form, setForm] = useState({
   is_required: "N",
   is_searchable: "N",
   sequence: "",
-  max_length: "",
+  max_length: "200",
   default_value: "",
   is_external: "N",
   prefilled_data: "",
@@ -60,7 +60,7 @@ const [form, setForm] = useState({
       is_required: "N",
       is_searchable: "N",
       sequence: "1",
-      max_length: "",
+      max_length: "200",
       default_value: "",
       is_external: "N",
       prefilled_data: "",
@@ -238,190 +238,194 @@ const saveReason = async () => {
           onClose={() => setShowModal(false)}
         >
           <div className="grid grid-cols-2 gap-4">
-  {/* LABEL */}
-  <div>
-    <label className="text-xs text-gray-500">Label *</label>
-    <input
-      className="soft-input mt-1"
-      value={form.name}
-      onChange={(e) =>
-        setForm({ ...form, name: e.target.value })
-      }
-    />
-  </div>
+            {/* LABEL */}
+            <div>
+              <label className="text-xs text-gray-500">Label *</label>
+              <input
+                className="soft-input mt-1"
+                value={form.name}
+                placeholder="Annual Income"
+                onChange={(e) =>
+                  setForm({ ...form, name: e.target.value })
+                }
+              />
+            </div>
 
-  {/* TYPE */}
-  <div>
-    <label className="text-xs text-gray-500">Type *</label>
-    <select
-      className="soft-select mt-1"
-      value={form.type}
-      onChange={(e) =>
-        setForm({ ...form, type: e.target.value })
-      }
-    >
-      <option value="textbox">Textbox</option>
-      <option value="dropdown">Dropdown</option>
-      <option value="date">Date</option>
-    </select>
-  </div>
+            {/* TYPE */}
+            <div>
+              <label className="text-xs text-gray-500">Type *</label>
+              <select
+                className="soft-input mt-1"
+                value={form.type}
+                onChange={(e) =>
+                  setForm({ ...form, type: e.target.value })
+                }
+              >
+                <option value="textbox">Textbox</option>
+                <option value="dropdown">Dropdown</option>
+                <option value="date">Date</option>
+              </select>
+            </div>
 
-  {/* PREFILLED */}
-  <div>
-    <label className="text-xs text-gray-500">
-      Prefilled Data (comma separated)
-    </label>
-    <input
-      className="soft-input mt-1"
-      value={form.prefilled_data}
-      onChange={(e) =>
-        setForm({ ...form, prefilled_data: e.target.value })
-      }
-    />
-  </div>
+            {/* PREFILLED */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Prefilled Data (comma separated)
+              </label>
+              <input
+                className="soft-input mt-1"
+                value={form.prefilled_data}
+                placeholder="Prefilled data (Comma Seprated for dropdown - Male,Female)"
+                onChange={(e) =>
+                  setForm({ ...form, prefilled_data: e.target.value })
+                }
+              />
+            </div>
 
-  {/* SHOW ON STUDENT */}
-  <div>
-    <label className="text-xs text-gray-500">
-      Show On Student
-    </label>
-    <select
-      className="soft-select mt-1"
-      value={form.show_on_student}
-      onChange={(e) =>
-        setForm({
-          ...form,
-          show_on_student: e.target.value,
-        })
-      }
-    >
-      <option value="Y">Yes</option>
-      <option value="N">No</option>
-    </select>
-  </div>
+            {/* SHOW ON STUDENT */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Show On Student
+              </label>
+              <select
+                className="soft-select mt-1"
+                value={form.show_on_student}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    show_on_student: e.target.value,
+                  })
+                }
+              >
+                <option value="Y">Yes</option>
+                <option value="N">No</option>
+              </select>
+            </div>
 
-  {/* REQUIRED */}
-  <div>
-    <label className="text-xs text-gray-500">
-      Is Required
-    </label>
-    <select
-      className="soft-select mt-1"
-      value={form.is_required}
-      onChange={(e) =>
-        setForm({
-          ...form,
-          is_required: e.target.value,
-        })
-      }
-    >
-      <option value="Y">Yes</option>
-      <option value="N">No</option>
-    </select>
-  </div>
+            {/* REQUIRED */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Is Required
+              </label>
+              <select
+                className="soft-select mt-1"
+                value={form.is_required}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    is_required: e.target.value,
+                  })
+                }
+              >
+                <option value="Y">Yes</option>
+                <option value="N">No</option>
+              </select>
+            </div>
 
-  {/* SEARCHABLE */}
-  <div>
-    <label className="text-xs text-gray-500">
-      Is Searchable
-    </label>
-    <select
-      className="soft-select mt-1"
-      value={form.is_searchable}
-      onChange={(e) =>
-        setForm({
-          ...form,
-          is_searchable: e.target.value,
-        })
-      }
-    >
-      <option value="Y">Yes</option>
-      <option value="N">No</option>
-    </select>
-  </div>
+            {/* SEARCHABLE */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Is Searchable
+              </label>
+              <select
+                className="soft-select mt-1"
+                value={form.is_searchable}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    is_searchable: e.target.value,
+                  })
+                }
+              >
+                <option value="Y">Yes</option>
+                <option value="N">No</option>
+              </select>
+            </div>
 
-  {/* SEQUENCE */}
-  <div>
-    <label className="text-xs text-gray-500">
-      Sequence
-    </label>
-    <input
-      className="soft-input mt-1"
-      value={form.sequence}
-      onChange={(e) =>
-        setForm({
-          ...form,
-          sequence: e.target.value,
-        })
-      }
-    />
-  </div>
+            {/* SEQUENCE */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Sequence
+              </label>
+              <input
+                className="soft-input mt-1"
+                value={form.sequence}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    sequence: e.target.value,
+                  })
+                }
+              />
+            </div>
 
-  {/* MAX LENGTH */}
-  <div>
-    <label className="text-xs text-gray-500">
-      Max Length
-    </label>
-    <input
-      className="soft-input mt-1"
-      value={form.max_length}
-      onChange={(e) =>
-        setForm({
-          ...form,
-          max_length: e.target.value,
-        })
-      }
-    />
-  </div>
+            {/* MAX LENGTH */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Max Length
+              </label>
+              <input
+                className="soft-input mt-1"
+                value={form.max_length}
+                readOnly="readonly"
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    max_length: e.target.value,
+                  })
+                }
+              />
+            </div>
 
-  {/* DEFAULT */}
-  <div>
-    <label className="text-xs text-gray-500">
-      Default Value
-    </label>
-    <input
-      className="soft-input mt-1"
-      value={form.default_value}
-      onChange={(e) =>
-        setForm({
-          ...form,
-          default_value: e.target.value,
-        })
-      }
-    />
-  </div>
+            {/* DEFAULT */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Default Value
+              </label>
+              <input
+                className="soft-input mt-1"
+                value={form.default_value}
+                placeholder="Default Value"
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    default_value: e.target.value,
+                  })
+                }
+              />
+            </div>
 
-  {/* EXTERNAL */}
-  <div>
-    <label className="text-xs text-gray-500">
-      Is External
-    </label>
-    <select
-      className="soft-select mt-1"
-      value={form.is_external}
-      onChange={(e) =>
-        setForm({
-          ...form,
-          is_external: e.target.value,
-        })
-      }
-    >
-      <option value="Y">Yes</option>
-      <option value="N">No</option>
-    </select>
-  </div>
-</div>
+            {/* EXTERNAL */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Is External
+              </label>
+              <select
+                className="soft-select mt-1"
+                value={form.is_external}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    is_external: e.target.value,
+                  })
+                }
+              >
+                <option value="Y">Yes</option>
+                <option value="N">No</option>
+              </select>
+            </div>
+          </div>
 
-<div className="flex justify-end gap-2 pt-3">
-  <button
-    onClick={() => setShowModal(false)}
-    className="soft-btn-outline"
-  >
-    Cancel
-  </button>
+          <div className="flex justify-end gap-2 pt-3">
+            <button
+              onClick={() => setShowModal(false)}
+              className="soft-btn-outline"
+            >
+              Cancel
+            </button>
 
-  <PrimaryButton name={'Save'} onClick={saveReason} />
-</div>
+            <PrimaryButton name={'Save'} onClick={saveReason} />
+          </div>
 
 
         </Modal>

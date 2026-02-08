@@ -15,6 +15,7 @@ export default function BatchPage() {
 
   const [courses, setCourses] = useState([]);
   const [standards, setStandards] = useState([]);
+  const [editingCourseId, setEditingCourseId] = useState(null);
 
   const [showCourseModal, setShowCourseModal] = useState(false);
 
@@ -164,13 +165,22 @@ export default function BatchPage() {
 
   const saveCourse = async () => {
     try {
-      await api.post("/courses", {
+      const payload = {
         ...courseForm,
         class_id: activeClassId,
-      });
+      };
+
+      if (editingCourseId) {
+        // 🔁 UPDATE
+        await api.put(`/courses/${editingCourseId}`, payload);
+      } else {
+        // ➕ CREATE
+        await api.post("/courses", payload);
+      }
 
       setShowCourseModal(false);
       setCourseForm(emptyCourseForm);
+      setEditingCourseId(null);
       fetchCourses(activeClassId);
     } catch {
       alert("Failed to save course");
@@ -262,9 +272,22 @@ export default function BatchPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button className="soft-btn-outline">
+                    <button
+                      className="soft-btn-outline"
+                      onClick={() => {
+                        setEditingCourseId(course.id);
+                        setCourseForm({
+                          name: course.name || "",
+                          standard_id: course.standard_id || activeClassId,
+                          short_description: course.short_description || "",
+                          show_on_registration: course.show_on_registration ?? true,
+                        });
+                        setShowCourseModal(true);
+                      }}
+                    >
                       <EditOutlined />
                     </button>
+
                     <PrimaryButton
                       name="+ Add Batch"
                       onClick={() => openAddBatch(course)}
@@ -354,8 +377,12 @@ export default function BatchPage() {
       {/* ================= ADD COURSE MODAL ================= */}
       {showCourseModal && (
         <Modal
-          title="Add Category/Course"
-          onClose={() => setShowCourseModal(false)}
+           title={editingCourseId ? "Edit Category/Course" : "Add Category/Course"}
+            onClose={() => {
+              setShowCourseModal(false);
+              setEditingCourseId(null);
+              setCourseForm(emptyCourseForm);
+            }}
         >
           <div className="grid grid-cols-2 gap-4">
 
@@ -430,7 +457,11 @@ export default function BatchPage() {
               Cancel
             </button>
 
-            <PrimaryButton name="Save Course" onClick={saveCourse} />
+           <PrimaryButton
+            name={editingCourseId ? "Update Course" : "Save Course"}
+            onClick={saveCourse}
+          />
+
           </div>
         </Modal>
       )}
