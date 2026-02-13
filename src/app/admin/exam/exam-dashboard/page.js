@@ -3,6 +3,25 @@
 import React, { useEffect, useState } from "react";
 import { api } from "@/utils/api";
 
+const getExamStatus = (exam) => {
+  if (exam.status === "cancelled") return "cancelled";
+
+  if (exam.status === "scheduled") {
+    const today = new Date();
+    const examDate = new Date(exam.exam_date);
+
+    today.setHours(0,0,0,0);
+    examDate.setHours(0,0,0,0);
+
+    if (examDate < today) return "completed";
+    if (examDate.getTime() === today.getTime()) return "today";
+    return "upcoming";
+  }
+
+  return exam.status;
+};
+
+
 export default function ExamDashboardPage() {
   /* ================= DROPDOWNS ================= */
   const [courses, setCourses] = useState([]);
@@ -44,18 +63,26 @@ export default function ExamDashboardPage() {
       params: { course_id: courseId },
     });
 
-    const rows =
-      res.data?.data.map((e) => ({
-        id: e.id,
-        batch: e.batch?.name,
-        subject: e.subjects?.[0]?.subject?.short_code || "-",
-        tests: e.subjects?.length || 0,
-        att: e.subjects?.length ? 1 : 0,
-        marks: e.subjects?.length ? 1 : 0,
-      })) || [];
+    const exams = res.data?.data || [];
+
+    const rows = exams.map((e) => ({
+      id: e.id,
+      batch: e.batch?.name || "-",
+      examDate: e.exam_date,
+      room: e.room || "-",
+      subjects: e.total_subjects,
+      attendanceStatus: e.attendance?.status || "NOT_MARKED",
+      attendanceCount: e.attendance?.marked_count || 0,
+      totalStudents: e.attendance?.total_students || 0,
+      marksEntered: e.marks_entered || 0,
+      totalSubjects: e.total_subjects || 0,
+      status: getExamStatus(e),
+    }));
 
     setBatchRows(rows);
   };
+
+
 
   /* ================= CARD 2 API ================= */
   const fetchHistory = async () => {
@@ -68,26 +95,38 @@ export default function ExamDashboardPage() {
     setHistoryRows(res.data?.data || []);
   };
 
+
   /* ================= CARD 3 API ================= */
   const fetchSubjectSummary = async () => {
-    if (!classId) return;
+  if (!classId) return;
 
-    const res = await api.get("/exams", {
-      params: { class_id: classId },
-    });
+  const res = await api.get("/exams", {
+    params: { class_id: classId },
+  });
 
-    const rows =
-      res.data?.data.flatMap((e) =>
-        e.subjects.map((s) => ({
-          subject: s.subject?.short_code,
-          tests: 1,
-          att: 1,
-          marks: 1,
-        }))
-      ) || [];
+  const exams = res.data?.data || [];
 
-    setSummaryRows(rows);
-  };
+  const rows = exams.map((e) => ({
+    id: e.id,
+    subject: e.subjects?.map((s) => s.name).join(", ") || "-",
+    totalTests: e.total_subjects || 0,
+    attendanceCount: e.attendance?.marked_count || 0,
+    totalStudents: e.attendance?.total_students || 0,
+    marksEntered: e.marks_entered || 0,
+    totalSubjects: e.total_subjects || 0,
+    lastExam: e.exam_date,
+    status: getExamStatus(e), // 🔥 important
+  }));
+
+
+
+  setSummaryRows(rows);
+};
+
+
+
+
+
 
   return (
     <div className="space-y-4">
@@ -122,18 +161,21 @@ export default function ExamDashboardPage() {
           <table className="w-full text-sm">
             <thead className="bg-blue-50">
               <tr>
-                <th className="p-3 text-left">Batch</th>
-                <th className="p-3 text-left">Subject</th>
-                <th className="p-3 text-left">No of test</th>
-                <th className="p-3 text-left">Att. Updated</th>
-                <th className="p-3 text-left">Marks Updated</th>
-                <th className="p-3 text-right">Actions</th>
+                <th>Batch</th>
+                <th>Exam Date</th>
+                {/* <th>Room</th> */}
+                <th>Subjects</th>
+                <th>Attendance</th>
+                <th>Marks</th>
+                <th>Status</th>
+                <th className="text-right">Actions</th>
+
               </tr>
             </thead>
             <tbody>
               {batchRows.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="p-10 text-center text-gray-400">
+                  <td colSpan="8" className="p-10 text-center text-gray-400">
                     No data
                   </td>
                 </tr>
@@ -141,17 +183,53 @@ export default function ExamDashboardPage() {
                 batchRows.map((r) => (
                   <tr key={r.id} className="border-t border-gray-200">
                     <td className="p-3">{r.batch}</td>
-                    <td className="p-3">{r.subject}</td>
-                    <td className="p-3">{r.tests}</td>
-                    <td className="p-3">{r.att}</td>
-                    <td className="p-3">{r.marks}</td>
+                    <td className="p-3">{r.examDate}</td>
+                    {/* <td className="p-3">{r.room}</td> */}
+                    <td className="p-3">{r.subjects}</td>
+                    <td className="p-3">
+                      {r.attendanceStatus === "FULL" ? (
+                        <span className="text-green-600 text-xs">Full</span>
+                      ) : r.attendanceStatus === "NOT_MARKED" ? (
+                        <span className="text-gray-500 text-xs">Not Marked</span>
+                      ) : (
+                        <span className="text-orange-600 text-xs">Partial</span>
+                      )}
+                    </td>
+
+                    <td className="p-3">
+                      {r.marksEntered}/{r.totalSubjects}
+                    </td>
+
+                    <td className="p-3">
+                      {r.status === "cancelled" ? (
+                        <span className="text-red-600 text-xs font-semibold">
+                          Cancelled
+                        </span>
+                      ) : r.status === "completed" ? (
+                        <span className="text-green-600 text-xs">
+                          Completed
+                        </span>
+                      ) : r.status === "today" ? (
+                        <span className="text-blue-600 text-xs">
+                          Today
+                        </span>
+                      ) : (
+                        <span className="text-gray-500 text-xs">
+                          Upcoming
+                        </span>
+                      )}
+                    </td>
+
                     <td className="p-3 text-right">
-                      <button className="soft-btn-outline">View Result</button>
+                      <button className="soft-btn-outline">
+                        View Result
+                      </button>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
+
           </table>
         </div>
 
@@ -176,10 +254,14 @@ export default function ExamDashboardPage() {
           <table className="w-full text-sm">
             <thead className="bg-blue-50">
               <tr>
-                <th className="p-3 text-left">Exam Date</th>
-                <th className="p-3 text-left">Course</th>
-                <th className="p-3 text-left">Batch</th>
-                <th className="p-3 text-left">Status</th>
+                <th>Exam Date</th>
+                <th>Time</th>
+                <th>Course</th>
+                <th>Batch</th>
+                {/* <th>Room</th> */}
+                <th>Subjects</th>
+                <th>Status</th>
+
               </tr>
             </thead>
             <tbody>
@@ -192,12 +274,39 @@ export default function ExamDashboardPage() {
               ) : (
                 historyRows.map((e) => (
                   <tr key={e.id} className="border-t border-gray-200">
-                    <td className="p-3 ">{e.exam_date}</td>
+                    <td className="p-3">{e.exam_date}</td>
+                    <td className="p-3">
+                      {e.start_time} - {e.end_time}
+                    </td>
                     <td className="p-3">{e.course?.name}</td>
                     <td className="p-3">{e.batch?.name}</td>
-                    <td className="p-3">Status --</td>
+                    {/* <td className="p-3">{e.room}</td> */}
+                    <td className="p-3">
+                      {e.subjects?.map(s => s.name).join(", ")}
+                    </td>
+                    <td className="p-3">
+                      {e.status === "cancelled" ? (
+                        <span className="text-red-600 text-xs font-semibold">
+                          Cancelled
+                        </span>
+                      ) : e.attendance?.status === "FULL" ? (
+                        <span className="text-green-600 text-xs">
+                          Attendance Full
+                        </span>
+                      ) : e.attendance?.status === "NOT_MARKED" ? (
+                        <span className="text-gray-500 text-xs">
+                          Not Marked
+                        </span>
+                      ) : (
+                        <span className="text-orange-600 text-xs">
+                          Partial
+                        </span>
+                      )}
+                    </td>
+
                   </tr>
                 ))
+
               )}
             </tbody>
           </table>
@@ -228,20 +337,24 @@ export default function ExamDashboardPage() {
           </button>
         </div>
 
-        <table className="w-full text-sm">
-          <thead className="bg-blue-50">
-            <tr>
-              <th className="p-3 text-left">Subject</th>
-              <th className="p-3 text-left">No of test</th>
-              <th className="p-3 text-left">Att. Updated</th>
-              <th className="p-3 text-left">Marks Updated</th>
-              <th className="p-3 text-right">Actions</th>
+        <table className="w-full text-sm ">
+          <thead className="bg-blue-50 ">
+            <tr className="">
+              <th className="text-left">Subject</th>
+              <th className="text-left">Total Tests</th>
+              <th className="text-left">Attendance</th>
+              <th className="text-left">Marks</th>
+              <th className="text-left">Last Exam</th>
+              <th className="text-left">Status</th>
+              <th className="text-right">Actions</th>
             </tr>
           </thead>
+
+
           <tbody>
             {summaryRows.length === 0 ? (
               <tr>
-                <td colSpan="5" className="p-10 text-center text-gray-400">
+                <td colSpan="7" className="p-10 text-center text-gray-400">
                   No subject data
                 </td>
               </tr>
@@ -249,16 +362,51 @@ export default function ExamDashboardPage() {
               summaryRows.map((s, i) => (
                 <tr key={i} className="border-t border-gray-200">
                   <td className="p-3">{s.subject}</td>
-                  <td className="p-3">{s.tests}</td>
-                  <td className="p-3">{s.att}</td>
-                  <td className="p-3">{s.marks}</td>
+
+                  <td className="p-3">{s.totalTests}</td>
+
+                  <td className="p-3">
+                    {s.attendance}/{s.totalTests}
+                  </td>
+
+                  <td className="p-3">
+                    {s.marks}/{s.totalTests}
+                  </td>
+
+                  <td className="p-3">{s.lastExam}</td>
+
+                  <td className="p-3">
+                    {s.status === "cancelled" ? (
+                      <span className="text-red-600 text-xs font-semibold">
+                        Cancelled
+                      </span>
+                    ) : s.status === "completed" ? (
+                      <span className="text-green-600 text-xs">
+                        Completed
+                      </span>
+                    ) : s.status === "today" ? (
+                      <span className="text-blue-600 text-xs">
+                        Today
+                      </span>
+                    ) : (
+                      <span className="text-gray-500 text-xs">
+                        Upcoming
+                      </span>
+                    )}
+                  </td>
+
+
                   <td className="p-3 text-right">
-                    <button className="soft-btn-outline">View Result</button>
+                    <button className="soft-btn-outline">
+                      View Result
+                    </button>
                   </td>
                 </tr>
               ))
             )}
           </tbody>
+
+
         </table>
       </div>
     </div>
