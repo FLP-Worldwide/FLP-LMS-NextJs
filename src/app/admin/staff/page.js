@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
+import { EditOutlined } from "@ant-design/icons";
 
 export default function StaffPage() {
   const [staff, setStaff] = useState([]);
@@ -48,7 +49,7 @@ export default function StaffPage() {
   const handleDelete = async (id) => {
     if (!confirm("Delete staff member?")) return;
     await api.delete(`/staff/${id}`);
-     fetchStaff();
+    fetchStaff();
     setStaff(prev => prev.filter(s => s.id !== id));
   };
 
@@ -134,7 +135,15 @@ export default function StaffPage() {
                   <td className="px-4 py-2 text-right">
                     <div className="flex justify-end gap-3">
                       <Link
-                        href={`/admin/staff/${s.id}`}
+                        href={`/admin/staff/${s.user_id}/edit`}
+                        className="text-blue-600"
+                      >
+                        <EditOutlined />
+                      </Link>
+
+
+                      <Link
+                        href={`/admin/staff/${s.user_id}`}
                         className="text-sky-600"
                       >
                         <EyeOutlined />

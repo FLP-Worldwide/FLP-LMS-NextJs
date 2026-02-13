@@ -314,39 +314,44 @@ const [toDate, setToDate] = useState(to);
                     {filteredDays.map((d) => {
                         const dateKey = d.key;
                         const sunday = isSunday(d.fullDate);
+                        const today = isToday(d.fullDate);
+                        const future = isFuture(d.fullDate);
+
+                        const disabled = sunday || !today || future;
 
                         const value = sunday
-                            ? "S"
-                            : attendance?.[staff.id]?.[dateKey] || "-";
+                          ? "S"
+                          : attendance?.[staff.id]?.[dateKey] || "-";
 
                         return (
-                            <td key={dateKey} className="px-2 py-2 text-center">
+                          <td
+                            key={dateKey}
+                            className={`px-2 py-2 text-center transition
+                              ${sunday ? "bg-gray-100" : ""}
+                              ${!today && !sunday ? "bg-gray-100" : ""}
+                            `}
+                          >
                             <select
-                                className="soft-select w-[52px] text-xs text-center"
-                                value={value}
-                                disabled={
-                                sunday ||
-                                !isToday(d.fullDate) ||
-                                isFuture(d.fullDate)
-                                }
-                                onChange={(e) =>
-                                updateAttendance(
-                                    staff.id,
-                                    dateKey,
-                                    e.target.value
-                                )
-                                }
+                              className={`soft-select w-[52px] text-xs text-center
+                                ${disabled ? "bg-gray-100 text-gray-200 cursor-not-allowed" : ""}
+                              `}
+                              value={value}
+                              disabled={disabled}
+                              onChange={(e) =>
+                                updateAttendance(staff.id, dateKey, e.target.value)
+                              }
                             >
-                                <option value="-">-</option>
-                                {Object.keys(ATTENDANCE).map((k) => (
+                              <option value="-">-</option>
+                              {Object.keys(ATTENDANCE).map((k) => (
                                 <option key={k} value={k}>
-                                    {k}
+                                  {k}
                                 </option>
-                                ))}
+                              ))}
                             </select>
-                            </td>
+                          </td>
                         );
-                        })}
+                      })}
+
 
 
                     <td className="sticky right-0 z-10 bg-white px-6 py-2 border-l min-w-[120px] text-center">

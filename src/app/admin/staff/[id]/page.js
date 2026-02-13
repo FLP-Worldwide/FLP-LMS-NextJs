@@ -54,11 +54,15 @@ export default function ViewTeacherDetailPage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [updating, setUpdating] = useState(false);
 
-  const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(0);
+  const today = new Date();
+
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
 
   const [staff, setStaff] = useState({});
   const [attendance, setAttendance] = useState({});
+
+
   const [summary, setSummary] = useState({
     P: 0,
     A: 0,
@@ -69,36 +73,44 @@ export default function ViewTeacherDetailPage() {
 
   /* ================= API ================= */
   useEffect(() => {
-  const loadAttendance = async () => {
-    const params = {
-      month: `${year}-${String(month + 1).padStart(2, "0")}`,
+    if (!staffId) return;
+
+    const loadAttendance = async () => {
+      try {
+        const res = await api.get(
+          `/staff/${staffId}/attendance`,
+          {
+            params: {
+              month: String(month + 1).padStart(2, "0"),
+              year,
+            },
+          }
+        );
+
+        const data = res.data;
+
+        setStaff(data.staff || {});
+
+        // Map attendance
+        const map = {};
+        (data.attendance || []).forEach((a) => {
+          map[a.date] = a.status;
+        });
+
+        setAttendance(map);
+
+        // If backend sends summary use it
+        if (data.summary) {
+          setSummary(data.summary);
+        }
+      } catch (err) {
+        console.error("Failed to load attendance", err);
+      }
     };
 
-    const res = await api.get(
-      `/staff/attendance/${staffId}`,
-      { params }
-    );
+    loadAttendance();
+  }, [staffId, year, month]);
 
-    const data = res.data || {}; // ✅ FIXED
-
-    setStaff(data.staff || {});
-
-    const map = {};
-    const sum = { P: 0, A: 0, LP: 0, L: 0, HP: 0 };
-
-    (data.attendance || []).forEach((a) => {
-      map[a.date] = a.status;
-      if (sum[a.status] !== undefined) {
-        sum[a.status]++;
-      }
-    });
-
-    setAttendance(map);
-    setSummary(sum);
-  };
-
-  loadAttendance();
-}, [year, month, staffId]);
 
 
   const daysGrid = useMemo(
@@ -107,35 +119,30 @@ export default function ViewTeacherDetailPage() {
   );
 
   const updateAttendance = async (status) => {
-  if (!selectedDate) return;
+    if (!selectedDate) return;
 
-  setUpdating(true);
+    try {
+      setUpdating(true);
 
-  await api.put(`/staff/attendance/${staffId}`, {
-    date: selectedDate,
-    status,
-  });
+      await api.put(`/staff/${staffId}/attendance`, {
+        date: selectedDate,
+        status,
+      });
 
-  // Optimistic UI update
-  setAttendance((prev) => ({
-    ...prev,
-    [selectedDate]: status,
-  }));
+      // Update UI
+      setAttendance((prev) => ({
+        ...prev,
+        [selectedDate]: status,
+      }));
 
-  setSummary((prev) => {
-    const next = { ...prev };
+      setSelectedDate(null);
+    } catch (err) {
+      console.error("Update failed", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
 
-    Object.keys(next).forEach((k) => {
-      if (attendance[selectedDate] === k) next[k]--;
-    });
-
-    if (next[status] !== undefined) next[status]++;
-    return next;
-  });
-
-  setSelectedDate(null);
-  setUpdating(false);
-};
 
 
   return (
@@ -262,14 +269,21 @@ export default function ViewTeacherDetailPage() {
               }
 
               const key = getLocalDateKey(date);
-              const status = attendance[key];
+              const status = attendance?.[key] || null;
+
 
               return (
                 <div
                   key={idx}
                   onClick={() => {
                     const today = new Date();
-                    if (date <= today) {
+                    today.setHours(0,0,0,0);
+
+                    const current = new Date(date);
+                    current.setHours(0,0,0,0);
+
+                    if (current <= today) {
+
                       setSelectedDate(getLocalDateKey(date));
                     }
                   }}
