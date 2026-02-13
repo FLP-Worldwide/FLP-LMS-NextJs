@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { api } from "@/utils/api";
 
-import { Pencil, Bell, XCircle, Users } from "lucide-react";
+import { Pencil, Bell, XCircle, Users, Badge } from "lucide-react";
 import AlertModal from "@/components/ui/AlertModal";
 import Modal from "@/components/ui/Modal";
 
@@ -75,6 +75,19 @@ export default function ExamSchedulePage() {
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  const formatTimeForApi = (time) => {
+    if (!time) return null;
+
+    // If already has seconds, return as is
+    if (time.split(":").length === 3) {
+      return time;
+    }
+
+    // If only HH:MM → add seconds
+    return time + ":00";
+  };
+
 
   /* ================= API ================= */
   const fetchCourses = async () => {
@@ -262,28 +275,38 @@ export default function ExamSchedulePage() {
 
               {/* Status */}
               <td className="p-3">
-               {(() => {
+                {(() => {
+                  // 1️⃣ Cancelled has highest priority
+                  if (exam.status === "cancelled") {
+                    return (
+                      <span className="px-3 py-1 rounded-full text-xs text-white bg-red-600">
+                        Cancelled
+                      </span>
+                    );
+                  }
+
+                  // 2️⃣ Otherwise use attendance logic
                   const status = getExamStatus(exam);
+
+                  const colorClass =
+                    status === "Attendance Pending"
+                      ? "bg-blue-600"
+                      : status === "Attendance Marked"
+                      ? "bg-green-600"
+                      : status === "Upcoming"
+                      ? "bg-orange-500"
+                      : "bg-gray-500";
 
                   return (
                     <span
-                      className={`px-3 py-1 rounded-full text-xs text-white ${
-                        status === "Attendance Pending"
-                          ? "bg-blue-600"
-                          : status === "Attendance Marked"
-                          ? "bg-green-600"
-                          : status === "Upcoming"
-                          ? "bg-orange-500"
-                          : "bg-gray-500"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs text-white ${colorClass}`}
                     >
                       {status}
                     </span>
                   );
                 })()}
-
-
               </td>
+
 
               {/* Actions */}
               <td className="p-3 text-right">
@@ -292,7 +315,7 @@ export default function ExamSchedulePage() {
                   <button
                     className="soft-icon-btn"
                     title="Edit Exam"
-                    onClick={() => setEditExam(exam)}
+                    onClick={() => setEditExam({...exam, start_time: exam.start_time?.slice(0, 5), end_time: exam.end_time?.slice(0, 5)})}
                   >
                     <Pencil size={16} />
                   </button>
@@ -357,43 +380,91 @@ export default function ExamSchedulePage() {
       onClose={() => setEditExam(null)}
       className="max-w-2xl"
     >
-     <div className="grid grid-cols-2 gap-6">
-        {/* Description */}
+      <div className="grid grid-cols-2 gap-6">
+
+        {/* Exam Date */}
         <div>
-          <label className="soft-label">Description / Topic</label>
+          <label className="soft-label">Exam Date</label>
           <input
+            type="date"
             className="soft-input"
-            value={editExam.topic || ""}
+            value={editExam.exam_date}
             onChange={(e) =>
-              setEditExam({ ...editExam, topic: e.target.value })
+              setEditExam({ ...editExam, exam_date: e.target.value })
             }
           />
         </div>
 
-        {/* Subject Marks */}
-        <div className="space-y-3">
-          <label className="soft-label">Marks</label>
-
-          {editExam.subjects.map((s, i) => (
-            <div key={s.id} className="flex gap-3 items-center">
-              <div className="flex-1 text-sm">{s.name}</div>
-
-              <input
-                type="number"
-                className="soft-input w-32"
-                value={s.marks}
-                onChange={(e) => {
-                  const subjects = [...editExam.subjects];
-                  subjects[i] = {
-                    ...subjects[i],
-                    marks: e.target.value,
-                  };
-                  setEditExam({ ...editExam, subjects });
-                }}
-              />
-            </div>
-          ))}
+        {/* Start Time */}
+        <div>
+          <label className="soft-label">Start Time</label>
+          <input
+            type="time"
+            className="soft-input"
+            value={editExam.start_time}
+            onChange={(e) =>
+              setEditExam({ ...editExam, start_time: e.target.value })
+            }
+          />
         </div>
+
+        {/* End Time */}
+        <div>
+          <label className="soft-label">End Time</label>
+          <input
+            type="time"
+            className="soft-input"
+            value={editExam.end_time}
+            onChange={(e) =>
+              setEditExam({ ...editExam, end_time: e.target.value })
+            }
+          />
+        </div>
+
+        {/* Title */}
+        <div>
+          <label className="soft-label">Title</label>
+          <input
+            className="soft-input"
+            value={editExam.title || ""}
+            onChange={(e) =>
+              setEditExam({ ...editExam, title: e.target.value })
+            }
+          />
+        </div>
+          {/* Subjects & Marks (Read Only) */}
+          <div className="col-span-2 pt-4">
+            <label className="soft-label">Subjects & Marks</label>
+
+            <div className="space-y-2 mt-2">
+              {editExam.subjects?.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-md text-sm"
+                >
+                  <span>{s.name}</span>
+                  <span className="font-medium text-gray-700">
+                    {s.marks} Marks
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        {/* Description */}
+        <div className="col-span-2">
+          <label className="soft-label">Description</label>
+          <textarea
+            className="soft-input"
+            rows="3"
+            value={editExam.description || ""}
+            onChange={(e) =>
+              setEditExam({ ...editExam, description: e.target.value })
+            }
+          />
+        </div>
+
+        
+
       </div>
 
       <div className="flex justify-end gap-2 pt-6">
@@ -410,21 +481,27 @@ export default function ExamSchedulePage() {
             setSaving(true);
 
             await api.put(`/exams/${editExam.id}`, {
-              topic: editExam.topic,
+              exam_date: editExam.exam_date,
+              start_time: formatTimeForApi(editExam.start_time),
+              end_time: formatTimeForApi(editExam.end_time),
+              title: editExam.title,
+              description: editExam.description,
+
               subjects: editExam.subjects.map((s) => ({
-                id: s.id,
-                marks: s.marks,
-              })),
+                subject_id: s.id,   // ✅ change key name
+                marks: Number(s.marks),
+              }))
             });
 
             setSaving(false);
             setEditExam(null);
-            searchExams(); // refresh list
+            searchExams();
           }}
         />
       </div>
     </Modal>
   )}
+
 
 <AlertModal
     open={!!cancelExam}

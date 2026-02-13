@@ -84,7 +84,8 @@ export default function AdminSidebar() {
         </div>
 
         {/* NAV */}
-        <nav className="flex-1 overflow-auto space-y-1">
+        <nav className="flex-1 overflow-y-auto erp-scroll space-y-1">
+
           {nav.map((item) => {
             const isOpen = openKeys.includes(item.key);
 

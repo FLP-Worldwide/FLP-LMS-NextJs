@@ -199,7 +199,7 @@ const handleMultiSelect = (e) => {
 
           {/* Email */}
           <div>
-            <label className="text-sm text-gray-600">Email ID</label>
+            <label className="text-sm text-gray-600">Email ID  <span className="text-red-500">*</span></label>
             <input
               name="email"
               value={form.email}
