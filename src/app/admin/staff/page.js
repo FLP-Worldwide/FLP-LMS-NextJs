@@ -48,6 +48,7 @@ export default function StaffPage() {
   const handleDelete = async (id) => {
     if (!confirm("Delete staff member?")) return;
     await api.delete(`/staff/${id}`);
+     fetchStaff();
     setStaff(prev => prev.filter(s => s.id !== id));
   };
 
@@ -139,7 +140,7 @@ export default function StaffPage() {
                         <EyeOutlined />
                       </Link>
                       <button
-                        onClick={() => handleDelete(s.id)}
+                        onClick={() => handleDelete(s.user_id)}
                         className="text-red-500"
                       >
                         <DeleteOutlined />
