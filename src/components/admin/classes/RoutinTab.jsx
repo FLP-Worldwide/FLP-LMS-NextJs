@@ -6,9 +6,11 @@ import PrimaryButton from "@/components/ui/PrimaryButton";
 import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
 import { SECTIONS, DAYS } from "@/constants/sections";
-import Router from "next/router";
+
+import { useRouter } from "next/navigation";
 
 export default function RoutineTab() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [routines, setRoutines] = useState([]);
 
@@ -23,34 +25,9 @@ export default function RoutineTab() {
   const [currentId, setCurrentId] = useState(null);
 const [teachers, setTeachers] = useState([]);
 
-useEffect(() => {
-  fetchTeachers();
-}, []);
-
-const fetchTeachers = async () => {
-  const res = await api.get("/teachers"); // adjust endpoint if needed
-  setTeachers(res.data.data || []);
-};
-
-  const [form, setForm] = useState({
-    class_id: "",
-    section: "",
-    subject_id: "",
-    days: [],
-    teacher: "",
-    start_time: "12:00 AM",
-    end_time: "01:00 AM",
-    room_id: "",
-  });
-
-  const [roomForm, setRoomForm] = useState({
-    name: "",
-    number: "",
-    floor: "",
-  });
 
   /* ================= FETCH ================= */
-  const fetchAll = async () => {
+const fetchAll = async () => {
     setLoading(true);
     try {
       const [r, c, s, rm] = await Promise.all([
@@ -73,91 +50,12 @@ const fetchTeachers = async () => {
     fetchAll();
   }, []);
 
-  /* ================= ACTIONS ================= */
-  const openCreate = () => {
-    setForm({
-      class_id: "",
-      section: "",
-      subject_id: "",
-      days: [],
-      teacher: "",
-      start_time: "12:00 AM",
-      end_time: "01:00 AM",
-      room_id: "1",
-    });
-    setEditing(false);
-    setCurrentId(null);
-    setShowModal(true);
-  };
-
-  const openEdit = r => {
-    setForm({
-      class_id: String(r.class.id),
-      section: r.section,
-      subject_id: String(r.subject.id),
-      days: r.days || [],
-      teacher: r.teacher || "",
-      start_time: r.start_time,
-      end_time: r.end_time,
-      room_id: r.room_id ? String(r.room_id) : "",
-    });
-    setEditing(true);
-    setCurrentId(r.id);
-    setShowModal(true);
-  };
-
-
-    const saveRoutine = async () => {
-    const payload = {
-        class_id: form.class_id,
-        section: form.section,
-        subject_id: form.subject_id,
-        teacher: form.teacher,
-        room_id: form.room_id,
-
-        day: form.days,                // array like ["Monday"]
-
-        start_time: form.start_time,   // "12 PM"
-        end_time: form.end_time,       // "1 PM"
-    };
-
-    console.log("Routine payload:", payload); // 👈 IMPORTANT
-
-    try {
-        if (editing) {
-        await api.put(`/class-routines/${currentId}`, payload);
-        } else {
-        await api.post("/class-routines", payload);
-        }
-        setShowModal(false);
-        fetchAll();
-    } catch (e) {
-        console.error(e.response?.data || e);
-        alert("Failed to save routine");
-    }
-    };
-
-
-  const toggleDay = day => {
-    setForm(prev => ({
-      ...prev,
-      days: prev.days.includes(day)
-        ? prev.days.filter(d => d !== day)
-        : [...prev.days, day],
-    }));
-  };
-
-  const saveRoom = async () => {
-    await api.post("/rooms", roomForm);
-    setRoomForm({ name: "", number: "", floor: "" });
-    setShowRoomModal(false);
-    fetchAll();
-  };
+  
 
   return (
     <div className="space-y-2">
       <div className="flex justify-end">
-        <PrimaryButton name="+ Add Routine" onClick={openCreate} />
+        <PrimaryButton name="+ Add Routine" onClick={() => router.push("/admin/classes/schedule")} />
       </div>
 
       {/* TABLE */}
@@ -205,179 +103,6 @@ const fetchTeachers = async () => {
         </div>
       )}
 
-      {/* ROUTINE MODAL */}
-      {showModal && (
-          <Modal
-            title={editing ? "Edit Routine" : "Create Routine"}
-            onClose={() => setShowModal(false)}
-          >
-            <div className="space-y-4">
-
-              {/* ===== FORM GRID ===== */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                {/* STANDARD */}
-                <select
-                  className="soft-input"
-                  value={form.class_id}
-                  onChange={(e) =>
-                    setForm({ ...form, class_id: e.target.value })
-                  }
-                >
-                  <option value="">Standard *</option>
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-
-                {/* SECTION */}
-                <select
-                  className="soft-input"
-                  value={form.section}
-                  onChange={(e) =>
-                    setForm({ ...form, section: e.target.value })
-                  }
-                >
-                  <option value="">Section *</option>
-                  {SECTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-
-                {/* SUBJECT */}
-                <select
-                  className="soft-input"
-                  value={form.subject_id}
-                  onChange={(e) =>
-                    setForm({ ...form, subject_id: e.target.value })
-                  }
-                >
-                  <option value="">Subject *</option>
-                  {subjects.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-
-                {/* TEACHER (DROPDOWN) */}
-                <div className="flex gap-2">
-
-                <select
-                  className="soft-input"
-                  value={form.teacher_id}
-                  onChange={(e) =>
-                    setForm({ ...form, teacher_id: e.target.value })
-                  }
-                >
-                  <option value="">Teacher *</option>
-                  {teachers.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name} ({t.department})
-                    </option>
-                  ))}
-                </select>
-
-                  <a href="/admin/staff/create">
-                  <button
-                    type="button"
-
-                    className="h-[34px] w-[34px] flex items-center justify-center
-                              rounded-md border border-gray-300
-                              text-blue-600 hover:bg-blue-50"
-                    title="Add Source"
-                  >
-                    +
-                  </button>
-                  </a>
-                  </div>
-                {/* START TIME */}
-                <input
-                  type="time"
-                  className="soft-input"
-                  value={form.start_time}
-                  onChange={(e) =>
-                    setForm({ ...form, start_time: e.target.value })
-                  }
-                />
-
-                {/* END TIME */}
-                <input
-                  type="time"
-                  className="soft-input"
-                  value={form.end_time}
-                  onChange={(e) =>
-                    setForm({ ...form, end_time: e.target.value })
-                  }
-                />
-
-                {/* ROOM */}
-                {/* <select
-                  className="soft-input"
-                  value={form.room_id}
-                  onChange={(e) =>
-                    setForm({ ...form, room_id: e.target.value })
-                  }
-                >
-                  <option value="">Room</option>
-                  {rooms.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select> */}
-
-                {/* ADD ROOM */}
-                {/* <button
-                  type="button"
-                  className="text-blue-600 text-sm flex items-center gap-1"
-                  onClick={() => setShowRoomModal(true)}
-                >
-                  <PlusOutlined />
-                  Add Room
-                </button> */}
-
-              </div>
-
-              {/* ===== DAYS (FULL WIDTH) ===== */}
-              <div className="border border-gray-200 rounded-lg p-3">
-                <div className="flex flex-wrap gap-4">
-                  {DAYS.map((d) => (
-                    <label
-                      key={d}
-                      className="inline-flex items-center gap-2 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={form.days.includes(d)}
-                        onChange={() => toggleDay(d)}
-                      />
-                      {d}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* ===== ACTIONS ===== */}
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  className="soft-btn-outline"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
-                <PrimaryButton
-                  name={editing ? "Update" : "Save"}
-                  onClick={saveRoutine}
-                />
-              </div>
-            </div>
-          </Modal>
-        )}
 
     </div>
   );

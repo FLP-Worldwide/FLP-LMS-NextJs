@@ -20,6 +20,20 @@ export default function NewAdmissionPage() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const [documents, setDocuments] = useState({
+    aadhaar: null,
+    document: null,
+    document_other: null,
+  });
+
+const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    setDocuments((prev) => ({
+      ...prev,
+      [name]: files[0],
+    }));
+  };
+
   const [classes, setClasses] = useState([]);
 
   const [form, setForm] = useState({
@@ -69,33 +83,56 @@ export default function NewAdmissionPage() {
 
   /* ---------------- SUBMIT ---------------- */
   const submitAdmission = async () => {
-    const payload = {
-      first_name: form.studentName.split(" ")[0],
-      last_name: form.studentName.split(" ").slice(1).join(" ") || null,
-      admission_date: form.admissionDate,
-      class: form.class_id,
-      section: form.section || null,
-      status: "active",
-
-      details: {
-        dob: form.dob,
-        gender: form.gender.toLowerCase(),
-        blood_group: form.blood_group,
-        phone: form.mobile,
-        email: form.email,
-        father_name: form.fatherName,
-        mother_name: form.motherName,
-        parent_phone: form.parentMobile,
-        address: form.address,
-        city: form.city,
-        state: form.state,
-        medical_info: form.remarks || null,
-      },
-    };
-
     try {
       setLoading(true);
-      await api.post("/students", payload);
+
+      const formData = new FormData();
+
+      // Student basic
+      formData.append("first_name", form.studentName.split(" ")[0]);
+      formData.append(
+        "last_name",
+        form.studentName.split(" ").slice(1).join(" ") || ""
+      );
+      formData.append("admission_date", form.admissionDate);
+      formData.append("class", form.class_id);
+      formData.append("section", form.section || "");
+      formData.append("status", "active");
+
+      // Details
+      formData.append("dob", form.dob);
+      formData.append("gender", form.gender.toLowerCase());
+      formData.append("blood_group", form.blood_group);
+      formData.append("phone", form.mobile);
+      formData.append("email", form.email);
+      formData.append("father_name", form.fatherName);
+      formData.append("mother_name", form.motherName);
+      formData.append("parent_phone", form.parentMobile);
+      formData.append("address", form.address);
+      formData.append("city", form.city);
+      formData.append("state", form.state);
+      formData.append("medical_info", form.remarks || "");
+
+      // Documents
+      if (documents.aadhaar) {
+        formData.append("aadhaar", documents.aadhaar);
+      }
+
+      if (documents.document) {
+        formData.append("document", documents.document);
+      }
+
+      if (documents.document_other) {
+        formData.append("document_other", documents.document_other);
+      }
+
+    await api.post("/students", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+
       alert("Admission created successfully");
       router.push("/admin/students");
     } catch (err) {
@@ -105,6 +142,7 @@ export default function NewAdmissionPage() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -137,9 +175,9 @@ export default function NewAdmissionPage() {
         {/* STEP 1 */}
         {step === 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input label="Student Name" name="studentName" onChange={update} placeholder="Enter student name" />
-            <Input label="Mobile No" name="mobile" onChange={update} placeholder="Enter mobile number" />
-            <Input label="Email" name="email" onChange={update} placeholder="Enter email address" />
+            <Input label="Student Name" name="studentName" onChange={update} placeholder="Enter student name" value={form.studentName} />
+            <Input label="Mobile No" name="mobile" onChange={update} placeholder="Enter mobile number" value={form.mobile} />
+            <Input label="Email" name="email" onChange={update} placeholder="Enter email address" value={form.email} />
 
             <Select
               label="Class"
@@ -156,14 +194,16 @@ export default function NewAdmissionPage() {
               label="Section"
               name="section"
               options={SECTIONS.map((s) => ({ value: s, label: s }))}
+              value={form.section}
               onChange={update}
             />
 
-            <Input type="date" label="Date of Birth" name="dob" onChange={update} placeholder="Enter date of birth" />
+            <Input type="date" label="Date of Birth" name="dob" onChange={update} placeholder="Enter date of birth" value={form.dob} />
 
             <Select
               label="Gender"
               name="gender"
+              value={form.gender}
               options={[
                 { value: "Male", label: "Male" },
                 { value: "Female", label: "Female" },
@@ -174,6 +214,7 @@ export default function NewAdmissionPage() {
             <Select
               label="Blood Group"
               name="blood_group"
+              value={form.blood_group}
               options={BLOOD_GROUPS.map((b) => ({ value: b, label: b }))}
               onChange={update}
             />
@@ -183,30 +224,54 @@ export default function NewAdmissionPage() {
         {/* STEP 2 */}
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input label="Father Name" name="fatherName" onChange={update} placeholder="Enter father name" />
-            <Input label="Mother Name" name="motherName" onChange={update} placeholder="Enter mother name" />
-            <Input label="Parent Mobile" name="parentMobile" onChange={update} placeholder="Enter parent mobile number" />
-            <Input label="Parent Email" name="parentEmail" onChange={update} placeholder="Enter parent email address" />
-            <Input label="Profession" name="profession" onChange={update} placeholder="Enter profession" />
+            <Input label="Father Name" name="fatherName" onChange={update} placeholder="Enter father name" value={form.fatherName} />
+            <Input label="Mother Name" name="motherName" onChange={update} placeholder="Enter mother name" value={form.motherName} />
+            <Input label="Parent Mobile" name="parentMobile" onChange={update} placeholder="Enter parent mobile number" value={form.parentMobile} />
+            <Input label="Parent Email" name="parentEmail" onChange={update} placeholder="Enter parent email address" value={form.parentEmail} />
+            <Input label="Profession" name="profession" onChange={update} placeholder="Enter profession" value={form.profession} />
           </div>
         )}
 
         {/* STEP 3 */}
         {step === 2 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Address" name="address" onChange={update} placeholder="Enter address" />
-            <Input label="City" name="city" onChange={update} placeholder="Enter city" />
-            <Input label="State" name="state" onChange={update} placeholder="Enter state" />
-            <Input label="Pincode" name="pincode" onChange={update} placeholder="Enter pincode" />
+            <Input label="Address" name="address" onChange={update} placeholder="Enter address" value={form.address} />
+            <Input label="City" name="city" onChange={update} placeholder="Enter city" value={form.city} />
+            <Input label="State" name="state" onChange={update} placeholder="Enter state" value={form.state} />
+            <Input label="Pincode" name="pincode" onChange={update} placeholder="Enter pincode" value={form.pincode} />
           </div>
         )}
 
         {/* STEP 4 */}
-        {step === 3 && <input type="file" multiple />}
+       {step === 3 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FileUpload
+            label="Aadhaar Card"
+            name="aadhaar"
+           
+            onChange={handleFileChange}
+          />
+          <FileUpload
+            label="Document"
+            name="document"
+            
+            onChange={handleFileChange}
+          />
+          <FileUpload
+            label="Extra Document"
+            name="document_other"
+           
+            onChange={handleFileChange}
+          />
+        </div>
+
+        
+      )}
+
 
         {/* STEP 5 */}
         {step === 4 && (
-          <Input type="date" label="Admission Date" name="admissionDate" onChange={update} placeholder="Enter admission date" />
+          <Input type="date" label="Admission Date" name="admissionDate" onChange={update} placeholder="Enter admission date" value={form.admissionDate} />
         )}
 
         {/* STEP 6 */}
@@ -216,6 +281,7 @@ export default function NewAdmissionPage() {
             onChange={update}
             className="w-full px-2 py-2 text-sm border rounded"
             rows={3}
+            value={form.remarks}
             placeholder="Enter any remarks or medical information"
           />
         )}
@@ -283,3 +349,21 @@ function Select({ label, options = [], ...props }) {
     </div>
   );
 }
+
+function FileUpload({ label, ...props }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-medium text-gray-600">
+        {label}
+      </label>
+      <input
+        type="file"
+        {...props}
+        className="w-full px-2 py-2 text-sm rounded-lg border border-gray-300 bg-white
+                   focus:outline-none focus:ring-2 focus:ring-blue-100
+                   focus:border-blue-500 transition cursor-pointer"
+      />
+    </div>
+  );
+}
+

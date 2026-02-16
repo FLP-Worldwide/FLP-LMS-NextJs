@@ -1,78 +1,100 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { api } from "@/utils/api";
 
 export default function LeavePermissionPage() {
-  // 🔹 Dummy data (keep empty [] to show No Data Found)
-  const permissions = [
-    {
-      id: 1,
-      applicant: "Neha Verma",
-      role: "Teacher",
-      category: "Casual Leave",
-      applied_date: "05/01/2026",
-      days: 2,
-      from: "06/01/2026",
-      to: "07/01/2026",
-      reason: "Personal work",
-      status: "Pending",
-    },
-  ];
+  const [date, setDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [leaves, setLeaves] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchLeaves = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/staff-leaves?date=${date}`);
+      setLeaves(res?.data?.data || []);
+    } catch (error) {
+      console.error("Failed to fetch leaves", error);
+      setLeaves([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaves();
+  }, [date]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <table className="w-full text-sm">
-        {/* ================= TABLE HEAD ================= */}
-        <thead className="bg-blue-50">
-          <tr>
-            <th className="px-4 py-2 text-left">#</th>
-            <th className="px-4 py-2 text-left">Applicant</th>
-            <th className="px-4 py-2 text-left">Role</th>
-            <th className="px-4 py-2 text-left">Category</th>
-            <th className="px-4 py-2 text-left">Applied Date</th>
-            <th className="px-4 py-2 text-left">Days</th>
-            <th className="px-4 py-2 text-left">From</th>
-            <th className="px-4 py-2 text-left">To</th>
-            <th className="px-4 py-2 text-left">Reason</th>
-            <th className="px-4 py-2 text-left">Status</th>
-            <th className="px-4 py-2 text-left">Action</th>
-          </tr>
-        </thead>
+    <div className="space-y-4">
+      {/* ================= DATE FILTER ================= */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-gray-700">
+          Staff On Leave
+        </h2>
 
-        {/* ================= TABLE BODY ================= */}
-        <tbody className="divide-y">
-          {permissions.length === 0 ? (
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+        />
+      </div>
+
+      {/* ================= TABLE ================= */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-blue-50">
             <tr>
-              <td
-                colSpan="11"
-                className="px-4 py-12 text-center text-gray-400 text-base"
-              >
-                No Data Found !
-              </td>
+              <th className="px-4 py-2 text-left">#</th>
+              <th className="px-4 py-2 text-left">Name</th>
+
+              <th className="px-4 py-2 text-left">Role</th>
+              <th className="px-4 py-2 text-left">Department</th>
+              <th className="px-4 py-2 text-left">Type</th>
+              <th className="px-4 py-2 text-left">Applied on</th>
+              <th className="px-4 py-2 text-left">For Date</th>
+              <th className="px-4 py-2 text-left">Remark</th>
             </tr>
-          ) : (
-            permissions.map((p, index) => (
-              <tr key={p.id}>
-                <td className="px-4 py-2">{index + 1}</td>
-                <td className="px-4 py-2">{p.applicant}</td>
-                <td className="px-4 py-2">{p.role}</td>
-                <td className="px-4 py-2">{p.category}</td>
-                <td className="px-4 py-2">{p.applied_date}</td>
-                <td className="px-4 py-2">{p.days}</td>
-                <td className="px-4 py-2">{p.from}</td>
-                <td className="px-4 py-2">{p.to}</td>
-                <td className="px-4 py-2">{p.reason}</td>
-                <td className="px-4 py-2">
-                  <span className="px-2 py-1 text-xs rounded bg-amber-50 text-amber-700">
-                    {p.status}
-                  </span>
+          </thead>
+
+          <tbody className="divide-y">
+            {loading ? (
+              <tr>
+                <td colSpan="7" className="px-4 py-12 text-center text-gray-400 text-base">
+                  Loading...
                 </td>
-                <td className="px-4 py-2 text-gray-400">—</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : leaves.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="px-4 py-12 text-center text-gray-400 text-base">
+                  No Data Found !
+                </td>
+              </tr>
+            ) : (
+              leaves.map((item, index) => (
+                <tr key={item.attendance_id}>
+                  <td className="px-4 py-2">{index + 1}</td>
+                  <td className="px-4 py-2">{item.name || "-"}</td>
+
+                  <td className="px-4 py-2">{item.designation || "-"}</td>
+                  <td className="px-4 py-2">{item.department || "-"}</td>
+                  <td className="px-4 py-2 capitalize">
+                    <span className="px-2 py-1 text-xs rounded bg-blue-50 text-blue-600">
+                      {item.type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 "> <span className="bg-gray-100 px-1 py-0.5 font-semibold rounded text-gray-600 text-xs">{item.applied_on}</span></td>
+                  <td className="px-4 py-2 "> <span className="bg-gray-100 px-1 py-0.5 font-semibold rounded text-gray-600 text-xs">{item.for_date }</span></td>
+                  <td className="px-4 py-2 "> <span className="bg-red-100 px-1 py-0.5 capitalize rounded text-red-600 text-xs">{item.remark || item.leave_status}</span></td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

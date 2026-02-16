@@ -45,6 +45,8 @@ export const schoolNav = [
     children: [
       { key: "setup", label: "Setup", href: "/admin/classes/setup" },
       { key: "batches", label: "Batches", href: "/admin/classes/batches" },
+      { key: "schedule", label: "Schedule", href: "/admin/classes/schedule" },
+      { key: "attendance", label: "Attendance", href: "/admin/classes/attendance" },
 
     ],
   },

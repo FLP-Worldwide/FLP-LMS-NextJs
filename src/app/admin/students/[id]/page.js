@@ -207,12 +207,12 @@ export default function StudentViewPage() {
                   Edit Profile
                 </button>
 
-                <button
+                {/* <button
                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
                   onClick={() => setOpenMenu(false)}
                 >
                   Add Document
-                </button>
+                </button> */}
               </div>
             )}
           </div>
@@ -239,9 +239,97 @@ export default function StudentViewPage() {
         {activeTab === "Overview" && <OverviewTab student={student} />}
         {activeTab === "Profile" && <ProfileTab student={student} />}
         {activeTab === "Attendance" && <AttendanceTab student={student} />}
-        {activeTab === "Documents" && <EmptyTab title="Documents" />}
+        {activeTab === "Documents" && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3 text-sm">
+            <h3 className="font-medium text-gray-700">Uploaded Documents</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Aadhaar */}
+              <DocumentItem
+                label="Aadhaar Card"
+                file={student.details?.aadhaar_doc}
+              />
+
+              {/* Main Document */}
+              <DocumentItem
+                label="Document"
+                file={student.details?.document}
+              />
+
+              {/* Other Document */}
+              <DocumentItem
+                label="Extra Document"
+                file={student.details?.document_other}
+              />
+            </div>
+          </div>
+        )}
+
         {activeTab === "Fees" && <FeesTab studentId={student.id} />}
-        {activeTab === "Exam" && <EmptyTab title="Exam" />}
+       {activeTab === "Exam" && (
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-blue-50">
+                <tr>
+                  <th className="px-4 py-2 text-left">#</th>
+                  <th className="px-4 py-2 text-left">Title</th>
+                  <th className="px-4 py-2 text-left">Date</th>
+                  <th className="px-4 py-2 text-left">Time</th>
+                  <th className="px-4 py-2 text-left">Status</th>
+                  <th className="px-4 py-2 text-left">Attendance</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y">
+                {student.exams?.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-4 py-10 text-center text-gray-400"
+                    >
+                      No Exams Found
+                    </td>
+                  </tr>
+                ) : (
+                  student.exams.map((exam, index) => (
+                    <tr key={exam.exam_id}>
+                      <td className="px-4 py-2">{index + 1}</td>
+
+                      <td className="px-4 py-2">
+                        {exam.title || "Untitled Exam"}
+                      </td>
+
+                      <td className="px-4 py-2">
+                        {exam.exam_date}
+                      </td>
+
+                      <td className="px-4 py-2">
+                        {exam.start_time} - {exam.end_time}
+                      </td>
+
+                      <td className="px-4 py-2">
+                        <span
+                          className={`px-2 py-1 text-xs rounded ${
+                            exam.status === "scheduled"
+                              ? "bg-blue-50 text-blue-600"
+                              : "bg-red-50 text-red-600"
+                          }`}
+                        >
+                          {exam.status}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-2">
+                        {renderAttendanceBadge(exam.attendance_status, exam.attended)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         {activeTab === "Inventory" && <EmptyTab title="Inventory" />}
         {activeTab === "PTM" && <EmptyTab title="PTM" />}
         {activeTab === "Time Table" && <EmptyTab title="Time Table" />}
@@ -463,4 +551,70 @@ export default function StudentViewPage() {
 
   </>
   );
+}
+
+
+
+function DocumentItem({ label, file }) {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api", "") || "";
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+      <div className="text-xs font-medium text-gray-600 mb-2">
+        {label}
+      </div>
+
+      {file ? (
+        <a
+          href={`${baseUrl}/storage/${file}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 text-sm underline break-all"
+        >
+          View Document
+        </a>
+      ) : (
+        <div className="text-gray-400 text-xs">
+          No Document Uploaded
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+function renderAttendanceBadge(status, attended) {
+  if (!attended)
+    return (
+      <span className="px-2 py-1 text-xs rounded bg-gray-100 text-gray-500">
+        Not Attempted
+      </span>
+    );
+
+  switch (status) {
+    case 1:
+      return (
+        <span className="px-2 py-1 text-xs rounded bg-green-50 text-green-600">
+          Present
+        </span>
+      );
+    case 2:
+      return (
+        <span className="px-2 py-1 text-xs rounded bg-red-50 text-red-600">
+          Absent
+        </span>
+      );
+    case 3:
+      return (
+        <span className="px-2 py-1 text-xs rounded bg-amber-50 text-amber-600">
+          Leave
+        </span>
+      );
+    default:
+      return (
+        <span className="px-2 py-1 text-xs rounded bg-gray-100 text-gray-500">
+          Not Marked
+        </span>
+      );
+  }
 }
