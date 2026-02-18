@@ -42,19 +42,21 @@ export default function AdminSidebar() {
   }
 
   useEffect(() => {
-  if (!pathname) return;
+    if (!pathname) return;
 
-  // find parent menu whose child matches current path
-  const parent = nav.find(
-    (item) =>
-      item.children &&
-      item.children.some((child) => child.href === pathname)
-  );
+    const parent = nav.find(
+      (item) =>
+        item.children &&
+        item.children.some((child) =>
+          pathname.startsWith(child.href)
+        )
+    );
 
-  if (parent) {
-    setOpenKeys([parent.key]);
-  }
-}, [pathname, nav]);
+    if (parent) {
+      setOpenKeys([parent.key]);
+    }
+  }, [pathname, nav]);
+
 
 
 
@@ -128,20 +130,25 @@ export default function AdminSidebar() {
 
                 {!collapsed && isOpen && (
                   <div className="ml-9 space-y-1">
-                    {item.children.map((sub) => (
-                      <Link key={sub.key} href={sub.href}>
-                        <div
-                          className={`px-3 py-1.5 text-xs rounded
-                          ${
-                            pathname === sub.href
-                              ? "bg-blue-50 text-blue-700"
-                              : "hover:bg-gray-50 hover:text-black"
-                          }`}
-                        >
-                          {sub.label}
-                        </div>
-                      </Link>
-                    ))}
+                    {item.children.map((sub) => {
+                      const isActive = pathname.startsWith(sub.href);
+
+                      return (
+                        <Link key={sub.key} href={sub.href}>
+                          <div
+                            className={`px-3 py-1.5 text-xs rounded
+                            ${
+                              isActive
+                                ? "bg-blue-50 text-blue-700"
+                                : "hover:bg-gray-50 hover:text-black"
+                            }`}
+                          >
+                            {sub.label}
+                          </div>
+                        </Link>
+                      );
+                    })}
+
                   </div>
                 )}
               </div>

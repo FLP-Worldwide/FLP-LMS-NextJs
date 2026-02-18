@@ -4,7 +4,7 @@
 import StudentsHeaderActions from "@/components/admin/StudentsHeaderActions";
 import React, { useEffect, useState } from "react";
 import { api } from "@/utils/api";
-
+import { useRouter } from "next/navigation";
 function StatusPill({ status }) {
   const map = {
     active: "bg-blue-50 text-blue-700",
@@ -28,7 +28,7 @@ export default function StudentsPage() {
   const [students, setStudents] = useState([]);
   const [viewStudent, setViewStudent] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const router = useRouter();
   useEffect(() => {
     fetchStudents();
   }, []);
@@ -152,13 +152,13 @@ export default function StudentsPage() {
 
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      <a href={`/admin/students/${s.key}`}>
-                      <button
+                      {/* <a href={`/admin/students/${s.key}`}> */}
+                      <button onClick={() => router.push(`/admin/students/${s.key}`)}
                         className="px-3 py-1 rounded-md border border-gray-200 text-sm hover:bg-gray-50"
                       >
                         View Details
                       </button>
-                      </a>
+                      {/* </a> */}
                     </div>
                   </td>
                 </tr>

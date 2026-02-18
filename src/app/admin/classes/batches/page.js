@@ -34,6 +34,8 @@ export default function BatchPage() {
 
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [academicYears, setAcademicYears] = useState([]);
+
 
   const emptyBatchForm = {
   name: "",
@@ -73,10 +75,19 @@ export default function BatchPage() {
 
   const saveBatch = async () => {
     // Only submit checked + valid subjects
+
+      if (!batchForm.academic_year) {
+        alert("Academic year is required");
+        return;
+      }
+
+      // 🔥 Convert 2025 → 2025-2026
+      const formattedYear = `${batchForm.academic_year}-${Number(batchForm.academic_year) + 1}`;
+
     const payload = {
       course_id: activeCourse.id,
       name: batchForm.name,
-      academic_year: batchForm.academic_year,
+      academic_year: formattedYear,
       start_date: batchForm.start_date,
       end_date: batchForm.end_date,
       subjects: batchForm.subjects
@@ -162,6 +173,22 @@ export default function BatchPage() {
   }, [activeClassId]);
 
   /* ================= SAVE COURSE ================= */
+  useEffect(() => {
+    fetchAcademicYears();
+  }, []);
+
+  const fetchAcademicYears = async () => {
+    try {
+      const res = await api.get("/academic-years");
+
+      if (res.data?.status === "success") {
+        setAcademicYears(res.data.data);
+      }
+    } catch (err) {
+      toast.error("Failed to load academic years");
+    }
+  };
+
 
   const saveCourse = async () => {
     try {
@@ -194,14 +221,28 @@ export default function BatchPage() {
 
       {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="w-60">
-          <label className="soft-label">
-            Academic Year <span className="text-red-500">*</span>
-          </label>
-          <select className="soft-select">
-            <option>2025-26</option>
+        <div>
+          <label className="soft-label">Academic Year *</label>
+          <select
+            className="soft-select"
+            value={batchForm.academic_year}
+            onChange={e =>
+              setBatchForm({
+                ...batchForm,
+                academic_year: e.target.value,
+              })
+            }
+          >
+            <option value="">Select Year</option>
+
+            {academicYears.map((year) => (
+              <option key={year.id} value={year.start_year}>
+                {year.start_year}-{Number(year.start_year) + 1}
+              </option>
+            ))}
           </select>
         </div>
+
 
         <PrimaryButton
           name="+ Add Category/Course"
@@ -495,7 +536,12 @@ export default function BatchPage() {
                 }
               >
                 <option value="">Select Year</option>
-                <option>2025-26</option>
+                {academicYears.map((year) => (
+                    <option key={year.id} value={year.start_year}>
+                      {year.start_year}-{Number(year.start_year) + 1}
+                    </option>
+                  ))}
+
               </select>
             </div>
 
