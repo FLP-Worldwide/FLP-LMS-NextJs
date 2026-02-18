@@ -156,6 +156,18 @@ export const schoolNav = [
   { key: "assignments", label: "Assignments", href: "/admin/assignments", icon: <FileDoneOutlined /> }, // ✅ UPDATED
 
   {
+    key: "payroll",
+    label: "Payroll",
+    icon: <DollarOutlined />,   // ✅ UPDATED
+    children: [
+      { key: "monthly-template", label: "Monthly Template", href: "/admin/payroll/monthly-template" },
+      { key: "hourly-template", label: "Hourly Template", href: "/admin/payroll/hourly-template" },
+      { key: "salary-manage", label: "Manage Salary", href: "/admin/payroll/salary-manage" },
+      { key: "make-payment", label: "Make Payment", href: "/admin/payroll/make-payment" },
+    ],
+  },
+
+  {
     key: "inventory",
     label: "Inventory",
     icon: <HomeOutlined />,   // ✅ UPDATED
@@ -177,16 +189,6 @@ export const schoolNav = [
     ],
   },
 
-  {
-    key: "payroll",
-    label: "Payroll",
-    icon: <DollarOutlined />,   // ✅ UPDATED
-    children: [
-      { key: "create-template", label: "Create Template", href: "/admin/payroll/create-template" },
-      { key: "salary-manage", label: "Manage Salary", href: "/admin/payroll/salary-manage" },
-      { key: "make-payment", label: "Make Payment", href: "/admin/payroll/make-payment" },
-    ],
-  },
 
   { key: "reports", label: "Reports", href: "/admin/reports", icon: <BarChartOutlined /> }, // ✅ UPDATED
 ];

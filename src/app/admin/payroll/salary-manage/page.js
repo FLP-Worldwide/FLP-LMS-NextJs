@@ -6,10 +6,36 @@ import Modal from "@/components/ui/Modal";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
 import { useRouter } from "next/navigation";
+import { FileExcelOutlined } from "@ant-design/icons";
 
 export default function ManageSalaryPage() {
   const router = useRouter();
   const [selectedUser, setSelectedUser] = useState(null);
+  const handleDownloadExcel = async () => {
+    try {
+      const response = await api.get("/reports/payroll/manage-salary/export", {
+        responseType: "blob",
+        params: { role }, // optional filter by role
+      });
+
+      const url = window.URL.createObjectURL(
+        new Blob([response.data])
+      );
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "manage-salary.xlsx");
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Manage salary export failed", error);
+      alert("Failed to download Excel");
+    }
+  };
 
   /* ================= STATE ================= */
   const [roles, setRoles] = useState([]);
@@ -77,7 +103,7 @@ export default function ManageSalaryPage() {
   }
 
   const payload = {
-    user_id: selectedUser.id,
+    user_id: selectedUser.user_id,
     salary_type: salaryType,
     salary_template_id: selectedTemplate,
   };
@@ -133,10 +159,31 @@ export default function ManageSalaryPage() {
           </p>
         </div>
 
-        {/* ROLE FILTER */}
-        <div>
+        <div className="flex items-center gap-3">
+          {/* Excel Hover Expand Button */}
+          <div>
+          <button
+            onClick={handleDownloadExcel}
+            className="group flex items-center gap-2 
+                      border border-gray-200 rounded-lg 
+                      px-3 py-2 overflow-hidden
+                      transition-all duration-300
+                      hover:bg-green-50 hover:shadow-sm"
+          >
+            <FileExcelOutlined className="text-green-600 text-lg" />
+
+            <span
+              className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap
+                        group-hover:max-w-xs group-hover:opacity-100
+                        transition-all duration-300 text-sm text-green-700"
+            >
+              Download Excel
+            </span>
+          </button>
+          </div>
+          {/* ROLE FILTER */}
           <select
-            className="soft-select w-48"
+            className="soft-input w-48"
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
@@ -148,6 +195,7 @@ export default function ManageSalaryPage() {
           </select>
         </div>
       </div>
+
 
       {/* TABLE */}
       {loading ? (
@@ -204,7 +252,7 @@ export default function ManageSalaryPage() {
                     <div className="inline-flex gap-3">
                       <button
                         onClick={() =>
-                          router.push("/admin/payroll/salary-manage/view/" + u.id)
+                          router.push("/admin/payroll/salary-manage/view/" + u.user_id)
                         }
                         className="text-blue-600"
                         title="View Salary"
