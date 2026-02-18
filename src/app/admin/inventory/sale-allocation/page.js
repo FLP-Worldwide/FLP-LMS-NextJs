@@ -5,11 +5,38 @@ import Link from "next/link";
 import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { api } from "@/utils/api";
+import { FileExcelOutlined } from "@ant-design/icons";
 
 export default function Page() {
   const [sales, setSales] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleDownloadExcel = async () => {
+  try {
+    const response = await api.get("/reports/inventory/sale/export", {
+      responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(
+      new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "sales-records.xlsx");
+
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Sales export failed", error);
+    alert("Failed to download Excel");
+  }
+};
+
 
   /* ================= FETCH SALES ================= */
   useEffect(() => {
@@ -60,19 +87,33 @@ export default function Page() {
 
         {/* ACTIONS */}
         <div className="flex items-center gap-3">
-          <button
+          {/* <button
             title="Export PDF"
             className="bg-white border border-gray-200 rounded-lg p-2 hover:bg-gray-50"
           >
             📄
+          </button> */}
+
+         {/* Excel Hover Expand Button */}
+          <button
+            onClick={handleDownloadExcel}
+            className="group flex items-center gap-2 
+                      border border-gray-200 rounded-lg 
+                      px-3 py-2 overflow-hidden
+                      transition-all duration-300
+                      hover:bg-green-50 hover:shadow-sm"
+          >
+            <FileExcelOutlined className="text-green-600 text-lg" />
+
+            <span
+              className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap
+                        group-hover:max-w-xs group-hover:opacity-100
+                        transition-all duration-300 text-sm text-green-700"
+            >
+              Download Excel
+            </span>
           </button>
 
-          <button
-            title="Export Excel"
-            className="bg-white border border-gray-200 rounded-lg p-2 hover:bg-gray-50"
-          >
-            📊
-          </button>
 
           <Link href="/admin/inventory/sale-allocation/create">
             <PrimaryButton name="+ Add Sale" />
