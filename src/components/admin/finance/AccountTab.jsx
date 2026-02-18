@@ -123,7 +123,7 @@ export default function AccountTab() {
       {/* MODAL */}
       {showModal && (
         <Modal title="Add Account" onClose={() => setShowModal(false)}>
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
 
             {/* PAYEE / PAYER */}
             <div>

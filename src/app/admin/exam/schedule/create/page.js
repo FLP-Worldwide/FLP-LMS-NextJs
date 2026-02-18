@@ -135,7 +135,7 @@ export default function CreateExamPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* ================= COURSE / BATCH ================= */}
       <div className="grid grid-cols-5 gap-4 bg-white p-4 rounded-xl border border-gray-200">
         <select

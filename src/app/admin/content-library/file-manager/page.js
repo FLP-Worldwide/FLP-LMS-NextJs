@@ -120,7 +120,7 @@ export default function FileManager() {
       {loading ? (
         <div className="text-sm text-gray-500">Loading...</div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">
 
           {/* FOLDERS */}
           {folders.length > 0 && (
@@ -207,7 +207,7 @@ export default function FileManager() {
       {/* CREATE FOLDER MODAL */}
       {showCreateFolder && (
         <Modal title="Create Folder" onClose={() => setShowCreateFolder(false)}>
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             <input
               className="soft-input"
               placeholder="Folder name"

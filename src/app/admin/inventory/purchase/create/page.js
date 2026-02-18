@@ -158,7 +158,7 @@ export default function PurchaseCreatePage() {
 
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* BREADCRUMB */}
       <div className="text-sm text-gray-500">
         <Link href="/admin/inventory/purchase">Purchase Item</Link> › Add Purchase

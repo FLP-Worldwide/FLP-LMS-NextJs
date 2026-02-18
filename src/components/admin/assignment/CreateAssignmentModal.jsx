@@ -127,7 +127,7 @@ useEffect(() => {
       onClose={onClose}
       className="max-w-5xl"
     >
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
 
         {/* DETAILS */}
         <Section title="Details">
@@ -247,7 +247,7 @@ useEffect(() => {
 
 function Section({ title, children }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       <div className="flex items-center gap-2">
         <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
         <div className="flex-1 border-t border-gray-200" />

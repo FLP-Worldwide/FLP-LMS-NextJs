@@ -55,7 +55,7 @@ export default function ExamAttendanceListPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* ================= HEADER ================= */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 flex justify-between items-center">
         <div>

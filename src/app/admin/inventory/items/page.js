@@ -16,7 +16,7 @@ export default function InventorySetupPage() {
   const type = searchParams.get("type") || "category";
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       <div>
         <h2 className="text-xl font-semibold">Inventory Setup</h2>
         <p className="text-sm text-gray-500">

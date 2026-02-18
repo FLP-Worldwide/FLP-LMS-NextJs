@@ -19,14 +19,16 @@ import {
 
 /* ========================= SCHOOL ERP MENU ========================= */
 export const superAdminNav = [
-    { key: "dashboard", label: "Dashboard", href: "/admin", icon: <DashboardOutlined /> },
+    { key: "home", label: "Home", href: "/admin", icon: <HomeOutlined /> },
+    { key: "dashboard", label: "Dashboard", href: "/admin/dashboard", icon: <DashboardOutlined /> },
     { key: "schools", label: "Schools", href: "/admin/schools", icon: <BankOutlined /> },
     { key: "coaching", label: "Coaching", href: "/admin/coaching", icon: <ReadOutlined /> },
     { key: "users", label: "Users", href: "/admin/users", icon: <TeamOutlined /> },
 ];
 
 export const schoolNav = [
-  { key: "dashboard", label: "Dashboard", href: "/admin", icon: <DashboardOutlined /> },
+  { key: "home", label: "Home", href: "/admin", icon: <HomeOutlined /> },
+  { key: "dashboard", label: "Dashboard", href: "/admin/dashboard", icon: <DashboardOutlined /> },
 
   {
     key: "leads",

@@ -34,7 +34,7 @@ export default function RefundPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
 
       {/* ================= SEARCH BAR ================= */}
       <div className="relative">

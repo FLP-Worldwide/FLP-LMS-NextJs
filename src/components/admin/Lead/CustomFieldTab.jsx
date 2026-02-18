@@ -153,7 +153,7 @@ const saveReason = async () => {
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       {/* HEADER ACTION */}
       <div className="flex justify-end">
         <PrimaryButton name={'+ Add Custom Field'} onClick={openCreate} />
@@ -237,14 +237,14 @@ const saveReason = async () => {
           }
           onClose={() => setShowModal(false)}
         >
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {/* LABEL */}
             <div>
               <label className="text-xs text-gray-500">Label *</label>
               <input
                 className="soft-input mt-1"
                 value={form.name}
-                placeholder="Annual Income"
+                placeholder="Enter Label"
                 onChange={(e) =>
                   setForm({ ...form, name: e.target.value })
                 }
@@ -262,7 +262,8 @@ const saveReason = async () => {
                 }
               >
                 <option value="textbox">Textbox</option>
-                <option value="dropdown">Dropdown</option>
+                <option value="dropdown">Select</option>
+                <option value="checkbox">Checkbox</option>
                 <option value="date">Date</option>
               </select>
             </div>
@@ -270,18 +271,28 @@ const saveReason = async () => {
             {/* PREFILLED */}
             <div>
               <label className="text-xs text-gray-500">
-                Prefilled Data (comma separated)
+                Prefilled Data (Non-Empty And Separated By ,)
               </label>
               <input
                 className="soft-input mt-1"
                 value={form.prefilled_data}
-                placeholder="Prefilled data (Comma Seprated for dropdown - Male,Female)"
+                placeholder="Enter Prefilled data"
                 onChange={(e) =>
                   setForm({ ...form, prefilled_data: e.target.value })
                 }
               />
             </div>
-
+            <div>
+              <label className="text-xs text-gray-500">Description</label>
+              <input
+                className="soft-input mt-1"
+                value={form.description}
+                placeholder="Enter Description"
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
+              />
+            </div>
             {/* SHOW ON STUDENT */}
             <div>
               <label className="text-xs text-gray-500">
@@ -345,11 +356,12 @@ const saveReason = async () => {
             {/* SEQUENCE */}
             <div>
               <label className="text-xs text-gray-500">
-                Sequence
+                Sequence (Numerals Only)
               </label>
               <input
                 className="soft-input mt-1"
                 value={form.sequence}
+                placeholder="Enter Sequence Number"
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -362,7 +374,7 @@ const saveReason = async () => {
             {/* MAX LENGTH */}
             <div>
               <label className="text-xs text-gray-500">
-                Max Length
+                Max- Length (Numerals Only)
               </label>
               <input
                 className="soft-input mt-1"
@@ -385,7 +397,7 @@ const saveReason = async () => {
               <input
                 className="soft-input mt-1"
                 value={form.default_value}
-                placeholder="Default Value"
+                placeholder="Enter Default Value"
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -401,7 +413,7 @@ const saveReason = async () => {
                 Is External
               </label>
               <select
-                className="soft-select mt-1"
+                className="soft-input mt-1"
                 value={form.is_external}
                 onChange={(e) =>
                   setForm({

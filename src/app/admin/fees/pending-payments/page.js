@@ -38,7 +38,7 @@ export default function Page() {
   }, [status]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
 
       {/* FILTER BAR */}
 <div className="bg-white p-4 rounded-xl border border-gray-200">

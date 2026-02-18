@@ -216,7 +216,7 @@ const fetchStructuresByClass = async (classId) => {
   /* ================= UI ================= */
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* ================= FILTER ROW ================= */}
       <div className="grid grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200">
         <select
@@ -368,7 +368,7 @@ const fetchStructuresByClass = async (classId) => {
             </div>
           }
         >
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
            <select
               className="soft-select w-80"
               value={selectedStructureId}

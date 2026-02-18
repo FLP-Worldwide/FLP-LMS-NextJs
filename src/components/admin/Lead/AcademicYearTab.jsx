@@ -87,7 +87,7 @@ export default function AcademicYearTab() {
   /* ================= UI ================= */
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       {/* HEADER ACTION */}
       <div className="flex justify-end">
         <PrimaryButton
@@ -171,7 +171,7 @@ export default function AcademicYearTab() {
           }
           onClose={() => setShowModal(false)}
         >
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             <div>
               <label className="text-xs text-gray-500">
                 Start Year *

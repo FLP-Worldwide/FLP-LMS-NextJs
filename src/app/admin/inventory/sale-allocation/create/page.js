@@ -216,7 +216,7 @@ export default function Page() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <h2 className="text-xl font-semibold">Add Sale</h2>
 
       <div className="grid grid-cols-3 gap-6">

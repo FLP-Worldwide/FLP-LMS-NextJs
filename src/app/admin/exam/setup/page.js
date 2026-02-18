@@ -50,7 +50,7 @@ export default function ExamGradesPage() {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       {/* ================= HEADER ================= */}
       <div>
         <h2 className="text-xl font-semibold">Exam Grades</h2>

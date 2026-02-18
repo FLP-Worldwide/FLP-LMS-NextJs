@@ -227,7 +227,7 @@ const [toDate, setToDate] = useState(to);
   }, [days, fromDate, toDate]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* HEADER */}
       <div>
         <h2 className="text-xl font-semibold">Teacher Attendance</h2>

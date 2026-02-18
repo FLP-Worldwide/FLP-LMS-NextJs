@@ -29,7 +29,7 @@ export default function Page() {
   const balanceAmount = totalAmount - paidAmount;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Sale View</h2>

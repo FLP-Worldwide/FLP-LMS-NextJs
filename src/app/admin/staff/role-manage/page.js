@@ -76,7 +76,7 @@ export default function RolesPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
@@ -175,7 +175,7 @@ export default function RolesPage() {
           onClose={() => setShowModal(false)}
           className="max-w-md"
         >
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             <div>
               <label className="text-xs font-medium">
                 Role Name *

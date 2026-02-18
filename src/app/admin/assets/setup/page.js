@@ -26,7 +26,7 @@ export default function AssetsSetupPage() {
   const type = searchParams.get("type") || "location";
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       {/* ================= HEADER ================= */}
       <div>
         <h2 className="text-xl font-semibold">Assets Setup</h2>

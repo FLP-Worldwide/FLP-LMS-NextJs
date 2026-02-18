@@ -122,7 +122,7 @@ function ModeBars({ data }) {
   const max = Math.max(...entries.map((e) => e.value), 1);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       {entries.map((m) => (
         <div key={m.label}>
           <div className="flex justify-between text-sm mb-1">

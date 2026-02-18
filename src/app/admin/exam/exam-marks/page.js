@@ -11,7 +11,7 @@ export default function ExamMarksPage() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* ================= TOP BAR ================= */}
       <div className="flex justify-between items-center">
         <div className="flex gap-3 items-center">

@@ -17,7 +17,7 @@ export default function OverviewTab({ student }) {
         </Card>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 p-6">
         <Card title="Birthday">
           <div className="text-xs text-center py-4">
             {student.details?.dob || "Not mentioned"}

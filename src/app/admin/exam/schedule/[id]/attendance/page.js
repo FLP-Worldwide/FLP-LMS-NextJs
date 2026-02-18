@@ -95,7 +95,7 @@ export default function ExamAttendancePage() {
   if (loading) return <div className="p-4">Loading...</div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* ================= HEADER ================= */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 flex justify-between">
         <div className="space-y-1 text-sm">

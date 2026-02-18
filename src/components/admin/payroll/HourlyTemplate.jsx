@@ -206,7 +206,7 @@ const save = async () => {
             onClose={() => setShowModal(false)}
             className="max-w-lg"
           >
-            <div className="space-y-4">
+            <div className="space-y-4 p-6">
               <div>
                 <label className="text-xs font-medium">
                   Hourly Template *

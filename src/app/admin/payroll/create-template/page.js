@@ -20,7 +20,7 @@ export default function CreateTemplatePage() {
   const type = searchParams.get("type") || "monthly";
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       {/* HEADER */}
       <div>
         <h2 className="text-xl font-semibold">Payroll Template Setup</h2>

@@ -147,7 +147,7 @@ const [page, setPage] = useState(1);
 
                 <td className="px-4 py-2">
                 {item.lead_source_type_id ? (
-                  <Badge color="gray">Source #{item.lead_source_type_id}</Badge>
+                  <Badge color="gray">{item?.lead_source?.name || item.lead_source_type_id}</Badge>
                 ) : (
                   "—"
                 )}
@@ -156,9 +156,9 @@ const [page, setPage] = useState(1);
                 <td className="px-4 py-2">
                   {item.follow_ups?.[0] ? (
                     <>
-                      <Badge color="blue">
+                      {/* <Badge color="blue">
                         {item.follow_ups[0].follow_up_type}
-                      </Badge>
+                      </Badge> */}
 
                       <div className="text-xs text-gray-500 mt-1">
                         {item.follow_ups[0].followup_date}

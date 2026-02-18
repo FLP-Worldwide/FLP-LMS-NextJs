@@ -53,7 +53,7 @@ const fetchAll = async () => {
   
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       <div className="flex justify-end">
         <PrimaryButton name="+ Add Routine" onClick={() => router.push("/admin/classes/schedule")} />
       </div>

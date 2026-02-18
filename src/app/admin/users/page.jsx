@@ -10,7 +10,7 @@ const sampleData = [
 
 export default function AdminUsers() {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
 
       <div className="bg-white rounded-xl p-4 shadow-xs border border-gray-200">
         <div className="flex items-center justify-between mb-3">

@@ -7,6 +7,7 @@ import {
   MenuUnfoldOutlined,
   RightOutlined,
   DownOutlined,
+  DoubleRightOutlined,
 } from "@ant-design/icons";
 import { usePathname } from "next/navigation";
 import { schoolNav, coachingNav, superAdminNav } from "./MenuConfig";
@@ -95,7 +96,7 @@ export default function AdminSidebar() {
               return (
                 <Link key={item.key} href={item.href}>
                   <div
-                    className={`px-3 py-2 rounded-lg text-xs flex gap-3 hover:bg-gray-50 hover:text-black 
+                    className={`px-3 py-2 rounded-lg text-sm flex gap-3 hover:bg-gray-50 hover:text-black 
                     ${
                       pathname === item.href
                         ? "bg-blue-50 text-blue-700"
@@ -115,7 +116,7 @@ export default function AdminSidebar() {
                   onClick={() => toggle(item.key)}
                   className="w-full px-3 py-2 flex justify-between rounded-lg hover:bg-gray-50 hover:text-black"
                 >
-                  <div className="flex gap-3 text-xs">
+                  <div className="flex gap-3 text-sm">
                     {item.icon}
                     {!collapsed && item.label}
                   </div>
@@ -136,14 +137,14 @@ export default function AdminSidebar() {
                       return (
                         <Link key={sub.key} href={sub.href}>
                           <div
-                            className={`px-3 py-1.5 text-xs rounded
+                            className={`px-3 py-1.5 text-sm rounded
                             ${
                               isActive
                                 ? "bg-blue-50 text-blue-700"
                                 : "hover:bg-gray-50 hover:text-black"
                             }`}
                           >
-                            {sub.label}
+                            <DoubleRightOutlined className="text-[10px]"/> {sub.label}
                           </div>
                         </Link>
                       );

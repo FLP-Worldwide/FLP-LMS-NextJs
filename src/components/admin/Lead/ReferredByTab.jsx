@@ -91,7 +91,7 @@ export default function ReferredByTab() {
 
   /* UI */
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* HEADER ACTION */}
       <div className="flex justify-end">
         <PrimaryButton

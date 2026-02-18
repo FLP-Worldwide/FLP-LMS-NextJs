@@ -147,7 +147,7 @@ export default function StudentViewPage() {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4 p-6">
         {/* ================= HEADER ================= */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex gap-4">

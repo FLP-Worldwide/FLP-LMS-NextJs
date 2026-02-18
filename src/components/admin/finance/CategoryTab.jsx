@@ -104,7 +104,7 @@ export default function CategoryTab() {
 
       {showModal && (
         <Modal title="Add Category" onClose={() => setShowModal(false)}>
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             <div>
               <label className="soft-label">Category Name *</label>
               <input

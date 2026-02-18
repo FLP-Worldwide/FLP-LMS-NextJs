@@ -146,7 +146,7 @@ export default function ViewTeacherDetailPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* ================= STAFF INFO ================= */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
@@ -308,7 +308,7 @@ export default function ViewTeacherDetailPage() {
         </div>
 
         {/* ================= SUMMARY ================= */}
-        <div className="space-y-4">
+        <div className="space-y-4 p-6">
           <div className="text-sm font-semibold">Summary</div>
 
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">

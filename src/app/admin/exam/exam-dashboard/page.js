@@ -129,7 +129,7 @@ export default function ExamDashboardPage() {
 
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       <h2 className="text-xl font-semibold">Exam Dashboard</h2>
 
       {/* ================= TOP GRID ================= */}

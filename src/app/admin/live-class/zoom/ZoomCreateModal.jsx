@@ -220,7 +220,7 @@ useEffect(() => {
 
   return (
     <Modal title="Add Zoom Class" onClose={onClose} className="max-w-6xl">
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         {/* TOP */}
         <div>
           <label className="form-label">Topic Name *</label>

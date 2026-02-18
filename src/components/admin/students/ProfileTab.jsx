@@ -71,13 +71,13 @@ export default function ProfileTab({ student }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-4 gap-x-10">
 
             {/* PARENT */}
-            <div className="space-y-2">
+            <div className="space-y-2 p-6">
             <Row label="Parent Name" value={d.father_name} />
             <Row label="Parent Email" value="--" />
             <Row label="Parent Profession" value="--" />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 p-6">
             <Row label="Parent Contact No." value={d.parent_phone} />
             <Row label="Parent Aadhar No." value="--" />
             </div>
@@ -85,24 +85,24 @@ export default function ProfileTab({ student }) {
             <div className="col-span-full border-t border-gray-200 pt-3" />
 
             {/* MOTHER */}
-            <div className="space-y-2">
+            <div className="space-y-2 p-6">
             <Row label="Mother Name" value={d.mother_name} />
             <Row label="Mother Email" value="--" />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 p-6">
             <Row label="Mother Contact No." value="--" />
             </div>
 
             <div className="col-span-full border-t border-gray-200 pt-3" />
 
             {/* GUARDIAN */}
-            <div className="space-y-2">
+            <div className="space-y-2 p-6">
             <Row label="Guardian Name" value="--" />
             <Row label="Guardian Email" value="--" />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 p-6">
             <Row label="Guardian Contact No." value="--" />
             </div>
 

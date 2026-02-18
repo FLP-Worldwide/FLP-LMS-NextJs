@@ -27,7 +27,7 @@ export default function LeadsSetupPage() {
   const type = searchParams.get("type") || "source";
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>

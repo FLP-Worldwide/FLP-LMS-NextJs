@@ -64,7 +64,7 @@ export default function Home() {
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
           {/* LEFT CONTENT */}
-          <div className="space-y-6">
+          <div className="space-y-6 p-6">
             <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight">
               Smart School Management System
             </h1>

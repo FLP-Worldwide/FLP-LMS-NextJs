@@ -116,7 +116,7 @@ export default function ViewStudentFeesPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
 
       {/* ================= STUDENT + SUMMARY CARD ================= */}
       <div className="bg-white border border-gray-200 rounded-xl p-5 grid grid-cols-3 gap-6">

@@ -116,7 +116,7 @@ export default function IncomePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
 
       {/* ================= FORM ================= */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">

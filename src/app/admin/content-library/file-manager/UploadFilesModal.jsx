@@ -78,7 +78,7 @@ export default function UploadFilesModal({ onClose, parentId = null }) {
 
   return (
     <Modal title="Upload Files" onClose={onClose} className="max-w-6xl">
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
 
         {/* ================= TYPE SELECT ================= */}
         <div className="grid grid-cols-7 gap-4">

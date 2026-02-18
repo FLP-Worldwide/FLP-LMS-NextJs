@@ -47,7 +47,7 @@ export default function AssignmentsPage() {
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>

@@ -28,7 +28,7 @@ export default function LeavePermissionPage() {
   }, [date]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* ================= DATE FILTER ================= */}
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-gray-700">

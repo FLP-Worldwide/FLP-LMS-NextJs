@@ -92,7 +92,7 @@ export default function ClosingReasonTab() {
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
       {/* HEADER ACTION */}
       <div className="flex justify-end">
         <PrimaryButton name={'+ Add Closing Reason'} onClick={openCreate} />

@@ -92,7 +92,7 @@ export default function FeesTab({ studentId }) {
       </div>
 
       {/* ================= RIGHT SUMMARY ================= */}
-      <div className="space-y-4">
+      <div className="space-y-4 p-6">
 
         <SummaryCard
           title="Fees"

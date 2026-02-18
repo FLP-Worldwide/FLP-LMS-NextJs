@@ -112,7 +112,7 @@ export default function TransportRoutePage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
 
       {/* HEADER */}
       <div className="flex items-center justify-between">

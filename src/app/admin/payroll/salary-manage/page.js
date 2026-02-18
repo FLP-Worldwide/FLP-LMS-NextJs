@@ -123,7 +123,7 @@ export default function ManageSalaryPage() {
 
   /* ================= UI ================= */
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
@@ -236,7 +236,7 @@ export default function ManageSalaryPage() {
           onClose={() => setShowModal(false)}
           className="max-w-lg"
         >
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             {/* SALARY TYPE */}
             <div>
               <label className="text-xs font-medium">

@@ -115,7 +115,7 @@ export default function CityAreaTab() {
 
   /* UI */
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* FILTER BAR */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap gap-3 items-end">
         <div>

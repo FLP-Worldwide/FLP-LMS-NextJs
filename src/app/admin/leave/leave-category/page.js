@@ -66,7 +66,7 @@ export default function LeaveCategoryPage() {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-6">
 
       {/* ================= HEADER ACTION ================= */}
       <div className="flex justify-end">
@@ -127,7 +127,7 @@ export default function LeaveCategoryPage() {
           title={editingId ? "Edit Leave Category" : "Add Leave Category"}
           onClose={() => setShowModal(false)}
         >
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             <div>
               <label className="soft-label">
                 Category Title <span className="text-red-500">*</span>

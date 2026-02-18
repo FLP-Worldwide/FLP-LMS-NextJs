@@ -113,7 +113,7 @@ export default function EditStaffPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <h2 className="text-xl font-semibold">Edit Staff</h2>
 
       <div className="bg-white p-6 rounded-xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4">

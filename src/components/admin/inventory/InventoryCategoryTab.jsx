@@ -128,7 +128,7 @@ export default function InventoryCategoryTab() {
       {/* MODAL */}
       {show && (
         <Modal title="Add Category" onClose={() => setShow(false)}>
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             <div>
               <label className="soft-label">
                 Name <span className="text-red-500">*</span>

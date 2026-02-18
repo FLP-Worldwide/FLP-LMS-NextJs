@@ -113,7 +113,7 @@ export default function AssignConcessionTab() {
   /* ================= UI ================= */
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* ================= RADIO ================= */}
       <div className="flex gap-6 text-sm">
         <label className="flex items-center gap-2 cursor-pointer">
@@ -266,7 +266,7 @@ export default function AssignConcessionTab() {
     title="Select Concession"
     onClose={() => setShowConcessionModal(false)}
   >
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       <div className="text-sm">
         Assign concession to{" "}
         <span className="font-medium">

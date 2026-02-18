@@ -223,7 +223,7 @@ const handleUpdate = async () => {
     return <div className="text-sm text-gray-500">Loading…</div>;
   }
 return (
-  <div className="space-y-6">
+  <div className="space-y-6 p-6">
     {/* ================= HEADER ================= */}
     <div className="flex justify-between items-center">
       <h2 className="text-xl font-semibold">

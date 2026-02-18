@@ -114,7 +114,7 @@ export default function ConcessionSetupTab() {
   /* ================= UI ================= */
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       {/* TOP BAR */}
       <div className="flex justify-between items-center">
         <div>
@@ -183,7 +183,7 @@ export default function ConcessionSetupTab() {
           title={editing ? "Edit Concession" : "Add Concession"}
           onClose={closeModal}
         >
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             {/* NAME */}
             <div>
               <label className="text-xs font-medium">

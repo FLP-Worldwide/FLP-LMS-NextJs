@@ -118,7 +118,7 @@ export default function ExpensePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
 
       {/* ================= FORM (UNCHANGED) ================= */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
