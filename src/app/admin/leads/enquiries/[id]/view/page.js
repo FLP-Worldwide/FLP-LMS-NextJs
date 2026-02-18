@@ -326,7 +326,7 @@ export default function ViewEnquiryPage() {
                 No follow-ups added
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 p-6">
                 {data.follow_ups.map((f, idx) => (
                   <div
                     key={f.id || idx}

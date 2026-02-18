@@ -137,7 +137,7 @@ export default function SalaryTemplatesPage() {
           title={editing ? "Edit Salary Template" : "Create Salary Template"}
           onClose={() => setShowModal(false)}
         >
-          <div className="space-y-3">
+          <div className="space-y-3 p-6">
             {/* NAME */}
             <input
               placeholder="Template Name"

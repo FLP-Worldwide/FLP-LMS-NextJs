@@ -402,7 +402,7 @@ export default function AdminPage() {
                 No classes today
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 p-6">
                 {attendanceModal.classes.map((cls) => (
                     <div
                     key={cls.routine_id}
@@ -509,7 +509,7 @@ export default function AdminPage() {
           No classes available
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 p-6">
           {cancelModal.classes.map((cls) => (
             <div
               key={cls.routine_id}

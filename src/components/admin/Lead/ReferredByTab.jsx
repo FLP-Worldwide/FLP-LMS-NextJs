@@ -172,7 +172,7 @@ export default function ReferredByTab() {
           title={editing ? "Edit Team Member" : "Add Team Member"}
           onClose={() => setShowModal(false)}
         >
-          <div className="space-y-3">
+          <div className="space-y-3 p-6">
             <div>
               <label className="text-xs text-gray-500">
                 Name *

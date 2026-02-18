@@ -5,6 +5,7 @@ import Modal from "@/components/ui/Modal";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
+import { FileExcelOutlined } from "@ant-design/icons";
 
 export default function SupplierPage() {
   /* ================= STATE ================= */
@@ -19,6 +20,30 @@ export default function SupplierPage() {
     mobile: "",
     address: "",
   });
+const handleDownloadExcel = async () => {
+  try {
+    const response = await api.get("/reports/inventory/suppliers/export", {
+      responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(
+      new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "suppliers.xlsx");
+
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Supplier export failed", error);
+    alert("Failed to download Excel");
+  }
+};
 
   /* ================= FETCH ================= */
   const fetchSuppliers = async () => {
@@ -71,11 +96,34 @@ export default function SupplierPage() {
 
   /* ================= UI ================= */
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 p-6">
       {/* HEADER ACTION */}
-      <div className="flex justify-end">
-        <PrimaryButton name="+ Add Supplier" onClick={openCreate} />
-      </div>
+      <div className="flex justify-end gap-3">
+
+      {/* Excel Hover Expand Button */}
+      <button
+        onClick={handleDownloadExcel}
+        className="group flex items-center gap-2 
+                  border border-gray-200 rounded-lg 
+                  px-3 py-2 overflow-hidden
+                  transition-all duration-300
+                  hover:bg-green-50 hover:shadow-sm"
+      >
+        <FileExcelOutlined className="text-green-600 text-lg" />
+
+        <span
+          className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap
+                    group-hover:max-w-xs group-hover:opacity-100
+                    transition-all duration-300 text-sm text-green-700"
+        >
+          Download Excel
+        </span>
+      </button>
+
+      <PrimaryButton name="+ Add Supplier" onClick={openCreate} />
+
+    </div>
+
 
       {/* TABLE */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">

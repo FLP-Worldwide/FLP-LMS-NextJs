@@ -153,7 +153,7 @@ export default function PurchaseViewPage() {
           </div>
 
           {/* TOTALS */}
-          <div className="space-y-3">
+          <div className="space-y-3 p-6">
             <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex justify-between">
               <span>Total Amount</span>
               <strong>Rs {totalAmount.toFixed(2)}</strong>

@@ -51,7 +51,7 @@ export default function AlertModal({
       className="max-w-md"
     >
       {/* BODY */}
-      <div className="space-y-3">
+      <div className="space-y-3 p-6">
         <div className="flex items-start gap-3">
           {/* ICON */}
           <div

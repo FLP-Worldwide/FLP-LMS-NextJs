@@ -235,7 +235,7 @@ export default function CityAreaTab() {
           title={editing ? "Edit Area" : "Create Area"}
           onClose={() => setShowModal(false)}
         >
-          <div className="space-y-3">
+          <div className="space-y-3 p-6">
             <select
               className="soft-select"
               value={form.state}

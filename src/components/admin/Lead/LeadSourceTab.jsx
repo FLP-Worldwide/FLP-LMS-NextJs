@@ -135,7 +135,7 @@ export default function LeadSourceTab() {
           title={editing ? "Edit Lead Source" : "Create Lead Source"}
           onClose={() => setShowModal(false)}
         >
-          <div className="space-y-3">
+          <div className="space-y-3 p-6">
             <input
               className="soft-input"
               placeholder="Source Name"

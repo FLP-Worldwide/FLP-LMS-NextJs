@@ -147,7 +147,7 @@ export default function TopicsTab() {
       </div>
 
       {/* ================= TOPICS ACCORDION ================= */}
-      <div className="space-y-3">
+      <div className="space-y-3 p-6">
         {!loading && topics.length === 0 && (
           <div className="text-sm text-gray-400 text-center">
             No topics found
