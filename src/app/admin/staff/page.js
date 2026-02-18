@@ -47,7 +47,7 @@ export default function StaffPage() {
 
   /* ================= DELETE ================= */
   const handleDelete = async (id) => {
-    if (!confirm("Delete staff member?")) return;
+    if (!confirm("Delete staff member?" + id)) return;
     await api.delete(`/staff/${id}`);
     fetchStaff();
     setStaff(prev => prev.filter(s => s.id !== id));
