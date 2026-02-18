@@ -3,37 +3,53 @@
 import { useEffect, useState } from "react";
 import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+import { useToast } from "@/components/ui/ToastProvider";
+import {
+  Users,
+  Bell,
+  Pencil,
+  XCircle,
+  Clock,
+} from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
+const isToday = (dateString) => {
+  const today = new Date();
+  const classDate = new Date(dateString);
+
+  today.setHours(0, 0, 0, 0);
+  classDate.setHours(0, 0, 0, 0);
+
+  return today.getTime() === classDate.getTime();
+};
 
 
 export default function SchedulePage() {
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-
+  const [scheduledClasses, setScheduledClasses] = useState([]);
+  const router = useRouter();
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedBatch, setSelectedBatch] = useState("");
   const [scheduleDate, setScheduleDate] = useState("");
 
-  const [rows, setRows] = useState([]);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleData, setRescheduleData] = useState(null);
 
-  /* ================= FETCH ONLY REQUIRED ================= */
+  const [newDate, setNewDate] = useState("");
+  const [newStartTime, setNewStartTime] = useState("");
+  const [newEndTime, setNewEndTime] = useState("");
+
+  const toast = useToast();
+
   useEffect(() => {
     fetchInitial();
   }, []);
 
   const fetchInitial = async () => {
-    const [c, t, s] = await Promise.all([
-      api.get("/courses"),
-      api.get("/teachers"),
-      api.get("/subjects"),
-    ]);
-
-    setCourses(c.data?.data || []);
-    setTeachers(t.data?.data || []);
-    setSubjects(s.data?.data || []);
+    const res = await api.get("/courses");
+    setCourses(res.data?.data || []);
   };
 
   const fetchBatches = async (courseId) => {
@@ -41,96 +57,123 @@ export default function SchedulePage() {
     setBatches(res.data?.data || []);
   };
 
-  /* ================= ADD ROW ================= */
-  const addRow = () => {
-    setRows([
-      ...rows,
-      {
-        subject_id: "",
-        topic: "",
-        start_time: "",
-        end_time: "",
-        teacher_id: "",
-        description: "",
-        room_no: "",
-        class_type: "Regular",
-        repeat: "Does Not Repeat",
+  const fetchScheduledClasses = async () => {
+    try {
+      const res = await api.get(
+        `/class-routines/schedule/by-date?course_id=${selectedCourse}&batch_id=${selectedBatch}&date=${scheduleDate}`
+      );
 
-        // NEW
-        repeat_days: [],
-        repeat_dates: [],
-      },
-    ]);
-  };
-const toggleDay = (rowIndex, day) => {
-  const updated = [...rows];
-  const currentDays = updated[rowIndex].repeat_days;
-
-  updated[rowIndex].repeat_days = currentDays.includes(day)
-    ? currentDays.filter((d) => d !== day)
-    : [...currentDays, day];
-
-  setRows(updated);
-};
-
-
-  const updateRow = (index, field, value) => {
-    const updated = [...rows];
-    updated[index][field] = value;
-    setRows(updated);
+      setScheduledClasses(res.data?.data || []);
+    } catch (err) {
+      toast.error("Failed to load scheduled classes");
+    }
   };
 
-  const removeRow = (index) => {
-    setRows(rows.filter((_, i) => i !== index));
+  const handleGo = () => {
+    if (!selectedCourse || !selectedBatch) {
+      toast.error("Please select course, batch and date");
+      return;
+    }
+
+    // ✅ Remove old data immediately
+    setScheduledClasses([]);
+
+    fetchScheduledClasses();
   };
 
-  /* ================= SAVE ================= */
-  const saveSchedule = async () => {
-    const formattedClasses = rows.map((row) => ({
-      subject_id: row.subject_id,
-      topic: row.topic,
-      start_time: row.start_time,
-      end_time: row.end_time,
-      teacher_id: row.teacher_id,
-      description: row.description,
-      room_no: row.room_no,
-      class_type: row.class_type,
-      repeat: row.repeat,
 
-      repeat_days:
-        row.repeat === "Weekly" ? row.repeat_days : null,
+  const cancelSingleDate = async (routineId, date) => {
+    if (!confirm("Are you sure you want to cancel this class?")) return;
 
-      repeat_dates:
-        row.repeat === "Select Dates" ? row.repeat_dates : null,
-    }));
 
-    const payload = {
-      course_id: selectedCourse,
-      batch_id: selectedBatch,
-      base_date: scheduleDate,
-      classes: formattedClasses,
-    };
+    try {
+      const payload = {
+        routine_id: routineId,
+        date: date,
+      };
 
-    console.log("FINAL PAYLOAD:", payload);
+      console.log("CANCEL PAYLOAD:", payload);
 
-    await api.post("/class-schedules", payload);
+      await api.post("/class-routines/cancel-single", payload);
+
+      toast.success("Class cancelled successfully");
+
+      // refresh list
+      fetchScheduledClasses();
+
+    } catch (err) {
+      console.error(err.response?.data);
+      toast.error("Failed to cancel class");
+    }
   };
+
+  const rescheduleSingleClass = async () => {
+    if (!newDate || !newStartTime || !newEndTime) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    try {
+      const payload = {
+        routine_id: rescheduleData.id,
+        date: rescheduleData.date,
+        new_date: newDate,
+        new_start_time: newStartTime,
+        new_end_time: newEndTime,
+      };
+
+      console.log("RESCHEDULE PAYLOAD:", payload);
+
+      await api.post("/class-routines/reschedule-single", payload);
+
+      toast.success("Class rescheduled successfully");
+
+      setShowRescheduleModal(false);
+      fetchScheduledClasses();
+
+    } catch (err) {
+      console.error(err.response?.data);
+      toast.error("Failed to reschedule class");
+    }
+  };
+
+
+  const deleteRoutine = async (routineId) => {
+    if (!confirm("Are you sure you want to delete this routine permanently?")) {
+      return;
+    }
+
+    try {
+      await api.delete(`/class-routines/${routineId}`);
+
+      toast.success("Routine deleted successfully");
+
+      // Refresh list
+      fetchScheduledClasses(); // or fetchAll() if routine list page
+
+    } catch (err) {
+      console.error(err.response?.data);
+      toast.error("Failed to delete routine");
+    }
+  };
+  ``
 
 
   return (
     <div className="space-y-6">
 
       {/* ===== HEADER ===== */}
-      <div>
-        <h2 className="text-lg font-semibold">Class Schedule Details</h2>
-      </div>
+      <div className="flex justify-between items-center">
 
-      {/* ===== TOP FILTER SECTION ===== */}
+      <h2 className="text-lg font-semibold">Scheduled Classes</h2>
+      <PrimaryButton name={'Add Class'} onClick={() => router.push("/admin/classes/schedule/create")} />
+      </div>
+      {/* ===== FILTER SECTION ===== */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white border border-gray-200 rounded-xl p-4">
 
         {/* COURSE */}
         <div>
-          <label className="text-xs text-gray-600">Select Category/Course *</label>
+          <label className="text-xs text-gray-600">Select Course *</label>
           <select
             className="soft-input"
             value={selectedCourse}
@@ -163,7 +206,7 @@ const toggleDay = (rowIndex, day) => {
 
         {/* DATE */}
         <div>
-          <label className="text-xs text-gray-600">Class Schedule Date</label>
+          <label className="text-xs text-gray-600">Date *</label>
           <input
             type="date"
             className="soft-input"
@@ -172,207 +215,264 @@ const toggleDay = (rowIndex, day) => {
           />
         </div>
 
-        {/* GO BUTTON */}
         <div className="flex items-end">
-          <PrimaryButton name="Go" onClick={() => {}} />
+          <PrimaryButton name="Go" onClick={handleGo} />
         </div>
       </div>
 
-      {/* ===== SCHEDULE TABLE ===== */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      {/* ===== TABLE STYLE CARD LIST ===== */}
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
 
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-3 py-2 text-left">Subject *</th>
-              <th className="px-3 py-2 text-left">Topic</th>
-              <th className="px-3 py-2 text-left">Start Time *</th>
-              <th className="px-3 py-2 text-left">End Time *</th>
-              <th className="px-3 py-2 text-left">Select Teacher *</th>
-              <th className="px-3 py-2 text-left">Description</th>
-              <th className="px-3 py-2 text-left">Room No.</th>
-              <th className="px-3 py-2 text-left">Class Type</th>
-              <th className="px-3 py-2 text-left">Repeat</th>
-              <th></th>
-            </tr>
-          </thead>
+          {/* HEADER */}
+          <div className="grid grid-cols-9 gap-4 px-4 py-3 text-sm font-medium text-gray-600 bg-gray-50">
+            <div>Date</div>
+            <div>Time</div>
+            <div>Batch</div>
+            <div>Class</div>
+            <div>Subject</div>
+            <div>Teacher</div>
+            <div>Type</div>
+            <div>Status</div>
+            <div className="text-right">Action</div>
+          </div>
 
-          <tbody className="divide-y">
-            {rows.map((row, index) => (
-              <tr key={index}>
-                <td className="px-3 py-2">
-                  <select
-                    className="soft-input"
-                    value={row.subject_id}
-                    onChange={(e) => updateRow(index, "subject_id", e.target.value)}
+          {/* ROWS */}
+          <div className="divide-y">
+
+            {scheduledClasses.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                No classes scheduled
+              </div>
+            ) : (
+              scheduledClasses.map((item) => {
+
+                const statusColor =
+                  item.status === "upcoming"
+                    ? "bg-orange-500"
+                    : item.status === "pending"
+                    ? "bg-gray-500"
+                    : "bg-green-500";
+
+                const badgeColor =
+                  item.status === "upcoming"
+                    ? "bg-orange-100 text-orange-600"
+                    : item.status === "cancelled" ? "bg-red-100 text-red-600"
+                    : item.status === "pending"
+                    ? "bg-gray-200 text-gray-600"
+                    : "bg-green-100 text-green-600";
+
+                return (
+                  <div
+                    key={item.id}
+                    className="relative grid grid-cols-9 gap-4 px-4 py-4 text-sm items-center hover:bg-gray-50 transition"
                   >
-                    <option value="">Select</option>
-                    {subjects.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                </td>
 
-                <td className="px-3 py-2">
-                  <input
-                    className="soft-input"
-                    value={row.topic}
-                    onChange={(e) => updateRow(index, "topic", e.target.value)}
-                  />
-                </td>
+                    {/* LEFT STATUS STRIP */}
+                    <div
+                      className={`absolute left-0 top-0 bottom-0 w-1 ${statusColor}`}
+                    />
 
-                <td className="px-3 py-2">
-                  <input
-                    type="time"
-                    className="soft-input"
-                    value={row.start_time}
-                    onChange={(e) => updateRow(index, "start_time", e.target.value)}
-                  />
-                </td>
+                    {/* DATE */}
+                    <div className="font-medium text-gray-700">
+                      {item.date}
+                    </div>
 
-                <td className="px-3 py-2">
-                  <input
-                    type="time"
-                    className="soft-input"
-                    value={row.end_time}
-                    onChange={(e) => updateRow(index, "end_time", e.target.value)}
-                  />
-                </td>
+                    {/* TIME */}
+                    <div className="text-gray-600">
+                      {item.start_time} - {item.end_time}
+                    </div>
 
-                <td className="px-3 py-2">
-                  <select
-                    className="soft-input"
-                    value={row.teacher_id}
-                    onChange={(e) => updateRow(index, "teacher_id", e.target.value)}
-                  >
-                    <option value="">Select</option>
-                    {teachers.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
+                    {/* BATCH */}
+                    <div className="text-gray-600">
+                      {item.batch?.name}
+                    </div>
 
-                <td className="px-3 py-2">
-                  <input
-                    className="soft-input"
-                    value={row.description}
-                    onChange={(e) => updateRow(index, "description", e.target.value)}
-                  />
-                </td>
+                    {/* CLASS */}
+                    <div className="text-gray-600">
+                      {item.class?.name}
+                    </div>
 
-                <td className="px-3 py-2">
-                  <input
-                    className="soft-input"
-                    value={row.room_no}
-                    onChange={(e) => updateRow(index, "room_no", e.target.value)}
-                  />
-                </td>
-
-                <td className="px-3 py-2">
-                  <select
-                    className="soft-input"
-                    value={row.class_type}
-                    onChange={(e) => updateRow(index, "class_type", e.target.value)}
-                  >
-                    <option>Regular</option>
-                    <option>Extra</option>
-                    <option>Doubt</option>
-                  </select>
-                </td>
-
-                <td className="px-3 py-2">
-                  <select
-                    className="soft-input"
-                    value={row.repeat}
-                    onChange={(e) => updateRow(index, "repeat", e.target.value)}
-                  >
-                    <option>Does Not Repeat</option>
-                    <option>Daily</option>
-                    <option>Weekly</option>
-                    <option>Select Dates</option>
-                  </select>
-
-                  {/* ===== WEEKLY → SHOW DAYS ===== */}
-                  {row.repeat === "Weekly" && (
-                    <div className="mt-2 border rounded p-2 bg-gray-50 text-xs">
-                      <div className="flex flex-wrap gap-2">
-                        {DAYS.map((d) => (
-                          <label key={d} className="flex items-center gap-1">
-                            <input
-                              type="checkbox"
-                              checked={row.repeat_days.includes(d)}
-                              onChange={() => toggleDay(index, d)}
-                            />
-                            {d.slice(0, 3)}
-                          </label>
-                        ))}
+                    {/* SUBJECT */}
+                    <div>
+                      <div className="font-medium text-gray-700">
+                        {item.subject?.name}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {item.subject?.code}
                       </div>
                     </div>
-                  )}
 
-                  {/* ===== SELECT DATES → MULTIPLE DATE PICKER ===== */}
-                  {row.repeat === "Select Dates" && (
-                    <div className="mt-2">
-                      <input
-                        type="date"
-                        className="soft-input"
-                        onChange={(e) => {
-                          const updated = [...rows];
-                          if (!updated[index].repeat_dates.includes(e.target.value)) {
-                            updated[index].repeat_dates.push(e.target.value);
-                            setRows(updated);
-                          }
-                        }}
-                      />
-
-                      {row.repeat_dates.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {row.repeat_dates.map((d, i) => (
-                            <span
-                              key={i}
-                              className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs"
-                            >
-                              {d}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                    {/* TEACHER */}
+                    <div className="text-gray-600">
+                      {item.teacher?.name}
                     </div>
-                  )}
-                </td>
+
+                    {/* CLASS TYPE BADGE */}
+                    <div>
+                      <span className="px-2 py-1 text-xs rounded bg-blue-50 text-blue-600">
+                        {item.class_type} - {item.repeat_type}
+                      </span>
+                    </div>
+
+                    {/* STATUS BADGE */}
+                    <div>
+                      <span
+                        className={`px-3 py-1 text-xs rounded font-medium ${badgeColor}`}
+                      >
+                        {item.status}
+                      </span>
+                    </div>
 
 
-                <td className="px-3 py-2 text-right">
+                   {/* ACTION */}
+                    <div className="flex justify-end gap-4 text-gray-500">
+
+                      {/* Attendance */}
+                      {isToday(item.date) && (
+                        <button
+                          title="Attendance"
+                          onClick={() =>
+                            router.push(`/admin/classes/attendance/${item.id}`)
+                          }
+                          className="hover:text-blue-600 transition"
+                        >
+                          <Users size={16} />
+                        </button>
+                      )}
+
+
+                      {/* Reminder */}
+                      <button
+                        title="Reminder"
+                        className="hover:text-blue-600 transition"
+                      >
+                        <Bell size={16} />
+                      </button>
+                      <button
+                        title="Reschedule"
+                        onClick={() => {
+                          setRescheduleData(item);
+                          setNewDate(item.date);
+                          setNewStartTime("");
+                          setNewEndTime("");
+                          setShowRescheduleModal(true);
+                        }}
+                        className="hover:text-blue-600 transition"
+                      >
+                        <Clock size={16} />
+                      </button>
+
+                      {/* Edit */}
+                      <button
+                        title="Edit"
+                        className="hover:text-blue-600 transition"
+                      >
+                        <Pencil size={16} />
+                      </button>
+
+                      {/* Cancel */}
+                      <button
+                        title="Cancel"
+                        onClick={() => cancelSingleDate(item.id, item.date)}
+                        className="text-red-500 hover:text-red-700 transition"
+                      >
+                        <XCircle size={16} />
+                      </button>
+
+                      <button
+                        title="Delete Routine"
+                        onClick={() => deleteRoutine(item.id)}
+                        className="text-red-600 hover:text-red-800 transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                    </div>
+
+
+                  </div>
+                );
+              })
+            )}
+
+          </div>
+        </div>
+          {showRescheduleModal && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="bg-white w-[500px] rounded-xl shadow-lg">
+
+                {/* HEADER */}
+                <div className="flex justify-between items-center px-6 py-4 border-b">
+                  <h3 className="text-lg font-medium">
+                    Reschedule Class
+                  </h3>
+
                   <button
-                    onClick={() => removeRow(index)}
-                    className="text-red-500"
+                    onClick={() => setShowRescheduleModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
                   >
                     ✕
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
 
-        {/* ADD BUTTON */}
-        <div className="p-3 border-t">
-          <button
-            onClick={addRow}
-            className="bg-blue-600 text-white px-3 py-1 rounded"
-          >
-            Add
-          </button>
-        </div>
-      </div>
+                {/* BODY */}
+                <div className="p-6 space-y-4">
 
-      {/* FOOTER ACTIONS */}
-      <div className="flex justify-end gap-3">
-        <button className="soft-btn-outline">Cancel</button>
-        <PrimaryButton name="Save" onClick={saveSchedule} />
-      </div>
+                  <div>
+                    <label className="text-sm text-gray-600">New Date *</label>
+                    <input
+                      type="date"
+                      className="soft-input"
+                      value={newDate}
+                      onChange={(e) => setNewDate(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-600">Start Time *</label>
+                      <input
+                        type="time"
+                        className="soft-input"
+                        value={newStartTime}
+                        onChange={(e) => setNewStartTime(e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm text-gray-600">End Time *</label>
+                      <input
+                        type="time"
+                        className="soft-input"
+                        value={newEndTime}
+                        onChange={(e) => setNewEndTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* FOOTER */}
+                <div className="flex justify-end gap-3 px-6 py-4 border-t">
+                  <button
+                    className="soft-btn-outline"
+                    onClick={() => setShowRescheduleModal(false)}
+                  >
+                    Cancel
+                  </button>
+
+                  <PrimaryButton
+                    name="Reschedule Class"
+                    onClick={rescheduleSingleClass}
+                  />
+                </div>
+
+              </div>
+            </div>
+          )}
+
+
+
     </div>
   );
 }

@@ -5,8 +5,8 @@ import Link from "next/link";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  ArrowDownOutlined,
-  ArrowRightOutlined,
+  RightOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import { usePathname } from "next/navigation";
 import { schoolNav, coachingNav, superAdminNav } from "./MenuConfig";
@@ -64,7 +64,7 @@ export default function AdminSidebar() {
         collapsed ? "w-20" : "w-64"
       } transition-all duration-200 flex-shrink-0`}
     >
-      <div className="h-full bg-gray-700 text-white shadow-sm flex flex-col p-4">
+      <div className="h-full bg-gray-800 text-white shadow-sm flex flex-col p-4">
 
 
         {/* BRAND */}
@@ -93,7 +93,7 @@ export default function AdminSidebar() {
               return (
                 <Link key={item.key} href={item.href}>
                   <div
-                    className={`px-3 py-2 rounded-lg text-sm flex gap-3 hover:bg-gray-50 hover:text-black 
+                    className={`px-3 py-2 rounded-lg text-xs flex gap-3 hover:bg-gray-50 hover:text-black 
                     ${
                       pathname === item.href
                         ? "bg-blue-50 text-blue-700"
@@ -113,16 +113,16 @@ export default function AdminSidebar() {
                   onClick={() => toggle(item.key)}
                   className="w-full px-3 py-2 flex justify-between rounded-lg hover:bg-gray-50 hover:text-black"
                 >
-                  <div className="flex gap-3 text-sm">
+                  <div className="flex gap-3 text-xs">
                     {item.icon}
                     {!collapsed && item.label}
                   </div>
 
                   {!collapsed &&
                     (isOpen ? (
-                      <ArrowDownOutlined />
+                      <DownOutlined className="text-[10px]" />
                     ) : (
-                      <ArrowRightOutlined />
+                      <RightOutlined className="text-[10px]" />
                     ))}
                 </button>
 
@@ -131,7 +131,7 @@ export default function AdminSidebar() {
                     {item.children.map((sub) => (
                       <Link key={sub.key} href={sub.href}>
                         <div
-                          className={`px-3 py-1.5 text-sm rounded
+                          className={`px-3 py-1.5 text-xs rounded
                           ${
                             pathname === sub.href
                               ? "bg-blue-50 text-blue-700"
