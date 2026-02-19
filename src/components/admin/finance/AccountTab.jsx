@@ -93,20 +93,22 @@ export default function AccountTab() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-4 py-2 text-left">Payee/Payer</th>
+                <th className="px-4 py-2 text-left">Name</th>
                 <th className="px-4 py-2 text-left">Account Name</th>
                 <th className="px-4 py-2 text-left">Type</th>
-                <th className="px-4 py-2 text-left">Owner</th>
                 <th className="px-4 py-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {accounts.map((a) => (
                 <tr key={a.id} className="border-gray-200 ">
-                  <td className="px-4 py-2">{a.account_name} - ({a.accountable.display_name})</td>
-                  <td className="px-4 py-2">{a.account_type}</td>
                   <td className="px-4 py-2">
                     {a.accountable.vendor_type || "—"}
                   </td>
+                  <td className="px-4 py-2">{a.accountable.display_name}</td>
+                  <td className="px-4 py-2">{a.account_name}</td>
+                  <td className="px-4 py-2">{a.account_type}</td>
                   <td className="px-4 py-2 text-right">
                     <DeleteOutlined
                       className="text-rose-600 cursor-pointer"

@@ -86,28 +86,8 @@ export const schoolNav = [
     ],
   },
 
-  {
-    key: "finance",
-    label: "Income/Expense",
-    icon: <DollarOutlined />,
-    children: [
-      { key: "setup", label: "Setup", href: "/admin/finance/setup" },
-      { key: "manage-income", label: "Manage Income", href: "/admin/finance/manage-income" },
-      { key: "manage-expense", label: "Manage Expense", href: "/admin/finance/manage-expense" },
-    ],
-  },
 
-  {
-    key: "assets",
-    label: "Assets",
-    icon: <HomeOutlined />,   // ✅ UPDATED
-    children: [
-      { key: "setup", label: "Assets Inventory", href: "/admin/assets/setup" },
-      { key: "supplier-master", label: "Supplier Master", href: "/admin/assets/supplier-master" },
-      { key: "purchase-assets", label: "Purchase Assets", href: "/admin/assets/purchase-assets" },
-      { key: "assets-assignment", label: "Assets Assignment", href: "/admin/assets/assets-assignment" },
-    ],
-  },
+
 
   {
     key: "exam",
@@ -154,7 +134,27 @@ export const schoolNav = [
   },
 
   { key: "assignments", label: "Assignments", href: "/admin/assignments", icon: <FileDoneOutlined /> }, // ✅ UPDATED
-
+  {
+    key: "assets",
+    label: "Assets",
+    icon: <HomeOutlined />,   // ✅ UPDATED
+    children: [
+      { key: "setup", label: "Assets Inventory", href: "/admin/assets/setup" },
+      { key: "supplier-master", label: "Supplier Master", href: "/admin/assets/supplier-master" },
+      { key: "purchase-assets", label: "Purchase Assets", href: "/admin/assets/purchase-assets" },
+      { key: "assets-assignment", label: "Assets Assignment", href: "/admin/assets/assets-assignment" },
+    ],
+  },
+  {
+    key: "finance",
+    label: "Income/Expense",
+    icon: <DollarOutlined />,
+    children: [
+      { key: "setup", label: "Setup", href: "/admin/finance/setup" },
+      { key: "manage-expense", label: "Manage Expense", href: "/admin/finance/manage-expense" },
+      { key: "manage-income", label: "Manage Income", href: "/admin/finance/manage-income" },
+    ],
+  },
   {
     key: "payroll",
     label: "Payroll",

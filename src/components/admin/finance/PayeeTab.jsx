@@ -103,9 +103,10 @@ export default function PayeeTab() {
         <table className="w-full text-sm bg-white border border-gray-200 rounded-xl">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2 text-left">Name</th>
+              <th className="px-4 py-2 text-left">Payee Name</th>
               <th className="px-4 py-2 text-left">Vendor Type</th>
               <th className="px-4 py-2 text-left">Contact</th>
+              <th className="px-4 py-2 text-left">Email</th>
               <th className="px-4 py-2 text-right">Action</th>
             </tr>
           </thead>
@@ -115,6 +116,7 @@ export default function PayeeTab() {
                 <td className="px-4 py-2">{p.display_name}</td>
                 <td className="px-4 py-2">{p.vendor_type}</td>
                 <td className="px-4 py-2">{p.contact_no}</td>
+                <td className="px-4 py-2">{p.email}</td>
                 <td className="px-4 py-2 text-right">
                   <EditOutlined
                     className="mr-3 text-blue-600 cursor-pointer"
@@ -139,7 +141,7 @@ export default function PayeeTab() {
             <div>
               <label className="soft-label">Title</label>
               <select
-                className="soft-select"
+                className="soft-input"
                 value={form.title}
                 onChange={(e) =>
                   setForm({ ...form, title: e.target.value })
@@ -158,6 +160,7 @@ export default function PayeeTab() {
               <input
                 className="soft-input"
                 value={form.display_name}
+                placeholder="Enter Display name"
                 onChange={(e) =>
                   setForm({ ...form, display_name: e.target.value })
                 }
@@ -170,6 +173,7 @@ export default function PayeeTab() {
               <input
                 className="soft-input"
                 value={form.name}
+                placeholder="Enter Payee Name"
                 onChange={(e) =>
                   setForm({ ...form, name: e.target.value })
                 }
@@ -180,7 +184,7 @@ export default function PayeeTab() {
             <div>
               <label className="soft-label">Vendor Type</label>
               <select
-                className="soft-select"
+                className="soft-input"
                 value={form.vendor_type}
                 onChange={(e) =>
                   setForm({ ...form, vendor_type: e.target.value })
@@ -196,6 +200,7 @@ export default function PayeeTab() {
               <label className="soft-label">Email ID</label>
               <input
                 className="soft-input"
+                placeholder="Enter Email id"
                 value={form.email}
                 onChange={(e) =>
                   setForm({ ...form, email: e.target.value })
@@ -210,6 +215,7 @@ export default function PayeeTab() {
               </label>
               <input
                 className="soft-input"
+                placeholder="Enter Primary Contact"
                 value={form.contact_no}
                 onChange={(e) =>
                   setForm({ ...form, contact_no: e.target.value })
@@ -222,6 +228,7 @@ export default function PayeeTab() {
               <label className="soft-label">Address</label>
               <input
                 className="soft-input"
+                placeholder="Enter Address"
                 value={form.address}
                 onChange={(e) =>
                   setForm({ ...form, address: e.target.value })

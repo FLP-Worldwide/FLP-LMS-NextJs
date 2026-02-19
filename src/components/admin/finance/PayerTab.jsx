@@ -107,9 +107,11 @@ export default function PayerTab() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-4 py-2 text-left">Vendor type</th>
                 <th className="px-4 py-2 text-left">Display Name</th>
                 <th className="px-4 py-2 text-left">Company</th>
                 <th className="px-4 py-2 text-left">Contact</th>
+                <th className="px-4 py-2 text-left">Email</th>
                 <th className="px-4 py-2 text-right">Action</th>
               </tr>
             </thead>
@@ -117,9 +119,11 @@ export default function PayerTab() {
             <tbody className="divide-y">
               {list.map((p) => (
                 <tr key={p.id}>
+                  <td className="px-4 py-2">{p.vendor_type}</td>
                   <td className="px-4 py-2">{p.display_name}</td>
                   <td className="px-4 py-2">{p.company_name || "—"}</td>
                   <td className="px-4 py-2">{p.contact_no}</td>
+                  <td className="px-4 py-2">{p.email}</td>
                   <td className="px-4 py-2 text-right">
                     <EditOutlined
                       className="mr-3 text-blue-600 cursor-pointer"
@@ -146,7 +150,7 @@ export default function PayerTab() {
             <div>
               <label className="soft-label">Title</label>
               <select
-                className="soft-select"
+                className="soft-input"
                 value={form.title}
                 onChange={(e) =>
                   setForm({ ...form, title: e.target.value })
@@ -165,6 +169,7 @@ export default function PayerTab() {
               <input
                 className="soft-input"
                 value={form.display_name}
+                placeholder="Enter Display name"
                 onChange={(e) =>
                   setForm({ ...form, display_name: e.target.value })
                 }
@@ -176,6 +181,7 @@ export default function PayerTab() {
               <label className="soft-label">Payer Name</label>
               <input
                 className="soft-input"
+                placeholder="Enter Payer Name"
                 value={form.name}
                 onChange={(e) =>
                   setForm({ ...form, name: e.target.value })
@@ -187,8 +193,9 @@ export default function PayerTab() {
             <div>
               <label className="soft-label">Vendor Type</label>
               <select
-                className="soft-select"
+                className="soft-input"
                 value={form.vendor_type}
+
                 onChange={(e) =>
                   setForm({ ...form, vendor_type: e.target.value })
                 }
@@ -202,6 +209,7 @@ export default function PayerTab() {
               <label className="soft-label">Email ID</label>
               <input
                 className="soft-input"
+                placeholder="Enter Email"
                 value={form.email}
                 onChange={(e) =>
                   setForm({ ...form, email: e.target.value })
@@ -216,6 +224,7 @@ export default function PayerTab() {
               </label>
               <input
                 className="soft-input"
+                placeholder="Enter Primary Contact"
                 value={form.contact_no}
                 onChange={(e) =>
                   setForm({ ...form, contact_no: e.target.value })
@@ -229,9 +238,32 @@ export default function PayerTab() {
               <input
                 className="soft-input"
                 value={form.company_name}
+                placeholder="Enter Company Name"
                 onChange={(e) =>
                   setForm({ ...form, company_name: e.target.value })
                 }
+              />
+            </div>
+            <div>
+              <label className="soft-label">Alternate Contact</label>
+              <input
+                className="soft-input"
+                // value={form.company_name}
+                placeholder="Enter Alternate Contact"
+                // onChange={(e) =>
+                //   setForm({ ...form, company_name: e.target.value })
+                // }
+              />
+            </div>
+            <div>
+              <label className="soft-label">Notes</label>
+              <input
+                className="soft-input"
+                // value={form.company_name}
+                placeholder="Enter Notes"
+                // onChange={(e) =>
+                //   setForm({ ...form, company_name: e.target.value })
+                // }
               />
             </div>
 
@@ -240,6 +272,7 @@ export default function PayerTab() {
               <label className="soft-label">Address</label>
               <textarea
                 className="soft-input"
+                placeholder="Address"
                 value={form.address}
                 onChange={(e) =>
                   setForm({ ...form, address: e.target.value })

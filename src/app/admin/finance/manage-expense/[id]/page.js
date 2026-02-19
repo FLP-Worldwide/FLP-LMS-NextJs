@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Eye, Pencil, FileSpreadsheet } from "lucide-react";
 
 
-export default function ExpensePage() {
+export default function ExpenseEditPage() {
 
   const router = useRouter();
   /* ================= DATA ================= */

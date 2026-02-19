@@ -23,12 +23,12 @@ export default function FinanceSetupPage() {
   return (
     <div className="space-y-2 p-6">
       {/* HEADER */}
-      <div>
+      {/* <div>
         <h2 className="text-xl font-semibold">Finance Setup</h2>
         <p className="text-sm text-gray-500">
           Manage payees, payers, categories and accounts
         </p>
-      </div>
+      </div> */}
 
       {/* SUB MENU */}
       <SubMenu items={financeMenus} />
