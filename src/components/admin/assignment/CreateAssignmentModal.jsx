@@ -17,6 +17,11 @@ export default function CreateAssignmentModal({
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
+  const [file, setFile] = useState(null);
+  const [links, setLinks] = useState([
+    { name: "", url: "" },
+  ]);
+  
   const [form, setForm] = useState({
     topic: assignment?.topic || "",
     description: assignment?.description || "",
@@ -64,33 +69,69 @@ export default function CreateAssignmentModal({
   }, [form.batch_id]);
 
   /* ================= SAVE ================= */
-  const saveAssignment = async (status) => {
-    const payload = {
-      topic: form.topic,
-      description: form.description,
-      status,
-      publish_at:
-        status === "published"
-          ? `${form.publish_date} ${form.publish_time}`
-          : null,
-      due_at: `${form.due_date} ${form.due_time}`,
-      allow_late_submission: form.allow_late_submission,
-      evaluation_required: form.evaluation_required,
-      course_id: form.course_id,
-      batch_id: form.batch_id,
-      subject_id: form.subject_id,
-      teacher_id: form.teacher_id,
-    };
+ const saveAssignment = async (status) => {
+  try {
+    const fd = new FormData();
 
+    /* ================= BASIC FIELDS ================= */
+    fd.append("topic", form.topic);
+    fd.append("description", form.description || "");
+    fd.append("status", status);
+
+    fd.append(
+      "publish_at",
+      status === "published"
+        ? `${form.publish_date} ${form.publish_time}`
+        : ""
+    );
+
+    fd.append(
+      "due_at",
+      `${form.due_date} ${form.due_time}`
+    );
+
+    fd.append("allow_late_submission", form.allow_late_submission ? 1 : 0);
+    fd.append("evaluation_required", form.evaluation_required ? 1 : 0);
+
+    fd.append("course_id", form.course_id);
+    fd.append("batch_id", form.batch_id);
+    fd.append("subject_id", form.subject_id || "");
+    fd.append("teacher_id", form.teacher_id);
+
+    /* ================= FILE ================= */
+    if (file) {
+      fd.append("file", file);
+    }
+
+    /* ================= LINKS ================= */
+    links.forEach((link, index) => {
+      if (link.name || link.url) {
+        fd.append(`links[${index}][name]`, link.name);
+        fd.append(`links[${index}][url]`, link.url);
+      }
+    });
+
+    /* ================= API CALL ================= */
     if (isEdit) {
-      await api.put(`/assignments/update/${assignment.id}`, payload);
+      fd.append("_method", "PUT"); // if backend requires
+      await api.post(`/assignments/update/${assignment.id}`, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     } else {
-      await api.post("/assignments", payload);
+      await api.post("/assignments", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     }
 
     onSaved?.();
     onClose();
-  };
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to save assignment");
+  }
+};
+
 useEffect(() => {
   if (!assignment) return;
 
@@ -127,7 +168,7 @@ useEffect(() => {
       onClose={onClose}
       className="max-w-5xl"
     >
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 p-2">
 
         {/* DETAILS */}
         <Section title="Details">
@@ -222,6 +263,95 @@ useEffect(() => {
           </div>
         </Section>
 
+        {/* ================= FILES & LINKS ================= */}
+        <div className="border-t pt-6 mt-6 space-y-6">
+
+          <h3 className="text-md font-semibold flex items-center gap-2">
+            Files & Links
+          </h3>
+
+          {/* ================= FILE UPLOAD ================= */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-medium">File</p>
+                <p className="text-xs text-gray-500">
+                  Maximum total size allowed (150 MB)
+                </p>
+              </div>
+
+              <input
+                type="file"
+                onChange={(e) => setFile(e.target.files[0])}
+                className="text-sm"
+              />
+            </div>
+
+            {file && (
+              <div className="text-sm text-green-600 mt-2">
+                Selected: {file.name}
+              </div>
+            )}
+          </div>
+
+          {/* ================= LINKS ================= */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
+
+            <div>
+              <p className="font-medium">Link</p>
+              <p className="text-xs text-gray-500">
+                You can add up to 5 links
+              </p>
+            </div>
+
+            {links.map((link, index) => (
+              <div key={index} className="grid grid-cols-2 gap-3">
+
+                <input
+                  type="text"
+                  placeholder="Link Name"
+                  className="soft-input"
+                  value={link.name}
+                  onChange={(e) => {
+                    const updated = [...links];
+                    updated[index].name = e.target.value;
+                    setLinks(updated);
+                  }}
+                />
+
+                <input
+                  type="text"
+                  placeholder="Add your link here"
+                  className="soft-input"
+                  value={link.url}
+                  onChange={(e) => {
+                    const updated = [...links];
+                    updated[index].url = e.target.value;
+                    setLinks(updated);
+                  }}
+                />
+
+              </div>
+            ))}
+
+            {/* ADD LINK BUTTON */}
+            {links.length < 5 && (
+              <button
+                type="button"
+                onClick={() =>
+                  setLinks([...links, { name: "", url: "" }])
+                }
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+              >
+                Add Link
+              </button>
+            )}
+          </div>
+
+        </div>
+
+
         {/* FOOTER */}
         <div className="flex justify-end gap-2 pt-4 border-t">
           <button className="soft-btn-outline" onClick={onClose}>
@@ -247,7 +377,7 @@ useEffect(() => {
 
 function Section({ title, children }) {
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-4 p-2">
       <div className="flex items-center gap-2">
         <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
         <div className="flex-1 border-t border-gray-200" />

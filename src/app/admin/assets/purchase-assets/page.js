@@ -5,6 +5,7 @@ import Modal from "@/components/ui/Modal";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
+import ExcelDownloadButton from "@/components/ui/ExcelDownloadButton";
 
 /* ---------------- FORM ---------------- */
 const emptyForm = {
@@ -59,6 +60,35 @@ export default function PurchaseAssetsPage() {
     setCategories(res.data?.data || []);
   };
 
+
+  const handleDownloadSuppliers = async () => {
+  try {
+    const response = await api.get(
+      "/reports/purchase-assets/export",
+      {
+        responseType: "blob",
+      }
+    );
+
+    const url = window.URL.createObjectURL(
+      new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "purchase-assets.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Download failed", error);
+  }
+};
+
+
+
   const fetchAssets = async (supplierId, categoryId) => {
     if (!supplierId || !categoryId) return setAssets([]);
 
@@ -103,11 +133,20 @@ export default function PurchaseAssetsPage() {
         fd.append("items[0][quantity]", form.quantity);
         fd.append("items[0][price]", form.purchase_price);
 
-        if (editingId) {
-        await api.post(`/purchase-assets/${editingId}?_method=PUT`, fd);
+       if (editingId) {
+          await api.post(
+            `/purchase-assets/${editingId}?_method=PUT`,
+            fd,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
         } else {
-        await api.post("/purchase-assets", fd);
+          await api.post(
+            "/purchase-assets",
+            fd,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
         }
+
 
         setShowModal(false);
         setForm(emptyForm);
@@ -168,8 +207,15 @@ const openEdit = async (row) => {
 
   return (
     <>
+     <div className="space-y-2 p-6">
       {/* ACTION */}
       <div className="flex justify-end mb-4">
+
+         <ExcelDownloadButton
+            onClick={handleDownloadSuppliers}
+            label="Download Category Report"
+          />
+
         <PrimaryButton
           name="+ Purchase Asset"
           onClick={() => {
@@ -394,8 +440,18 @@ const openEdit = async (row) => {
                 <label className="soft-label">Upload File</label>
 
                 {/* FILE */}
-                <input type="file"
-                onChange={(e)=>setForm({...form,file:e.target.files[0]})} />
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      file: e.target.files && e.target.files.length > 0
+                        ? e.target.files[0]
+                        : null,
+                    })
+                  }
+                />
+
             </div>
           </div>
 
@@ -410,6 +466,7 @@ const openEdit = async (row) => {
           </div>
         </Modal>
       )}
+      </div>
     </>
   );
 }

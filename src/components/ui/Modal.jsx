@@ -10,7 +10,7 @@ export default function Modal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 flex items-center justify-center"
       style={{ zIndex }}
     >
       {/* Backdrop */}
@@ -21,10 +21,17 @@ export default function Modal({
 
       {/* Modal box */}
       <div
-        className={`relative bg-white rounded-xl border border-gray-200 p-5 w-full max-w-4xl shadow-lg ${className}`}
+        className={`
+          relative bg-white rounded-xl border border-gray-200
+          w-full max-w-5xl
+          max-h-[90vh]         /* 🔥 LIMIT HEIGHT */
+          flex flex-col        /* 🔥 FLEX COLUMN */
+          shadow-lg
+          ${className}
+        `}
       >
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-3">
+        {/* HEADER (Sticky) */}
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
           <h3 className="font-semibold">{title}</h3>
 
           <div className="flex items-center gap-3">
@@ -38,8 +45,10 @@ export default function Modal({
           </div>
         </div>
 
-        {/* BODY */}
-        {children}
+        {/* BODY (Scrollable Area) */}
+        <div className="overflow-y-auto px-6 py-4 flex-1">
+          {children}
+        </div>
       </div>
     </div>
   );

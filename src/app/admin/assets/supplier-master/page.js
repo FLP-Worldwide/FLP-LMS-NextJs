@@ -6,6 +6,7 @@ import PrimaryButton from "@/components/ui/PrimaryButton";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
 import MultiSelectDropdown from "@/components/ui/MultiSelectDropdown";
+import ExcelDownloadButton from "@/components/ui/ExcelDownloadButton";
 
 /* ---------------- FORMS ---------------- */
 const emptyForm = {
@@ -91,6 +92,31 @@ export default function SupplierMasterPage() {
 
   }, []);
 
+  /* ================= DOWNLOAD REPORT ================= */
+const handleDownloadSuppliers = async () => {
+  try {
+    const response = await api.get(
+      "/reports/suppliers/export",
+      { responseType: "blob" }
+    );
+
+    const url = window.URL.createObjectURL(
+      new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "supplier-report.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Supplier export failed", error);
+  }
+};
+
+
   /* =====================================================
      SAVE
   ===================================================== */
@@ -165,8 +191,15 @@ export default function SupplierMasterPage() {
 
   return (
     <>
+     <div className="space-y-2 p-6">
       {/* ACTION */}
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 gap-2">
+
+        <ExcelDownloadButton
+          onClick={handleDownloadSuppliers}
+          label="Download Category Report"
+        />
+
         <PrimaryButton
           name="+ Add Supplier"
           onClick={() => {
@@ -192,6 +225,7 @@ export default function SupplierMasterPage() {
               <th className="px-4 py-2 text-left">Email</th>
               <th className="px-4 py-2 text-left">Mobile</th>
               <th className="px-4 py-2 text-left">Contact Person</th>
+              <th className="px-4 py-2 text-left">Asset Provided</th>
               <th className="px-4 py-2 text-right">Action</th>
             </tr>
           </thead>
@@ -202,6 +236,7 @@ export default function SupplierMasterPage() {
                 <td className="px-4 py-2">{s.email}</td>
                 <td className="px-4 py-2">{s.mobile}</td>
                 <td className="px-4 py-2">{s.contact_person}</td>
+                <td className="px-4 py-2">{s.asset_items[0]?.name}</td>
                 <td className="px-4 py-2 text-right">
                   <EditOutlined
                     className="mr-3 text-blue-600 cursor-pointer"
@@ -343,6 +378,8 @@ export default function SupplierMasterPage() {
           </div>
         </Modal>
       )}
+
+    </div>
     </>
   );
 }

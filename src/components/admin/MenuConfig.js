@@ -139,6 +139,7 @@ export const schoolNav = [
     label: "Assets",
     icon: <HomeOutlined />,   // ✅ UPDATED
     children: [
+      { key: "setup-location", label: "Lcation", href: "/admin/assets/location" },
       { key: "setup", label: "Assets Inventory", href: "/admin/assets/setup" },
       { key: "supplier-master", label: "Supplier Master", href: "/admin/assets/supplier-master" },
       { key: "purchase-assets", label: "Purchase Assets", href: "/admin/assets/purchase-assets" },

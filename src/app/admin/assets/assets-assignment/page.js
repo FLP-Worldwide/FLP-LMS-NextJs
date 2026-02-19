@@ -5,6 +5,7 @@ import Modal from "@/components/ui/Modal";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
+import ExcelDownloadButton from "@/components/ui/ExcelDownloadButton";
 
 /* ---------------- FORM ---------------- */
 const emptyForm = {
@@ -30,10 +31,19 @@ export default function AssetAssignmentPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [roles, setRoles] = useState([]);
 
   /* =====================================================
      FETCH
   ===================================================== */
+  useEffect(() => {
+    api.get("/settings/roles").then(res => {
+      if (res.data?.status === "success") {
+        setRoles(res.data.data.filter(r => r.is_active));
+      }
+    });
+  }, []);
+
 
   const fetchAssignments = async () => {
     setLoading(true);
@@ -58,7 +68,7 @@ export default function AssetAssignmentPage() {
 
   const fetchUsers = async (role) => {
     if (!role) return setUsers([]);
-    const res = await api.get(`/teachers?department=${role}`);
+    const res = await api.get(`/staff/all?role=${role}`);
     setUsers(res.data?.data || []);
   };
 
@@ -98,6 +108,37 @@ export default function AssetAssignmentPage() {
     fetchAssignments();
   };
 
+
+  const handleDownloadReport = async () => {
+    try {
+      const response = await api.get(
+        "/reports/assets/assignments/export",
+        {
+          responseType: "blob",
+          params: {
+            role: form.role || null,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(
+        new Blob([response.data])
+      );
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "checkout-report.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed", error);
+    }
+  };
+
+
   /* =====================================================
      EDIT
   ===================================================== */
@@ -128,8 +169,15 @@ export default function AssetAssignmentPage() {
 
   return (
     <>
+      <div className="space-y-2 p-6">
       {/* ACTION BAR */}
+       
+        
       <div className="flex justify-end mb-4 gap-2">
+        <ExcelDownloadButton
+          onClick={handleDownloadReport}
+          label="Download Report"
+        />
         <PrimaryButton name="+ Asset Assignment" onClick={() => setShowModal(true)} />
       </div>
 
@@ -196,7 +244,7 @@ export default function AssetAssignmentPage() {
             <div>
               <label className="soft-label">Category Name *</label>
               <select
-                className="soft-select"
+                className="soft-input"
                 value={form.asset_category_id}
                 onChange={(e) => {
                   setForm({
@@ -218,7 +266,7 @@ export default function AssetAssignmentPage() {
             <div>
               <label className="soft-label">Asset *</label>
               <select
-                className="soft-select"
+                className="soft-input"
                 value={form.asset_id}
                 onChange={(e) =>
                   setForm({ ...form, asset_id: e.target.value })
@@ -236,6 +284,7 @@ export default function AssetAssignmentPage() {
               <label className="soft-label">Assign Quantity *</label>
               <input
                 className="soft-input"
+                placeholder="Enter Assign Quantity"
                 value={form.quantity}
                 onChange={(e) =>
                   setForm({ ...form, quantity: e.target.value })
@@ -289,22 +338,33 @@ export default function AssetAssignmentPage() {
                 className="soft-select"
                 value={form.role}
                 onChange={(e) => {
-                  setForm({ ...form, role: e.target.value, checkout_by: "" });
-                  fetchUsers(e.target.value);
+                  const roleSlug = e.target.value;
+
+                  setForm({
+                    ...form,
+                    role: roleSlug,
+                    checkout_by: "",
+                  });
+
+                  fetchUsers(roleSlug);
                 }}
               >
-                <option value="">Select role</option>
-                <option value="Teacher">Teacher</option>
-                <option value="Staff">Staff</option>
-                <option value="Student">Student</option>
+                <option value="">Select Role</option>
+
+                {roles.map((r) => (
+                  <option key={r.id} value={r.slug}>
+                    {r.name}
+                  </option>
+                ))}
               </select>
             </div>
+
 
             {/* CHECKOUT BY */}
             <div>
               <label className="soft-label">Checkout By *</label>
               <select
-                className="soft-select"
+                className="soft-input"
                 value={form.checkout_by}
                 onChange={(e) =>
                   setForm({ ...form, checkout_by: e.target.value })
@@ -322,6 +382,7 @@ export default function AssetAssignmentPage() {
               <label className="soft-label">Note</label>
               <input
                 className="soft-input"
+                placeholder="Enter Note"
                 value={form.note}
                 onChange={(e) =>
                   setForm({ ...form, note: e.target.value })
@@ -345,6 +406,7 @@ export default function AssetAssignmentPage() {
           </div>
         </Modal>
       )}
+      </div>
     </>
   );
 }

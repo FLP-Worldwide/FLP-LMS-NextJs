@@ -5,7 +5,7 @@ import Modal from "@/components/ui/Modal";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
-
+import { FileSpreadsheet } from "lucide-react";
 /* ---------------- FORMS ---------------- */
 const emptyCategoryForm = {
   name: "",
@@ -191,21 +191,82 @@ const [editingAssetId, setEditingAssetId] = useState(null);
   /* =====================================================
      UI
   ===================================================== */
+const handleDownloadItems = async () => {
+  try {
+    const response = await api.get(
+      "/reports/assets/items/export",
+      { responseType: "blob" }
+    );
 
+    const url = window.URL.createObjectURL(
+      new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "assets-items-report.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Items export failed", error);
+  }
+};
+
+/* ================= DOWNLOAD CATEGORY REPORT ================= */
+const handleDownloadCategories = async () => {
+  try {
+    const response = await api.get(
+      "/reports/assets/categories/export",
+      { responseType: "blob" }
+    );
+
+    const url = window.URL.createObjectURL(
+      new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "assets-category-report.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Category export failed", error);
+  }
+};
   return (
     <>
       {/* ACTION BUTTONS */}
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-3 items-center">
+
+        {/* DOWNLOAD ITEMS */}
+        <button
+          onClick={handleDownloadItems}
+          className="group relative bg-green-50 border border-green-200 rounded-lg p-2 hover:bg-green-100 transition"
+        >
+          <FileSpreadsheet className="text-green-600 w-5 h-5" />
+          <span className="absolute hidden group-hover:block -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+            Download Items Report
+          </span>
+        </button>
+
+        {/* DOWNLOAD CATEGORY */}
+       
+
+        {/* ADD ASSET */}
         <PrimaryButton name="+ Add Asset" onClick={openAssetModal} />
- 
+
+        {/* ADD CATEGORY */}
         <PrimaryButton
-          name="Manage Categories"
+          name="+ Add Categories"
           onClick={() => {
             fetchCategoryDropdown();
             setShowCategoryDrawer(true);
           }}
         />
-
       </div>
 
       {/* CATEGORY TABLE */}
@@ -234,7 +295,7 @@ const [editingAssetId, setEditingAssetId] = useState(null);
               <tr key={a.id}>
                 <td className="px-4 py-2">{a.code}</td>
                 <td className="px-4 py-2">{a.name}</td>
-                <td className="px-4 py-2">{a.category?.code}</td>
+                <td className="px-4 py-2">{a.category?.name}</td>
                 <td className="px-4 py-2">{a.location?.name}</td>
                 <td className="px-4 py-2">{a.quantity}</td>
                 <td className="px-4 py-2">{a.condition}</td>
@@ -440,7 +501,30 @@ const [editingAssetId, setEditingAssetId] = useState(null);
           {/* Header */}
           <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 className="font-semibold">Item Categories</h3>
+            <div className="gap-2 flex">
+
+
+              <button
+              onClick={handleDownloadCategories}
+              className="group flex items-center gap-2 
+                        border border-gray-200 rounded-lg 
+                        px-3 py-2 overflow-hidden
+                        transition-all duration-300
+                        hover:bg-green-50 hover:shadow-sm"
+            >
+              <FileSpreadsheet className="text-green-600 text-lg" />
+      
+              <span
+                className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap
+                          group-hover:max-w-xs group-hover:opacity-100
+                          transition-all duration-300 text-sm text-green-700"
+              >
+                Download Report
+              </span>
+            </button>
+            
             <button onClick={() => setShowCategoryDrawer(false)}>✕</button>
+            </div>
           </div>
 
           {/* Body (SCROLLABLE) */}
