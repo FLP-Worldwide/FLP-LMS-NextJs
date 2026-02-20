@@ -101,7 +101,7 @@ export default function SubjectTab() {
   };
 
   return (
-    <div className="space-y-2 p-6">
+    <div className="space-y-2 p-2">
       {/* HEADER ACTION */}
       <div className="flex justify-end">
         <PrimaryButton name="+ Add Subject" onClick={openCreate} />

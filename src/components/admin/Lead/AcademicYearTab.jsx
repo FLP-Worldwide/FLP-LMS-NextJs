@@ -6,6 +6,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { useToast } from "@/components/ui/ToastProvider";
+
 export default function AcademicYearTab() {
   const toast = useToast();
   const [years, setYears] = useState([]);
@@ -14,7 +15,12 @@ export default function AcademicYearTab() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  const [startYear, setStartYear] = useState("");
+  const [form, setForm] = useState({
+    start_year: "",
+    start_date: "",
+    end_date: "",
+    description: "",
+  });
 
   /* ================= FETCH ================= */
   const fetchYears = async () => {
@@ -40,36 +46,56 @@ export default function AcademicYearTab() {
 
   const openCreate = () => {
     setEditing(null);
-    setStartYear("");
+    setForm({
+      start_year: "",
+      start_date: "",
+      end_date: "",
+      description: "",
+    });
     setShowModal(true);
   };
 
   const openEdit = (item) => {
     setEditing(item);
-    setStartYear(item.start_year);
+    setForm({
+      start_year: item.start_year || "",
+      start_date: item.start_date || "",
+      end_date: item.end_date || "",
+      description: item.description || "",
+    });
     setShowModal(true);
   };
 
   const saveYear = async () => {
-    if (!startYear) return;
+    if (!form.start_year || !form.start_date || !form.end_date) {
+      toast.error("Start year, start date and end date are required");
+      return;
+    }
 
     try {
+      const payload = {
+        start_year: form.start_year,
+        start_date: form.start_date,
+        end_date: form.end_date,
+        description: form.description,
+        is_active: true,
+      };
+
       if (editing) {
-        await api.put(`/academic-years/${editing.id}`, {
-          start_year: startYear,
-          is_active: true,
-        });
+        await api.put(`/academic-years/${editing.id}`, payload);
+        toast.success("Academic year updated successfully");
       } else {
-        await api.post("/academic-years", {
-          start_year: startYear,
-          is_active: true,
-        });
+        await api.post("/academic-years", payload);
+        toast.success("Academic year created successfully");
       }
 
       setShowModal(false);
       fetchYears();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save academic year");
+      toast.error(
+        err.response?.data?.message ||
+          "Failed to save academic year"
+      );
     }
   };
 
@@ -78,6 +104,7 @@ export default function AcademicYearTab() {
 
     try {
       await api.delete(`/academic-years/${id}`);
+      toast.success("Academic year deleted");
       fetchYears();
     } catch (err) {
       console.error("Delete academic year failed", err);
@@ -87,7 +114,7 @@ export default function AcademicYearTab() {
   /* ================= UI ================= */
 
   return (
-    <div className="space-y-2 p-6">
+    <div className="space-y-2 p-2">
       {/* HEADER ACTION */}
       <div className="flex justify-end">
         <PrimaryButton
@@ -112,6 +139,9 @@ export default function AcademicYearTab() {
                   Academic Year
                 </th>
                 <th className="px-4 py-2 text-left text-xs text-gray-600">
+                  Duration
+                </th>
+                <th className="px-4 py-2 text-left text-xs text-gray-600">
                   Status
                 </th>
                 <th className="px-4 py-2 text-right text-xs text-gray-600">
@@ -125,6 +155,10 @@ export default function AcademicYearTab() {
                 <tr key={y.id}>
                   <td className="px-4 py-2 font-medium">
                     {y.start_year}-{Number(y.start_year) + 1}
+                  </td>
+
+                  <td className="px-4 py-2 text-gray-600 text-xs">
+                    {y.start_date} to {y.end_date}
                   </td>
 
                   <td className="px-4 py-2">
@@ -172,6 +206,7 @@ export default function AcademicYearTab() {
           onClose={() => setShowModal(false)}
         >
           <div className="space-y-4 p-6">
+            {/* Start Year */}
             <div>
               <label className="text-xs text-gray-500">
                 Start Year *
@@ -180,17 +215,76 @@ export default function AcademicYearTab() {
                 type="number"
                 className="soft-input mt-1"
                 placeholder="e.g. 2025"
-                value={startYear}
-                onChange={(e) => setStartYear(e.target.value)}
+                value={form.start_year}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    start_year: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            {/* Start Date */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Start Date *
+              </label>
+              <input
+                type="date"
+                className="soft-input mt-1"
+                value={form.start_date}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    start_date: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            {/* End Date */}
+            <div>
+              <label className="text-xs text-gray-500">
+                End Date *
+              </label>
+              <input
+                type="date"
+                className="soft-input mt-1"
+                value={form.end_date}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    end_date: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="text-xs text-gray-500">
+                Description
+              </label>
+              <textarea
+                className="soft-input mt-1"
+                value={form.description}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    description: e.target.value,
+                  })
+                }
               />
             </div>
 
             {/* Preview */}
-            {startYear && (
+            {form.start_year && (
               <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
                 Academic Year:{" "}
                 <b>
-                  {startYear}-{Number(startYear) + 1}
+                  {form.start_year}-
+                  {Number(form.start_year) + 1}
                 </b>
               </div>
             )}

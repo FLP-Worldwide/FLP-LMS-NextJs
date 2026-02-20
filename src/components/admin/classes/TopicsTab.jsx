@@ -93,7 +93,7 @@ export default function TopicsTab() {
 
   /* ================= UI ================= */
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-2">
 
       {/* ================= FILTER ROW ================= */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex gap-4 items-end">

@@ -40,28 +40,8 @@ export const schoolNav = [
     ],
   },
 
-  {
-    key: "classes",
-    label: "Classes",
-    icon: <BookOutlined />,   // ✅ UPDATED
-    children: [
-      { key: "setup", label: "Setup", href: "/admin/classes/setup" },
-      { key: "batches", label: "Batches", href: "/admin/classes/batches" },
-      { key: "schedule", label: "Schedule", href: "/admin/classes/schedule" },
-      { key: "attendance", label: "Attendance", href: "/admin/classes/attendance" },
-    ],
-  },
 
-  {
-    key: "staff",
-    label: "Staff",
-    icon: <TeamOutlined />,
-    children: [
-      { key: "role-manage", label: "Roles Management", href: "/admin/staff/role-manage" },
-      { key: "staff-list", label: "Staff List", href: "/admin/staff" },
-      { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
-    ],
-  },
+
 
   {
     key: "students",
@@ -87,6 +67,28 @@ export const schoolNav = [
   },
 
 
+  {
+    key: "staff",
+    label: "Staff",
+    icon: <TeamOutlined />,
+    children: [
+      { key: "role-manage", label: "Roles Management", href: "/admin/staff/role-manage" },
+      // { key: "staff-list", label: "Staff List", href: "/admin/staff" },
+      // { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
+    ],
+  },
+
+  {
+    key: "classes",
+    label: "Classes",
+    icon: <BookOutlined />,   // ✅ UPDATED
+    children: [
+      { key: "setup", label: "Setup", href: "/admin/classes/setup" },
+      { key: "batches", label: "Batches", href: "/admin/classes/batches" },
+      { key: "schedule", label: "Schedule", href: "/admin/classes/schedule" },
+      { key: "attendance", label: "Attendance", href: "/admin/classes/attendance" },
+    ],
+  },
 
 
   {
