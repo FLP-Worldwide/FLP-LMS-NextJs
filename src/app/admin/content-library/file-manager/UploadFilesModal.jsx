@@ -118,17 +118,32 @@ export default function UploadFilesModal({ onClose, parentId = null }) {
             onChange={(e) => setUrl(e.target.value)}
           />
         ) : (
-          <label className="flex items-center justify-center gap-3 h-24 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50">
-            <Plus className="text-blue-600" />
-            <span className="text-blue-600 font-medium">
-              Choose Files
-            </span>
-            <input
-              type="file"
-              hidden
-              onChange={(e) => setFile(e.target.files[0])}
-            />
-          </label>
+          <div>
+            <label className="flex items-center justify-center gap-3 h-24 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50">
+              <Plus className="text-blue-600" />
+              <span className="text-blue-600 font-medium">
+                {file ? "Change File" : "Choose File"}
+              </span>
+              <input
+                type="file"
+                hidden
+                onChange={(e) => setFile(e.target.files[0])}
+              />
+            </label>
+
+            {/* Show Selected File */}
+            {file && (
+              <div className="mt-3 flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm">
+                <span className="truncate">{file.name}</span>
+                <button
+                  onClick={() => setFile(null)}
+                  className="text-red-500 text-xs hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {/* ================= FOOTER ================= */}

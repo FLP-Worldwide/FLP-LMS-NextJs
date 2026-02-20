@@ -5,8 +5,10 @@ import Modal from "@/components/ui/Modal";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
-
+import { useRouter } from "next/navigation";
+import SecondaryButton from "@/components/ui/SecodaryButton";
 export default function RolesPage() {
+  const router = useRouter();
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -79,7 +81,12 @@ export default function RolesPage() {
     <div className="space-y-4 p-6">
       {/* HEADER */}
       <div className="flex justify-between items-center">
-        <div>
+        <div className="gap-2 space-y-2">
+
+        <button onClick={()=> router.push('user')} className="bg-blue-800 text-white text-sm py-1 px-4 underline" >
+          Users
+        </button>
+        
           <h2 className="text-xl font-semibold">Roles</h2>
           <p className="text-sm text-gray-500">
             Manage system roles and permissions

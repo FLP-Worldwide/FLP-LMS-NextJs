@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "@/utils/api";
+import ExcelDownloadButton from "@/components/ui/ExcelDownloadButton";
+import ExcelDownloadButtonFunc from "@/components/ui/ExcelDownloadButtonFunc";
 
 /* ---------------- CONSTANT ---------------- */
 const ATTENDANCE = {
@@ -226,14 +228,24 @@ const [toDate, setToDate] = useState(to);
     });
   }, [days, fromDate, toDate]);
 
+  
+
   return (
     <div className="space-y-4 p-6">
       {/* HEADER */}
-      <div>
+      <div className="flex justify-between ">
+        <div>
         <h2 className="text-xl font-semibold">Teacher Attendance</h2>
         <p className="text-sm text-gray-500">
           Month: {month} • {filteredDays.length} days
         </p>
+      </div>  
+        <ExcelDownloadButtonFunc
+            route="/reports/attendance/export-last-3-days"
+            name="Attendance-Report"
+            label="Download Attendance Report"
+          />
+          
       </div>
 
       {/* FILTERS */}
@@ -333,7 +345,7 @@ const [toDate, setToDate] = useState(to);
                           >
                             <select
                               className={`soft-select w-[52px] text-xs text-center
-                                ${disabled ? "bg-gray-100 text-gray-200 cursor-not-allowed" : ""}
+                                ${disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}
                               `}
                               value={value}
                               disabled={disabled}
@@ -355,12 +367,7 @@ const [toDate, setToDate] = useState(to);
 
 
                     <td className="sticky right-0 z-10 bg-white px-6 py-2 border-l min-w-[120px] text-center">
-                      <button
-                        onClick={saveAttendance}
-                        className="px-4 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
-                      >
-                        Update
-                      </button>
+                     
                     </td>
                   </tr>
                 ))}
@@ -370,16 +377,28 @@ const [toDate, setToDate] = useState(to);
       </div>
 
       {/* LEGEND */}
-      <div className="flex gap-6 text-sm text-gray-600">
-        {Object.entries(ATTENDANCE).map(([k, v]) => (
-          <span key={k}>
-            <b>{k}</b> = {v}
+      <div className="flex justify-between gap-6 text-sm text-gray-600">
+        <div>
+          {Object.entries(ATTENDANCE).map(([k, v]) => (
+            <span key={k}>
+              <b>{k}</b> = {v}
+            </span>
+          ))}
+          <span>
+            <b>-</b> = Not Marked
           </span>
-        ))}
-        <span>
-          <b>-</b> = Not Marked
-        </span>
+        </div>
+        <div>
+          <button
+              onClick={saveAttendance}
+              className="px-4 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
+          >
+              Update
+          </button>
+        </div>
+         
       </div>
+     
     </div>
   );
 }

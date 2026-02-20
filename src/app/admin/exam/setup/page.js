@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from "react";
 import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
-
+import { Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 export default function ExamGradesPage() {
   const [grades, setGrades] = useState([]);
   const [gradeName, setGradeName] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const router = useRouter();
   /* ================= FETCH ================= */
   useEffect(() => {
     fetchGrades();
@@ -52,11 +53,22 @@ export default function ExamGradesPage() {
   return (
     <div className="space-y-2 p-6">
       {/* ================= HEADER ================= */}
-      <div>
-        <h2 className="text-xl font-semibold">Exam Grades</h2>
-        <p className="text-sm text-gray-500">
-          Manage grading structure for exams
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Exam Grades</h2>
+          <p className="text-sm text-gray-500">
+            Manage grading structure for exams
+          </p>
+        </div>
+
+        <button
+          className="p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+          onClick={() => {
+            router.push("setup/setting")
+          }}
+        >
+          <Settings size={18} />
+        </button>
       </div>
 
       {/* ================= ADD FORM ================= */}

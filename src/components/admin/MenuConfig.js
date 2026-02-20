@@ -102,16 +102,16 @@ export const schoolNav = [
     ],
   },
 
-  {
-    key: "transport",
-    label: "Transport",
-    icon: <CarOutlined />,
-    children: [
-      { key: "routes", label: "Routes", href: "/admin/transport/routes" },
-      { key: "vehicles", label: "Vehicles", href: "/admin/transport/vehicles" },
-      { key: "assign", label: "Student Transport", href: "/admin/transport/assign" },
-    ],
-  },
+  // {
+  //   key: "transport",
+  //   label: "Transport",
+  //   icon: <CarOutlined />,
+  //   children: [
+  //     { key: "routes", label: "Routes", href: "/admin/transport/routes" },
+  //     { key: "vehicles", label: "Vehicles", href: "/admin/transport/vehicles" },
+  //     { key: "assign", label: "Student Transport", href: "/admin/transport/assign" },
+  //   ],
+  // },
 
   {
     key: "live-class",
@@ -124,10 +124,22 @@ export const schoolNav = [
   },
 
   {
+    key: "users",
+    label: "Users",
+    icon: <TeamOutlined />,
+    children: [
+      { key: "manage", label: "Manage", href: "/admin/users/role-manage" },
+      { key: "user-manage", label: "Users", href: "/admin/users/user" },
+      { key: "attendance-mark", label: "Attendance", href: "/admin/users/attendance" },
+    ],
+  },
+
+  {
     key: "content-library",
     label: "Content Library",
     icon: <ReadOutlined />,   // ✅ UPDATED
     children: [
+      { key: "setting", label: "Settings", href: "/admin/content-library/setting" },
       { key: "study-materials", label: "Study Materials", href: "/admin/content-library/study-materials" },
       { key: "file-manager", label: "File Manager", href: "/admin/content-library/file-manager" },
     ],

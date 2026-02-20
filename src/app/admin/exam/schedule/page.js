@@ -53,11 +53,14 @@ export default function ExamSchedulePage() {
   const router = useRouter();
 
   /* ================= FILTER STATE ================= */
-  const [filters, setFilters] = useState({
-    course_id: "",
-    batch_id: "",
-    subject_id: "",
-  });
+const [filters, setFilters] = useState({
+  course_id: "",
+  batch_id: "",
+  subject_id: "",
+  date_filter: "",
+  from_date: "",
+  to_date: "",
+});
 
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -113,13 +116,28 @@ export default function ExamSchedulePage() {
 
   const searchExams = async () => {
     setLoading(true);
-    const res = await api.get("/exams", {
-      params: {
-        course_id: filters.course_id || undefined,
-        batch_id: filters.batch_id || undefined,
-        subject_id: filters.subject_id || undefined,
-      },
-    });
+
+    const params = {
+      course_id: filters.course_id || undefined,
+      batch_id: filters.batch_id || undefined,
+      subject_id: filters.subject_id || undefined,
+    };
+
+    if (filters.date_filter === "this_month") {
+      params.date_filter = "this_month";
+    }
+
+    if (filters.date_filter === "last_week") {
+      params.date_filter = "last_week";
+    }
+
+    if (filters.date_filter === "custom") {
+      params.from_date = filters.from_date || undefined;
+      params.to_date = filters.to_date || undefined;
+    }
+
+    const res = await api.get("/exams", { params });
+
     setExams(res.data?.data || []);
     setLoading(false);
   };
@@ -127,66 +145,111 @@ export default function ExamSchedulePage() {
   return (
     <div className="space-y-4 p-6">
       {/* ================= FILTER ROW ================= */}
-      <div className="grid grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200">
-        {/* Course */}
-        <select
-          className="soft-select"
-          value={filters.course_id}
-          onChange={(e) => {
-            setFilters({
-              course_id: e.target.value,
-              batch_id: "",
-              subject_id: "",
-            });
-            setBatches([]);
-            setSubjects([]);
-            fetchBatches(e.target.value);
-          }}
-        >
-          <option value="">Category / Course*</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+      <div className="flex bg-white p-4 rounded-xl border border-gray-200 justify-between">
+        <div className="grid grid-cols-6 gap-4">
+          {/* Course */}
+          <select
+            className="soft-select"
+            value={filters.course_id}
+            onChange={(e) => {
+              setFilters({
+                course_id: e.target.value,
+                batch_id: "",
+                subject_id: "",
+              });
+              setBatches([]);
+              setSubjects([]);
+              fetchBatches(e.target.value);
+            }}
+          >
+            <option value="">Category / Course*</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
 
-        {/* Batch */}
-        <select
-          className="soft-select"
-          value={filters.batch_id}
-          onChange={(e) => {
-            setFilters({ ...filters, batch_id: e.target.value });
-            fetchSubjects(e.target.value);
-          }}
-          disabled={!filters.course_id}
-        >
-          <option value="">Batch*</option>
-          {batches.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+          {/* Batch */}
+          <select
+            className="soft-select"
+            value={filters.batch_id}
+            onChange={(e) => {
+              setFilters({ ...filters, batch_id: e.target.value });
+              fetchSubjects(e.target.value);
+            }}
+            disabled={!filters.course_id}
+          >
+            <option value="">Batch*</option>
+            {batches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
 
-        {/* Subject */}
-        <select
-          className="soft-select"
-          value={filters.subject_id}
-          onChange={(e) =>
-            setFilters({ ...filters, subject_id: e.target.value })
-          }
-          disabled={!filters.batch_id}
-        >
-          <option value="">Select Subject</option>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+          {/* Subject */}
+          <select
+            className="soft-select"
+            value={filters.subject_id}
+            onChange={(e) =>
+              setFilters({ ...filters, subject_id: e.target.value })
+            }
+            disabled={!filters.batch_id}
+          >
+            <option value="">Select Subject</option>
+            {subjects.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
 
-        {/* Search */}
+          {/* Date Filter */}
+          <select
+            className="soft-select"
+            value={filters.date_filter}
+            onChange={(e) =>
+              setFilters({
+                ...filters,
+                date_filter: e.target.value,
+                from_date: "",
+                to_date: "",
+              })
+            }
+          >
+            <option value="">Date Filter</option>
+            <option value="this_month">This Month</option>
+            <option value="last_week">Last Week</option>
+            <option value="custom">Custom Range</option>
+          </select>
+
+          {/* Custom From */}
+          {filters.date_filter === "custom" && (
+            <input
+              type="date"
+              className="soft-input"
+              value={filters.from_date}
+              onChange={(e) =>
+                setFilters({ ...filters, from_date: e.target.value })
+              }
+            />
+          )}
+
+          {/* Custom To */}
+          {filters.date_filter === "custom" && (
+            <input
+              type="date"
+              className="soft-input"
+              value={filters.to_date}
+              onChange={(e) =>
+                setFilters({ ...filters, to_date: e.target.value })
+              }
+            />
+          )}
+
+          {/* Search */}
+        </div>
         <PrimaryButton name="Search" onClick={searchExams} />
       </div>
 

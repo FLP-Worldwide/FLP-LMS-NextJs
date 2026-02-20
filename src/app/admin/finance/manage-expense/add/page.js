@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
+import Modal from "@/components/ui/Modal";
 
 export default function ExpensePage() {
   /* ================= DATA ================= */
@@ -11,6 +12,124 @@ export default function ExpensePage() {
   const [categories, setCategories] = useState([]);
   const [expenses, setExpenses] = useState([]); // ✅ NEW
     const [items, setItems] = useState([]);
+
+
+  const emptyPayeeForm = {
+    title: "Mr.",
+    display_name: "",
+    name: "",
+    vendor_type: "Supplier",
+    email: "",
+    contact_no: "",
+    address: "",
+  };
+
+  const [showPayeeModal, setShowPayeeModal] = useState(false);
+  const [payeeForm, setPayeeForm] = useState(emptyPayeeForm);
+
+  const emptyAccountForm = {
+    owner_type: "payee", // default because expense me payee hi hoga
+    owner_id: "",
+    account_name: "",
+    account_type: "Cash",
+    upi_id: "",
+    bank_name: "",
+    account_no: "",
+    ifsc: "",
+    description: "",
+  };
+
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [accountForm, setAccountForm] = useState(emptyAccountForm);
+
+
+  const emptyCategoryForm = {
+    name: "",
+    description: "",
+    type: "Expense", // 🔥 default because Expense page
+  };
+
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryForm, setCategoryForm] = useState(emptyCategoryForm);
+
+  const savePayee = async () => {
+    try {
+      if (!payeeForm.display_name || !payeeForm.contact_no) {
+        return alert("Display Name & Contact No required");
+      }
+
+      await api.post("/finance/payee", payeeForm);
+
+      alert("Payee added successfully");
+
+      setShowPayeeModal(false);
+      setPayeeForm(emptyPayeeForm);
+
+      fetchInitial(); // 🔥 refresh payee dropdown
+    } catch (e) {
+      alert("Failed to save payee");
+    }
+  };
+
+  const saveAccount = async () => {
+    if (!accountForm.account_name) {
+      return alert("Account Name required");
+    }
+
+    await api.post("/finance/accounts", {
+      account_for: "payee",
+      accountable_id: accountForm.owner_id,
+      account_name: accountForm.account_name,
+      account_type: accountForm.account_type,
+      upi_id:
+        accountForm.account_type === "UPI"
+          ? accountForm.upi_id
+          : null,
+      bank_name:
+        accountForm.account_type === "Bank"
+          ? accountForm.bank_name
+          : null,
+      account_no:
+        accountForm.account_type === "Bank"
+          ? accountForm.account_no
+          : null,
+      ifsc:
+        accountForm.account_type === "Bank"
+          ? accountForm.ifsc
+          : null,
+      description: accountForm.description,
+    });
+
+    alert("Account added successfully");
+
+    setShowAccountModal(false);
+    setAccountForm(emptyAccountForm);
+
+    // 🔥 refresh accounts dropdown
+    handlePayeeChange(form.payee_id);
+  };
+
+
+  const saveCategory = async () => {
+    if (!categoryForm.name) {
+      return alert("Category name required");
+    }
+
+    try {
+      await api.post("/finance/category", categoryForm);
+
+      alert("Category added successfully");
+
+      setShowCategoryModal(false);
+      setCategoryForm(emptyCategoryForm);
+
+      // 🔥 refresh category dropdown
+      fetchInitial();
+
+    } catch (e) {
+      alert("Failed to save category");
+    }
+  };
 
   /* ================= FORM ================= */
   const [form, setForm] = useState({
@@ -220,7 +339,20 @@ const saveExpense = async () => {
         <div className="grid grid-cols-4 gap-4">
           {/* Payee */}
           <div>
-            <label className="soft-label">Payee Name *</label>
+           <div className="flex justify-between items-center">
+            <label className="soft-label">
+              Payee Name <span className="text-red-500">*</span>
+            </label>
+
+            <button
+              type="button"
+              className="text-xs text-blue-600 hover:underline"
+              onClick={() => setShowPayeeModal(true)}
+            >
+              + Add Payee
+            </button>
+
+          </div>
             <select
             className="soft-input"
             value={form.payee_id}
@@ -239,7 +371,30 @@ const saveExpense = async () => {
 
           {/* Account */}
           <div>
-            <label className="soft-label">Account Name *</label>
+           <div className="flex justify-between items-center">
+            <label className="soft-label">
+              Account Name <span className="text-red-500">*</span>
+            </label>
+
+            <button
+                type="button"
+                className="text-xs text-blue-600 hover:underline"
+                onClick={() => {
+                  if (!form.payee_id) {
+                    return alert("Select Payee first");
+                  }
+
+                  setAccountForm({
+                    ...emptyAccountForm,
+                    owner_id: form.payee_id,
+                  });
+
+                  setShowAccountModal(true);
+                }}
+              >
+                + Add Account
+              </button>
+          </div>
             <select
                 className="soft-input"
                 value={form.finance_account_id}
@@ -273,7 +428,22 @@ const saveExpense = async () => {
 
           {/* Category */}
           <div>
-            <label className="soft-label">Item / Category *</label>
+          <div className="flex justify-between items-center">
+            <label className="soft-label">
+              Item/ Category * <span className="text-red-500">*</span>
+            </label>
+
+            <button
+              type="button"
+              className="text-xs text-blue-600 hover:underline"
+              onClick={() => {
+                setCategoryForm(emptyCategoryForm);
+                setShowCategoryModal(true);
+              }}
+            >
+              + Add Category
+            </button>
+          </div>
             <select
               className="soft-select"
               value={form.category}
@@ -482,6 +652,298 @@ const saveExpense = async () => {
 
 
         </div>
+
+
+
+{showPayeeModal && (
+  <Modal title="Add Payee" onClose={() => setShowPayeeModal(false)}>
+    <div className="grid grid-cols-3 gap-4">
+      <div>
+        <label className="soft-label">Title</label>
+        <select
+          className="soft-input"
+          value={payeeForm.title}
+          onChange={(e) =>
+            setPayeeForm({ ...payeeForm, title: e.target.value })
+          }
+        >
+          <option>Mr.</option>
+          <option>Ms.</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="soft-label">
+          Display Payee Name <span className="text-red-500">*</span>
+        </label>
+        <input
+          className="soft-input"
+          value={payeeForm.display_name}
+          onChange={(e) =>
+            setPayeeForm({ ...payeeForm, display_name: e.target.value })
+          }
+        />
+      </div>
+
+      <div>
+        <label className="soft-label">Payee Name</label>
+        <input
+          className="soft-input"
+          value={payeeForm.name}
+          onChange={(e) =>
+            setPayeeForm({ ...payeeForm, name: e.target.value })
+          }
+        />
+      </div>
+
+      <div>
+        <label className="soft-label">Vendor Type</label>
+        <select
+          className="soft-input"
+          value={payeeForm.vendor_type}
+          onChange={(e) =>
+            setPayeeForm({ ...payeeForm, vendor_type: e.target.value })
+          }
+        >
+          <option>Supplier</option>
+          <option>Employee</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="soft-label">Email</label>
+        <input
+          className="soft-input"
+          value={payeeForm.email}
+          onChange={(e) =>
+            setPayeeForm({ ...payeeForm, email: e.target.value })
+          }
+        />
+      </div>
+
+      <div>
+        <label className="soft-label">
+          Contact No <span className="text-red-500">*</span>
+        </label>
+        <input
+          className="soft-input"
+          value={payeeForm.contact_no}
+          onChange={(e) =>
+            setPayeeForm({ ...payeeForm, contact_no: e.target.value })
+          }
+        />
+      </div>
+
+      <div className="col-span-3">
+        <label className="soft-label">Address</label>
+        <input
+          className="soft-input"
+          value={payeeForm.address}
+          onChange={(e) =>
+            setPayeeForm({ ...payeeForm, address: e.target.value })
+          }
+        />
+      </div>
+    </div>
+
+    <div className="flex justify-end gap-2 pt-4">
+      <button
+        className="soft-btn-outline"
+        onClick={() => setShowPayeeModal(false)}
+      >
+        Cancel
+      </button>
+      <PrimaryButton name="Save" onClick={savePayee} />
+    </div>
+  </Modal>
+)}
+
+{showAccountModal && (
+  <Modal
+    title="Add Account"
+    onClose={() => setShowAccountModal(false)}
+  >
+    <div className="space-y-4 p-6">
+
+      <div>
+        <label className="soft-label">
+          Account Name <span className="text-red-500">*</span>
+        </label>
+        <input
+          className="soft-input"
+          value={accountForm.account_name}
+          onChange={(e) =>
+            setAccountForm({
+              ...accountForm,
+              account_name: e.target.value,
+            })
+          }
+        />
+      </div>
+
+      <div>
+        <label className="soft-label">
+          Account Type <span className="text-red-500">*</span>
+        </label>
+        <select
+          className="soft-select"
+          value={accountForm.account_type}
+          onChange={(e) =>
+            setAccountForm({
+              ...accountForm,
+              account_type: e.target.value,
+            })
+          }
+        >
+          <option>Cash</option>
+          <option>UPI</option>
+          <option>Bank</option>
+          <option>Cheque</option>
+        </select>
+      </div>
+
+      {accountForm.account_type === "UPI" && (
+        <div>
+          <label className="soft-label">UPI ID</label>
+          <input
+            className="soft-input"
+            value={accountForm.upi_id}
+            onChange={(e) =>
+              setAccountForm({
+                ...accountForm,
+                upi_id: e.target.value,
+              })
+            }
+          />
+        </div>
+      )}
+
+      {accountForm.account_type === "Bank" && (
+        <>
+          <div>
+            <label className="soft-label">Bank Name</label>
+            <input
+              className="soft-input"
+              value={accountForm.bank_name}
+              onChange={(e) =>
+                setAccountForm({
+                  ...accountForm,
+                  bank_name: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div>
+            <label className="soft-label">Account Number</label>
+            <input
+              className="soft-input"
+              value={accountForm.account_no}
+              onChange={(e) =>
+                setAccountForm({
+                  ...accountForm,
+                  account_no: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div>
+            <label className="soft-label">IFSC</label>
+            <input
+              className="soft-input"
+              value={accountForm.ifsc}
+              onChange={(e) =>
+                setAccountForm({
+                  ...accountForm,
+                  ifsc: e.target.value,
+                })
+              }
+            />
+          </div>
+        </>
+      )}
+
+      <div>
+        <label className="soft-label">Description</label>
+        <textarea
+          className="soft-input"
+          value={accountForm.description}
+          onChange={(e) =>
+            setAccountForm({
+              ...accountForm,
+              description: e.target.value,
+            })
+          }
+        />
+      </div>
+    </div>
+
+    <div className="flex justify-end gap-2 pt-4">
+      <button
+        className="soft-btn-outline"
+        onClick={() => setShowAccountModal(false)}
+      >
+        Cancel
+      </button>
+      <PrimaryButton name="Save" onClick={saveAccount} />
+    </div>
+  </Modal>
+)}
+
+{showCategoryModal && (
+  <Modal
+    title="Add Category"
+    onClose={() => setShowCategoryModal(false)}
+  >
+    <div className="space-y-4 p-6">
+
+      <div>
+        <label className="soft-label">
+          Category Name <span className="text-red-500">*</span>
+        </label>
+        <input
+          className="soft-input"
+          value={categoryForm.name}
+          onChange={(e) =>
+            setCategoryForm({
+              ...categoryForm,
+              name: e.target.value,
+            })
+          }
+        />
+      </div>
+
+      <div>
+        <label className="soft-label">Description</label>
+        <input
+          className="soft-input"
+          value={categoryForm.description}
+          onChange={(e) =>
+            setCategoryForm({
+              ...categoryForm,
+              description: e.target.value,
+            })
+          }
+        />
+      </div>
+
+      {/* Type hidden but fixed */}
+      <input type="hidden" value="Expense" />
+
+    </div>
+
+    <div className="flex justify-end gap-2 pt-4">
+      <button
+        className="soft-btn-outline"
+        onClick={() => setShowCategoryModal(false)}
+      >
+        Cancel
+      </button>
+      <PrimaryButton name="Save" onClick={saveCategory} />
+    </div>
+  </Modal>
+)}
 
     </div>
   );
