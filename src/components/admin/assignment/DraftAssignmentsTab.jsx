@@ -7,61 +7,72 @@ export default function DraftAssignmentsTab({ assignments = [], onEdit }) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-2 text-left">Topic</th>
-            <th className="px-4 py-2 text-left">Course</th>
-            <th className="px-4 py-2 text-left">Batch</th>
-            <th className="px-4 py-2 text-left">Subject</th>
-            <th className="px-4 py-2 text-left">Publish</th>
-            <th className="px-4 py-2 text-left">Due</th>
-            <th className="px-4 py-2 text-left">Evaluation</th>
-            <th className="px-4 py-2 text-left">Late Submit</th>
-            <th className="px-4 py-2 text-left">Created</th>
-            <th className="px-4 py-2 text-right">Action</th>
-          </tr>
-        </thead>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {assignments.map((a) => (
+        <div
+          key={a.id}
+          className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition"
+        >
+          {/* Header */}
+          <div className="mb-3">
+            <h3 className="font-semibold text-gray-800 text-sm truncate">
+              {a.topic}
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Created: {formatDate(a.created_at)}
+            </p>
+          </div>
 
-        <tbody className="divide-y">
-          {assignments.map((a) => (
-            <tr key={a.id} className="hover:bg-gray-50">
-              <td className="px-4 py-2 font-medium">{a.topic}</td>
-              <td className="px-4 py-2">{a.course?.name || "—"}</td>
-              <td className="px-4 py-2">{a.batch?.name || "—"}</td>
-              <td className="px-4 py-2">{a.subject?.name || "—"}</td>
-              <td className="px-4 py-2 text-gray-500">
-                {a.publish_at ? formatDate(a.publish_at) : "Draft"}
-              </td>
-              <td className="px-4 py-2 text-gray-500">
-                {a.due_at ? formatDate(a.due_at) : "—"}
-              </td>
-              <td className="px-4 py-2">
-                <StatusBadge active={a.evaluation_required} on="Yes" off="No" />
-              </td>
-              <td className="px-4 py-2">
-                <StatusBadge
-                  active={a.allow_late_submission}
-                  on="Allowed"
-                  off="No"
-                />
-              </td>
-              <td className="px-4 py-2 text-gray-500">
-                {formatDate(a.created_at)}
-              </td>
-              <td className="px-4 py-2 text-right">
-                <button
-                  onClick={() => onEdit(a)}
-                  className="text-blue-600 hover:underline text-sm"
-                >
-                  Edit & Publish
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          {/* Info Section */}
+          <div className="space-y-2 text-xs text-gray-600">
+            <InfoRow label="Course" value={a.course?.name || "—"} />
+            <InfoRow label="Batch" value={a.batch?.name || "—"} />
+            <InfoRow label="Subject" value={a.subject?.name || "—"} />
+            <InfoRow
+              label="Publish"
+              value={a.publish_at ? formatDate(a.publish_at) : "Draft"}
+            />
+            <InfoRow
+              label="Due"
+              value={a.due_at ? formatDate(a.due_at) : "—"}
+            />
+          </div>
+
+          {/* Status Section */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            <StatusBadge
+              active={a.evaluation_required}
+              on="Evaluation: Yes"
+              off="Evaluation: No"
+            />
+            <StatusBadge
+              active={a.allow_late_submission}
+              on="Late: Allowed"
+              off="Late: No"
+            />
+          </div>
+
+          {/* Action */}
+          <div className="mt-4 text-right">
+            <button
+              onClick={() => onEdit(a)}
+              className="text-blue-600 hover:underline text-xs font-medium"
+            >
+              Edit & Publish
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Small reusable row */
+function InfoRow({ label, value }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-gray-500">{label}</span>
+      <span className="font-medium text-gray-700">{value}</span>
     </div>
   );
 }
@@ -78,8 +89,10 @@ function formatDate(date) {
 function StatusBadge({ active, on, off }) {
   return (
     <span
-      className={`text-xs px-2 py-1 rounded ${
-        active ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
+      className={`text-[10px] px-2 py-1 rounded-full ${
+        active
+          ? "bg-blue-50 text-blue-700"
+          : "bg-gray-100 text-gray-500"
       }`}
     >
       {active ? on : off}
