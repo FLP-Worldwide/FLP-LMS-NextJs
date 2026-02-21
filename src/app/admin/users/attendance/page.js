@@ -166,39 +166,43 @@ const [toDate, setToDate] = useState(to);
   };
 
   /* ---------------- SAVE (TODAY ONLY) ---------------- */
-    const saveAttendance = async () => {
-    const records = filteredStaff
-        .map((s) => {
-        const status = attendance?.[s.id]?.[todayKey];
-        if (!status || status === "S") return null;
+  const saveAttendance = async () => {
+    const records = [];
 
-       if (s.type === "teacher") {
-          return {
-            teacher_id: s.id,
+    filteredStaff.forEach((staff) => {
+      filteredDays.forEach((d) => {
+        const dateKey = d.key;
+        const status = attendance?.[staff.id]?.[dateKey];
+
+        if (!status || status === "-" || status === "S") return;
+
+        if (staff.type === "teacher") {
+          records.push({
+            teacher_id: staff.id,
+            date: dateKey,
             status,
-          };
+          });
+        } else {
+          records.push({
+            user_id: staff.id,
+            date: dateKey,
+            status,
+          });
         }
-
-        return {
-          user_id: s.id,
-          status,
-        };
-
-        })
-        .filter(Boolean);
-
-    if (!records.length) {
-        alert("No attendance to save");
-        return;
-    }
-
-    await api.post("/teacher-attendance", {
-        date: todayKey,
-        records,
+      });
     });
 
-    alert("Attendance updated");
-    };
+  if (!records.length) {
+    alert("No attendance to save");
+    return;
+  }
+
+  await api.post("/teacher-attendance", {
+    records,
+  });
+
+  alert("Attendance updated");
+};
 
 
   /* ---------------- FILTER DAYS ---------------- */
@@ -326,10 +330,10 @@ const [toDate, setToDate] = useState(to);
                     {filteredDays.map((d) => {
                         const dateKey = d.key;
                         const sunday = isSunday(d.fullDate);
-                        const today = isToday(d.fullDate);
+                        // const today = isToday(d.fullDate);
                         const future = isFuture(d.fullDate);
 
-                        const disabled = sunday || !today || future;
+                        const disabled = sunday || future;
 
                         const value = sunday
                           ? "S"
@@ -340,7 +344,7 @@ const [toDate, setToDate] = useState(to);
                             key={dateKey}
                             className={`px-2 py-2 text-center transition
                               ${sunday ? "bg-gray-100" : ""}
-                              ${!today && !sunday ? "bg-gray-100" : ""}
+                              ${ !sunday ? "bg-gray-100" : ""}
                             `}
                           >
                             <select

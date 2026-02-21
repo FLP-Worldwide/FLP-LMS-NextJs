@@ -124,7 +124,7 @@ export default function ViewTeacherDetailPage() {
     try {
       setUpdating(true);
 
-      await api.put(`/staff/${staffId}/attendance`, {
+      await api.put(`/staff/attendance/${staffId}`, {
         date: selectedDate,
         status,
       });
