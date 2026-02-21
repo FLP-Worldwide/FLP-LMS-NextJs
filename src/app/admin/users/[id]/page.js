@@ -313,14 +313,14 @@ export default function ViewTeacherDetailPage() {
 
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-green-600">
-              {summary.P}
+              {summary.present}
             </div>
             <div className="text-sm text-green-600">Present</div>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-red-500">
-              {summary.A}
+              {summary.absent}
             </div>
             <div className="text-sm text-red-500">Absent</div>
           </div>
@@ -328,7 +328,7 @@ export default function ViewTeacherDetailPage() {
           <div className="grid grid-cols-3 gap-2">
             {[
               ["LP", "Late", "text-blue-500"],
-              ["L", "Leave", "text-gray-500"],
+              ["leave", "Leave", "text-gray-500"],
               ["HP", "Half Day", "text-gray-700"],
             ].map(([k, label, color]) => (
               <div
