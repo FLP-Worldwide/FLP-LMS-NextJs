@@ -9,7 +9,8 @@ export default function TopicsTab() {
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [topics, setTopics] = useState([]);
-
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkFile, setBulkFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState({
@@ -91,6 +92,57 @@ export default function TopicsTab() {
     fetchTopics();
   };
 
+
+  const downloadTemplate = async () => {
+    if (!filters.class_id || !filters.subject_id) {
+      alert("Select Class and Subject first");
+      return;
+    }
+
+    try {
+      const res = await api.get("/reports/topics/bulk-template", {
+        params: {
+          class_id: filters.class_id,
+          subject_id: filters.subject_id,
+        },
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "topics-template.xlsx");
+      document.body.appendChild(link);
+      link.click();
+    } catch (err) {
+      alert("Failed to download template");
+    }
+  };
+
+  const uploadBulkFile = async () => {
+    if (!bulkFile) {
+      alert("Choose a file first");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", bulkFile);
+    formData.append("class_id", filters.class_id);
+    formData.append("subject_id", filters.subject_id);
+
+    try {
+      await api.post("/reports/topics/bulk-upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("Bulk upload successful");
+      setShowBulkModal(false);
+      setBulkFile(null);
+      fetchTopics();
+    } catch (err) {
+      alert("Bulk upload failed");
+    }
+  };
   /* ================= UI ================= */
   return (
     <div className="space-y-6 p-2">
@@ -144,6 +196,10 @@ export default function TopicsTab() {
             onClick={() => setShowCreateModal(true)}
           />
         </div>
+          <PrimaryButton
+            name="Bulk Upload"
+            onClick={() => setShowBulkModal(true)}
+          />
       </div>
 
       {/* ================= TOPICS ACCORDION ================= */}
@@ -310,6 +366,85 @@ export default function TopicsTab() {
           </div>
         </Modal>
 
+      )}
+
+      {showBulkModal && (
+        <Modal
+          title="Bulk Upload Topics"
+          onClose={() => setShowBulkModal(false)}
+          // rightSlot={
+           
+          // }
+        >
+          <div className="space-y-4">
+
+            {/* STANDARD */}
+            <div>
+              <label className="text-xs font-medium text-gray-600">
+                Standard <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="soft-select mt-1"
+                value={filters.class_id}
+                onChange={(e) => {
+                  setFilters({ class_id: e.target.value, subject_id: "" });
+                  fetchSubjects(e.target.value);
+                }}
+              >
+                <option value="">Select Standard</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* SUBJECT */}
+            <div>
+              <label className="text-xs font-medium text-gray-600">
+                Subject <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="soft-select mt-1"
+                value={filters.subject_id}
+                onChange={(e) =>
+                  setFilters({ ...filters, subject_id: e.target.value })
+                }
+              >
+                <option value="">Select Subject</option>
+                {subjects.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* DOWNLOAD TEMPLATE */}
+            <div>
+              <PrimaryButton
+                name="Download Template"
+                onClick={downloadTemplate}
+              />
+            </div>
+
+            {/* FILE INPUT */}
+            <div>
+              <label className="text-xs font-medium text-gray-600">
+                Select File <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="soft-input mt-1"
+                onChange={(e) => setBulkFile(e.target.files[0])}
+              />
+            </div>
+             <PrimaryButton name="Upload" onClick={uploadBulkFile} />
+
+          </div>
+        </Modal>
       )}
     </div>
   );

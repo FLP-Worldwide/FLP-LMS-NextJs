@@ -6,6 +6,15 @@ import { useParams, useRouter } from "next/navigation";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { Users, Clock, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/components/ui/ToastProvider";
+function formatTime(dateString) {
+  if (!dateString) return "—";
+
+  return new Date(dateString).toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
 
 export default function Page() {
   const { id } = useParams();
@@ -90,16 +99,16 @@ export default function Page() {
 
           <div className="space-y-2 text-sm">
             <div className="text-lg font-semibold text-gray-800">
-              {routine.subject?.name} ({routine.subject?.code})
+              {routine.subject}
             </div>
 
             <div className="text-gray-600">
-              {routine.course?.name} • {routine.batch?.name} • {routine.class?.name}
+              {routine.course} • {routine.batch} • {routine.class}
             </div>
 
             <div className="flex items-center gap-2 text-gray-500">
               <Clock size={14} />
-              {routine.start_time} - {routine.end_time}
+              {formatTime(routine.start_time)} - {formatTime(routine.end_time)}
             </div>
           </div>
 

@@ -59,8 +59,8 @@ export default function AcademicYearTab() {
     setEditing(item);
     setForm({
       start_year: item.start_year || "",
-      start_date: item.start_date || "",
-      end_date: item.end_date || "",
+      start_date: item.start_date?.split("T")[0] || "",
+      end_date: item.end_date?.split("T")[0] || "",
       description: item.description || "",
     });
     setShowModal(true);
@@ -135,15 +135,22 @@ export default function AcademicYearTab() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-xs text-gray-600">
+               <th className="px-4 py-2 text-left text-xs text-gray-600">
                   Academic Year
                 </th>
+
                 <th className="px-4 py-2 text-left text-xs text-gray-600">
-                  Duration
+                  Start Date
                 </th>
+
+                <th className="px-4 py-2 text-left text-xs text-gray-600">
+                  End Date
+                </th>
+
                 <th className="px-4 py-2 text-left text-xs text-gray-600">
                   Status
                 </th>
+
                 <th className="px-4 py-2 text-right text-xs text-gray-600">
                   Action
                 </th>
@@ -153,12 +160,16 @@ export default function AcademicYearTab() {
             <tbody className="divide-y">
               {years.map((y) => (
                 <tr key={y.id}>
-                  <td className="px-4 py-2 font-medium">
-                    {y.start_year}-{Number(y.start_year) + 1}
+                 <td className="px-4 py-2 font-medium">
+                    {y.name || `${y.start_year}-${y.end_year}`}
+                  </td>
+
+                 <td className="px-4 py-2 text-gray-600 text-xs">
+                    {y.start_date?.split("T")[0]}
                   </td>
 
                   <td className="px-4 py-2 text-gray-600 text-xs">
-                    {y.start_date} to {y.end_date}
+                    {y.end_date?.split("T")[0]}
                   </td>
 
                   <td className="px-4 py-2">

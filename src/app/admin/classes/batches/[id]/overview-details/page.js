@@ -9,7 +9,12 @@ import {
 import { api } from "@/utils/api";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
-
+import PrimaryButton from "@/components/ui/PrimaryButton";
+import Modal from "@/components/ui/Modal";
+import CreateAssignmentModal from "@/components/admin/assignment/CreateAssignmentModal";
+import DraftAssignmentsTab from "@/components/admin/assignment/DraftAssignmentsTab";
+import PublishedAssignmentsTab from "@/components/admin/assignment/PublishedAssignmentsTab";
+import PastAssignmentsTab from "@/components/admin/assignment/PastAssignmentsTab";
 
 /* =====================================================
    CLASSES → OVERVIEW PAGE
@@ -21,6 +26,207 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState("OVERVIEW");
   const [overview, setOverview] = useState(null);
   const [scheduleFilter, setScheduleFilter] = useState("MONTH"); // MONTH | WEEK
+  const [students, setStudents] = useState([]);
+  const [studentLoading, setStudentLoading] = useState(false);
+
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [allStudents, setAllStudents] = useState([]);
+  const [assignLoading, setAssignLoading] = useState(false);
+
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementLoading, setAnnouncementLoading] = useState(false);
+
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+
+  const [announcementForm, setAnnouncementForm] = useState({
+    title: "",
+    category: "",
+    description: "",
+    schedule_for_later: false,
+    scheduled_date: "",
+    scheduled_hour: "",
+    scheduled_minute: "",
+    attachment: null,
+    status: "PUBLISHED",
+  });
+
+
+  const [assignmentLoading, setAssignmentLoading] = useState(false);
+  const [assignmentGrouped, setAssignmentGrouped] = useState({
+    draft: [],
+    active: [],
+    past: [],
+  });
+
+  const [assignmentType, setAssignmentType] = useState("draft");
+  const [modalAssignment, setModalAssignment] = useState(null);
+
+  const fetchBatchAssignments = async () => {
+    try {
+      setAssignmentLoading(true);
+
+      const res = await api.get("/assignments/grouped", {
+        params: { batch_id: id },
+      });
+
+      setAssignmentGrouped(res.data?.data || {});
+    } finally {
+      setAssignmentLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "ASSIGNMENT") {
+      fetchBatchAssignments();
+    }
+  }, [activeTab]);
+
+  const fetchAnnouncements = async () => {
+    if (!id) return;
+
+    setAnnouncementLoading(true);
+
+    try {
+      const res = await api.get(`/batches/${id}/announcements`);
+      setAnnouncements(res.data?.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAnnouncementLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "ANNOUNCEMENT") {
+      fetchAnnouncements();
+    }
+  }, [activeTab]);
+
+  const openCreateAnnouncement = () => {
+    setEditingAnnouncement(null);
+    setAnnouncementForm({
+      title: "",
+      category: "",
+      description: "",
+      schedule_for_later: false,
+      scheduled_at: "",
+      attachment: null,
+      status: "PUBLISHED",
+    });
+    setShowAnnouncementModal(true);
+  };
+
+  const saveAnnouncement = async () => {
+      if (!announcementForm.title || !announcementForm.description) {
+        alert("Title and Description required");
+        return;
+      }
+
+      const formData = new FormData();
+
+      formData.append("title", announcementForm.title);
+      formData.append("category", announcementForm.category || "");
+      formData.append("description", announcementForm.description);
+      formData.append("status", announcementForm.status || "PUBLISHED");
+
+      // Boolean properly
+      formData.append(
+        "schedule_for_later",
+        announcementForm.schedule_for_later ? 1 : 0
+      );
+
+      // If scheduling enabled
+      if (announcementForm.schedule_for_later) {
+        if (
+          !announcementForm.scheduled_date ||
+          announcementForm.scheduled_hour === "" ||
+          announcementForm.scheduled_minute === ""
+        ) {
+          alert("Please select schedule date & time");
+          return;
+        }
+
+        const scheduled_at = `${announcementForm.scheduled_date} ${announcementForm.scheduled_hour}:${announcementForm.scheduled_minute}:00`;
+
+        formData.append("scheduled_at", scheduled_at);
+      }
+
+      // Attachment
+      if (announcementForm.attachment instanceof File) {
+        formData.append("attachment", announcementForm.attachment);
+      }
+
+      try {
+        if (editingAnnouncement) {
+          await api.post(
+            `/batches/${id}/announcements/${editingAnnouncement.id}?_method=PUT`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
+        } else {
+          await api.post(
+            `/batches/${id}/announcements`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
+        }
+
+        setShowAnnouncementModal(false);
+        fetchAnnouncements();
+      } catch (err) {
+        console.error(err.response?.data);
+        alert("Failed to save announcement");
+      }
+    };
+
+
+
+  const deleteAnnouncement = async (announcementId) => {
+    if (!confirm("Delete this announcement?")) return;
+
+    try {
+      await api.delete(
+        `/batches/${id}/announcements/${announcementId}`
+      );
+      fetchAnnouncements();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  const fetchAllStudents = async () => {
+  try {
+    const res = await api.get("/students"); // adjust if needed
+    setAllStudents(res.data?.data || []);
+  } catch (err) {
+    console.error(err);
+  }
+};
+const openAssignModal = async () => {
+  await fetchAllStudents();
+  setShowAssignModal(true);
+};
+
+const assignStudentToBatch = async (studentId) => {
+  setAssignLoading(true);
+
+  try {
+    await api.post(`/batches/${id}/assign-student`, {
+      student_id: studentId,
+    });
+
+    setShowAssignModal(false);
+    fetchBatchStudents(); // refresh student list
+  } catch (err) {
+    console.error(err);
+    alert("Failed to assign student");
+  } finally {
+    setAssignLoading(false);
+  }
+};
+
 
   useEffect(() => {
     api.get(`/batch/${id}/details`) // ← adjust endpoint if needed
@@ -65,10 +271,63 @@ const filteredSchedule = React.useMemo(() => {
   );
 }, [overview, scheduleFilter]);
 
+const upcomingExams = React.useMemo(() => {
+  if (!overview?.exams) return [];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // ignore time
+
+  return overview.exams.filter((exam) => {
+    const examDate = new Date(exam.date);
+    examDate.setHours(0, 0, 0, 0);
+    return examDate >= today;
+  });
+}, [overview]);
+
+
+  const fetchBatchStudents = async () => {
+    if (!id) return;
+
+    setStudentLoading(true);
+
+    try {
+      const res = await api.get(`/batches/${id}/students`);
+      setStudents(res.data?.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setStudentLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "STUDENTS") {
+      fetchBatchStudents();
+    }
+  }, [activeTab]);
+
+  const updateAssignedDate = async (studentId, date) => {
+    try {
+      await api.put(
+        `/batches/${id}/students/${studentId}/update-date`,
+        { assigned_date: date }
+      );
+
+      fetchBatchStudents(); // refresh
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update date");
+    }
+  };
+
+
+
+
+
   return (
     <>
-    <div className="space-y-6 g">
-
+    <div className="space-y-6 p-4">
+    
       {/* ================= TABS ================= */}
       <div className="flex gap-6 border-b border-gray-200 text-sm">
         {["Overview", "Students", "Announcement", "Assignment"].map(
@@ -191,7 +450,7 @@ const filteredSchedule = React.useMemo(() => {
                 <h3 className="font-semibold">Schedule Exam</h3>
               </div>
 
-              {!overview?.exams || overview.exams.length === 0 ? (
+              {!upcomingExams || upcomingExams.length === 0? (
                 <EmptyState
                   icon={<ClipboardList size={40} />}
                   text="No Exam Schedule Found!"
@@ -203,7 +462,7 @@ const filteredSchedule = React.useMemo(() => {
                     <div>Subject</div>
                   </div>
 
-                  {overview.exams.map((exam) => (
+                  {upcomingExams.map((exam) => (
                     <div
                       key={exam.id}
                       className="grid grid-cols-2 px-4 py-3 border-t text-sm"
@@ -228,12 +487,283 @@ const filteredSchedule = React.useMemo(() => {
 
           </div>
         </>
+    )}
+
+
+
+    {/* ================= STUDENTS TAB ================= */}
+      {activeTab === "STUDENTS" && (
+        <Card>
+          <h3 className="font-semibold mb-4">Students List</h3>
+
+            <div className="flex justify-end mb-4">
+              <PrimaryButton
+                name="Assign Student"
+                onClick={openAssignModal}
+              />
+            </div>
+
+          {studentLoading ? (
+            <div className="text-sm text-gray-500">
+              Loading...
+            </div>
+          ) : students.length === 0 ? (
+            <EmptyState
+              icon={<ClipboardList size={40} />}
+              text="No Students Found!"
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-2 text-left">#</th>
+                    <th className="px-4 py-2 text-left">Name</th>
+                    <th className="px-4 py-2 text-left">Email</th>
+                    <th className="px-4 py-2 text-left">Gender</th>
+                    <th className="px-4 py-2 text-left">
+                      Assigned Date
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y">
+                  {students.map((student, index) => (
+                    <tr key={student.id}>
+                      <td className="px-4 py-2">
+                        {index + 1}
+                      </td>
+
+                      <td className="px-4 py-2 font-medium">
+                        {student.name}
+                      </td>
+
+                      <td className="px-4 py-2 text-gray-500">
+                        {student.email || "—"}
+                      </td>
+
+                      <td className="px-4 py-2">
+                        {student.gender || "—"}
+                      </td>
+
+                      <td className="px-4 py-2">
+                        <input
+                          type="date"
+                          className="soft-input text-xs"
+                          value={
+                            student.assigned_date
+                              ? student.assigned_date.split("T")[0]
+                              : ""
+                          }
+                          onChange={(e) =>
+                            updateAssignedDate(
+                              student.id,
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
+      
+
+      {/* ================= ANNOUNCEMENT TAB ================= */}
+      {activeTab === "ANNOUNCEMENT" && (
+          <Card>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold">Announcements</h3>
+
+              <PrimaryButton
+                name="+ Add Announcement"
+                onClick={openCreateAnnouncement}
+              />
+            </div>
+
+            {announcementLoading ? (
+              <div className="text-sm text-gray-500">
+                Loading...
+              </div>
+            ) : announcements.length === 0 ? (
+              <EmptyState
+                icon={<ClipboardList size={40} />}
+                text="No Data Found!"
+              />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-2 text-left">
+                        Announcement Date
+                      </th>
+                      <th className="px-4 py-2 text-left">
+                        Title
+                      </th>
+                      <th className="px-4 py-2 text-left">
+                        Category
+                      </th>
+                      <th className="px-4 py-2 text-left">
+                        Status
+                      </th>
+                      <th className="px-4 py-2 text-right">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y">
+                    {announcements.map((a) => (
+                      <tr key={a.id}>
+                        <td className="px-4 py-2">
+                          {new Date(a.scheduled_at).toLocaleDateString("en-GB")}
+                        </td>
+
+                        <td className="px-4 py-2 font-medium">
+                          {a.title}
+                        </td>
+
+                        <td className="px-4 py-2">
+                          {a.category}
+                        </td>
+
+                       <td className="px-4 py-2">
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full font-medium ${
+                            a.display_status === "SCHEDULED"
+                              ? "bg-amber-100 text-amber-600"
+                              : "bg-green-100 text-green-600"
+                          }`}
+                        >
+                          {a.display_status}
+                        </span>
+                      </td>
+
+                        <td className="px-4 py-2 text-right">
+                          <div className="flex gap-3 justify-end">
+                            <button
+                              className="text-blue-600"
+                              onClick={() => {
+                                setEditingAnnouncement(a);
+
+                                let scheduled_date = "";
+                                let scheduled_hour = "";
+                                let scheduled_minute = "";
+
+                                if (a.scheduled_at) {
+                                  const [datePart, timePart] = a.scheduled_at.split(" ");
+                                  const [hour, minute] = timePart.split(":");
+
+                                  scheduled_date = datePart;
+                                  scheduled_hour = hour;
+                                  scheduled_minute = minute;
+                                }
+
+                                setAnnouncementForm({
+                                  title: a.title || "",
+                                  category: a.category || "",
+                                  description: a.description || "",
+                                  schedule_for_later: a.schedule_for_later == 1,
+                                  scheduled_date,
+                                  scheduled_hour,
+                                  scheduled_minute,
+                                  attachment: null,
+                                  status: a.status || "PUBLISHED",
+                                });
+
+                                setShowAnnouncementModal(true);
+                              }}
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              className="text-rose-600"
+                              onClick={() =>
+                                deleteAnnouncement(a.id)
+                              }
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        )}
+
+
+
+      {/* ================= ASSIGNMENT TAB ================= */}
+      {activeTab === "ASSIGNMENT" && (
+        <div className="space-y-4">
+
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div className="flex gap-4 text-sm">
+              {["draft", "published", "past"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setAssignmentType(type)}
+                  className={`pb-2 ${
+                    assignmentType === type
+                      ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            <PrimaryButton
+              name="+ Add Assignment"
+              onClick={() => setModalAssignment({ batch_id: id })}
+            />
+          </div>
+
+          {assignmentLoading ? (
+            <div className="text-sm text-gray-500">Loading...</div>
+          ) : (
+            <>
+              {assignmentType === "draft" && (
+                <DraftAssignmentsTab
+                  assignments={assignmentGrouped.draft}
+                  onEdit={(a) => setModalAssignment(a)}
+                />
+              )}
+
+              {assignmentType === "published" && (
+                <PublishedAssignmentsTab
+                  assignments={assignmentGrouped.active}
+                />
+              )}
+
+              {assignmentType === "past" && (
+                <PastAssignmentsTab
+                  assignments={assignmentGrouped.past}
+                />
+              )}
+            </>
+          )}
+
+        </div>
       )}
 
-      
+
+
     </div>
     {/* ================= MONTHLY / WEEKLY SCHEDULE ================= */}
-    <div className="mt-5">
+    <div className="mt-5 hidden ">
     <Card>
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold">Class Schedule</h3>
@@ -299,6 +829,279 @@ const filteredSchedule = React.useMemo(() => {
       )}
     </Card>
 </div>
+
+
+
+  {showAssignModal && (
+    <Modal
+      title="Assign Student"
+      onClose={() => setShowAssignModal(false)}
+    >
+      <div className="max-h-96 overflow-y-auto">
+
+        {allStudents.length === 0 ? (
+          <div className="text-sm text-gray-500">
+            No Students Found
+          </div>
+        ) : (
+          <table className="w-full text-sm border-collapse">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-2 text-left">ID</th>
+                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2 text-left">Standard</th>
+                <th className="px-4 py-2 text-right">
+                  Action
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y">
+              {allStudents.map((student) => (
+                <tr key={student.id}>
+                  <td className="px-4 py-2 font-medium">
+                    {student.admission_no}
+                  </td>
+                  <td className="px-4 py-2 font-medium">
+                    {student.first_name} {student.last_name}
+                  </td>
+
+                  <td className="px-4 py-2 text-gray-500">
+                    {student.classes.name || "—"} {student.section || "—"}
+                  </td>
+
+                  <td className="px-4 py-2 text-right">
+                    <PrimaryButton
+                      name="Assign"
+                      onClick={() =>
+                        assignStudentToBatch(student.id)
+                      }
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+      </div>
+    </Modal>
+  )}
+
+
+      {showAnnouncementModal && (
+      <Modal
+        title={
+          editingAnnouncement
+            ? "Edit Announcement"
+            : "Add Announcement"
+        }
+        onClose={() => setShowAnnouncementModal(false)}
+      >
+        <div className="space-y-4 p-6">
+
+          <div>
+            <label className="text-xs text-gray-500">
+              Title *
+            </label>
+            <input
+              className="soft-input mt-1"
+              value={announcementForm.title}
+              onChange={(e) =>
+                setAnnouncementForm({
+                  ...announcementForm,
+                  title: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">
+              Category
+            </label>
+            <select
+              className="soft-select mt-1"
+              value={announcementForm.category}
+              onChange={(e) =>
+                setAnnouncementForm({
+                  ...announcementForm,
+                  category: e.target.value,
+                })
+              }
+            >
+              <option value="">Select</option>
+              <option value="General">General</option>
+              <option value="Exam">Exam</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">
+              Description *
+            </label>
+            <textarea
+              className="soft-input mt-1"
+              rows={5}
+              value={announcementForm.description}
+              onChange={(e) =>
+                setAnnouncementForm({
+                  ...announcementForm,
+                  description: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">
+              Attachment
+            </label>
+            <input
+              type="file"
+              className="soft-input mt-1"
+              onChange={(e) =>
+                setAnnouncementForm({
+                  ...announcementForm,
+                  attachment: e.target.files[0],
+                })
+              }
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium">
+              Schedule For Later
+            </label>
+
+            <button
+              type="button"
+              onClick={() =>
+                setAnnouncementForm({
+                  ...announcementForm,
+                  schedule_for_later:
+                    !announcementForm.schedule_for_later,
+                })
+              }
+              className={`w-12 h-6 rounded-full transition ${
+                announcementForm.schedule_for_later
+                  ? "bg-blue-600"
+                  : "bg-gray-300"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 bg-white rounded-full transform transition ${
+                  announcementForm.schedule_for_later
+                    ? "translate-x-6"
+                    : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {announcementForm.schedule_for_later && (
+            <div className="grid grid-cols-3 gap-4 mt-3">
+
+              {/* Date */}
+              <div>
+                <label className="text-xs text-gray-500">
+                  Schedule Date *
+                </label>
+                <input
+                  type="date"
+                  className="soft-input mt-1"
+                  value={announcementForm.scheduled_date}
+                  onChange={(e) =>
+                    setAnnouncementForm({
+                      ...announcementForm,
+                      scheduled_date: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              {/* Hour */}
+              <div>
+                <label className="text-xs text-gray-500">
+                  Hour *
+                </label>
+                <select
+                  className="soft-select mt-1"
+                  value={announcementForm.scheduled_hour}
+                  onChange={(e) =>
+                    setAnnouncementForm({
+                      ...announcementForm,
+                      scheduled_hour: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">HH</option>
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <option key={i} value={i}>
+                      {i.toString().padStart(2, "0")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Minute */}
+              <div>
+                <label className="text-xs text-gray-500">
+                  Minute *
+                </label>
+                <select
+                  className="soft-select mt-1"
+                  value={announcementForm.scheduled_minute}
+                  onChange={(e) =>
+                    setAnnouncementForm({
+                      ...announcementForm,
+                      scheduled_minute: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">MM</option>
+                  {["00", "15", "30", "45"].map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-3">
+            <button
+              onClick={() =>
+                setShowAnnouncementModal(false)
+              }
+              className="soft-btn-outline"
+            >
+              Cancel
+            </button>
+
+            <PrimaryButton
+              name="Save"
+              onClick={saveAnnouncement}
+            />
+          </div>
+
+        </div>
+      </Modal>
+    )}
+
+
+    {modalAssignment !== null && (
+      <CreateAssignmentModal
+        assignment={modalAssignment}
+        onClose={() => setModalAssignment(null)}
+        onSaved={() => {
+          setModalAssignment(null);
+          fetchBatchAssignments();
+        }}
+      />
+    )}
 </>
   );
 }

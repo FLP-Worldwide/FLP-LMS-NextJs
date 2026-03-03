@@ -87,6 +87,8 @@ export const schoolNav = [
       { key: "batches", label: "Batches", href: "/admin/classes/batches" },
       { key: "schedule", label: "Schedule", href: "/admin/classes/schedule" },
       { key: "attendance", label: "Attendance", href: "/admin/classes/attendance" },
+      { key: "time-table", label: "Time Table", href: "/admin/classes/time-table" },
+      { key: "batch-deletation", label: "Batch Deletation", href: "/admin/classes/batch-deletation" },
     ],
   },
 
@@ -178,7 +180,7 @@ export const schoolNav = [
       { key: "monthly-template", label: "Monthly Template", href: "/admin/payroll/monthly-template" },
       { key: "hourly-template", label: "Hourly Template", href: "/admin/payroll/hourly-template" },
       { key: "salary-manage", label: "Manage Salary", href: "/admin/payroll/salary-manage" },
-      { key: "make-payment", label: "Make Payment", href: "/admin/payroll/make-payment" },
+      { key: "make-payment", label: "Salary Payment", href: "/admin/payroll/make-payment" },
     ],
   },
 
