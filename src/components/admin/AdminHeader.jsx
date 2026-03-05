@@ -30,7 +30,7 @@ export default function AdminHeader() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-white">
-        <div className="max-w-full mx-auto px-6 py-3 flex items-center justify-between gap-4 border-b border-gray-100">
+        <div className="max-w-full mx-auto px-6 py-1 flex items-center justify-between gap-4 border-b border-gray-100">
 
           {/* LEFT */}
           <div className="flex items-center gap-4">

@@ -16,11 +16,10 @@ import AcademicYearTab from "@/components/admin/Lead/AcademicYearTab";
 const leadMenus = [
   { label: "Academic Year", href: "/admin/classes/setup" },
   { label: "Classroom", href: "/admin/classes/setup?type=classroom" },
-  { label: "Standard", href: "/admin/classes/setup?type=standard" },
 
-  { label: "Subject", href: "/admin/classes/setup?type=subject" },
-  // { label: "Routin", href: "/admin/classes/setup?type=routin" },
-  { label: "Topics", href: "/admin/classes/setup?type=topics" },
+  // { label: "Standard", href: "/admin/classes/setup?type=standard" },
+  // { label: "Subject", href: "/admin/classes/setup?type=subject" },
+  // { label: "Topics", href: "/admin/classes/setup?type=topics" },
 ];
 
 export default function ClassesSetupPage() {

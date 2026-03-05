@@ -113,7 +113,7 @@ const handleDownloadExcel = async () => {
 
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 px-6 py-2">
 
       {/* ================= FORM (UNCHANGED) ================= */}
      <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center justify-between">

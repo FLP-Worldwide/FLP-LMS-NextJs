@@ -160,7 +160,7 @@ export default function SchedulePage() {
 
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 px-6 py-2">
 
       {/* ===== HEADER ===== */}
       <div className="flex justify-between items-center">

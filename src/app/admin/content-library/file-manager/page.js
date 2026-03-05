@@ -120,7 +120,7 @@ export default function FileManager() {
       {loading ? (
         <div className="text-sm text-gray-500">Loading...</div>
       ) : (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 px-6 py-2">
 
           {/* FOLDERS */}
           {folders.length > 0 && (

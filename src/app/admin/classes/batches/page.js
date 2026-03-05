@@ -7,11 +7,30 @@ import { EditOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
 import { GraduationCap } from "lucide-react";
 
+import { useSearchParams } from "next/navigation";
+import SubMenu from "@/components/ui/SubMenu";
+import StandardTab from "@/components/admin/classes/StandardTab";
+import SubjectTab from "@/components/admin/classes/SubjectTab";
+import TopicsTab from "@/components/admin/classes/TopicsTab";
 /* ================= PAGE ================= */
 
+  const classMenus = [
+      { label: "Batches", href: "/admin/classes/batches?type=batches" },
+      
+      { label: "Standard", href: "/admin/classes/batches?type=standard" },
+
+      { label: "Subject", href: "/admin/classes/batches?type=subject" },
+
+      { label: "Topics", href: "/admin/classes/batches?type=topics" },
+
+    ];
+    
 export default function BatchPage() {
   const [classes, setClasses] = useState([]);
   const [activeClassId, setActiveClassId] = useState(null);
+
+  const searchParams = useSearchParams();
+  const type = searchParams.get("type") || "batches";
 
   const [courses, setCourses] = useState([]);
   const [standards, setStandards] = useState([]);
@@ -217,205 +236,225 @@ export default function BatchPage() {
   /* ================= UI ================= */
 
   return (
-    <div className="space-y-6 p-6">
+     <>
+     <div className="space-y-6 px-6 py-2">
 
-      {/* ================= HEADER ================= */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <label className="soft-label">Academic Year *</label>
-          <select
-            className="soft-select"
-            value={batchForm.academic_year}
-            onChange={e =>
-              setBatchForm({
-                ...batchForm,
-                academic_year: e.target.value,
-              })
-            }
-          >
-            <option value="">Select Year</option>
-
-            {academicYears.map((year) => (
-              <option key={year.id} value={year.start_year}>
-                {year.start_year}-{Number(year.start_year) + 1}
-              </option>
-            ))}
-          </select>
+          <h2 className="text-xl font-semibold">Classes Management</h2>
+          <p className="text-sm text-gray-500">
+            Manage courses and batches for each class
+          </p>
         </div>
-
-
-        <PrimaryButton
-          name="+ Add Category/Course"
-          onClick={() => setShowCourseModal(true)}
-        />
       </div>
+      <SubMenu items={classMenus} />
 
-      {/* ================= GRID ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* ================= LEFT : CLASS LIST ================= */}
-        <div className="lg:col-span-3 bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-          <h3 className="font-semibold">Manage Class</h3>
-
-          {classes.length === 0 ? (
-            <div className="text-sm text-gray-500">No classes found</div>
-          ) : (
-            <div className="space-y-1">
-              {classes.map((cls) => (
-                <div
-                  key={cls.id}
-                  onClick={() => setActiveClassId(cls.id)}
-                  className={`p-2 rounded-lg border cursor-pointer ${
-                    activeClassId === cls.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="font-medium text-sm">{cls.name}</div>
-                  <div className="text-xs text-gray-500">
-                    Code: {cls.class_code}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ================= RIGHT : COURSES & BATCHES ================= */}
-        <div className="lg:col-span-9 space-y-6">
-
-          {courses.length === 0 ? (
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-sm text-gray-500">
-              No courses created for this class
-            </div>
-          ) : (
-            courses.map((course) => (
-              <div
-                key={course.id}
-                className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4"
+      {type === "batches" && (
+        <>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <label className="soft-label">Academic Year *</label>
+              <select
+                className="soft-select"
+                value={batchForm.academic_year}
+                onChange={e =>
+                  setBatchForm({
+                    ...batchForm,
+                    academic_year: e.target.value,
+                  })
+                }
               >
-                {/* COURSE HEADER */}
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                   <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                    <GraduationCap size={20} />
-                  </div>
+                <option value="">Select Year</option>
+
+                {academicYears.map((year) => (
+                  <option key={year.id} value={year.start_year}>
+                    {year.start_year}-{Number(year.start_year) + 1}
+                  </option>
+                ))}
+              </select>
+            </div>
 
 
-                    <div>
-                      <h2 className="text-md font-semibold">
-                        {course.name}
-                      </h2>
-                      <p className="text-xs text-gray-500">
-                        {course.class_room?.name}
-                      </p>
-                    </div>
-                  </div>
+            <PrimaryButton
+              name="+ Add Category/Course"
+              onClick={() => setShowCourseModal(true)}
+            />
+          </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      className="soft-btn-outline"
-                      onClick={() => {
-                        setEditingCourseId(course.id);
-                        setCourseForm({
-                          name: course.name || "",
-                          standard_id: course.standard_id || activeClassId,
-                          short_description: course.short_description || "",
-                          show_on_registration: course.show_on_registration ?? true,
-                        });
-                        setShowCourseModal(true);
-                      }}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            {/* ================= LEFT : CLASS LIST ================= */}
+            <div className="lg:col-span-3 bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+              <h3 className="font-semibold">Manage Class</h3>
+
+              {classes.length === 0 ? (
+                <div className="text-sm text-gray-500">No classes found</div>
+              ) : (
+                <div className="space-y-1">
+                  {classes.map((cls) => (
+                    <div
+                      key={cls.id}
+                      onClick={() => setActiveClassId(cls.id)}
+                      className={`p-2 rounded-lg border cursor-pointer ${
+                        activeClassId === cls.id
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
                     >
-                      <EditOutlined />
-                    </button>
-
-                    <PrimaryButton
-                      name="+ Add Batch"
-                      onClick={() => openAddBatch(course)}
-                    />
-
-                  </div>
+                      <div className="font-medium text-sm">{cls.name}</div>
+                      <div className="text-xs text-gray-500">
+                        Code: {cls.class_code}
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              )}
+            </div>
 
-                {/* BATCH CARDS */}
-                {course.batches.length === 0 ? (
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-500">
-                    No batches created
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {course.batches.map((batch) => (
-                      <a href={`batches/${batch.id}/overview-details`}>
-                      <div
-                        key={batch.id}
-                        className="bg-white border border-gray-200 rounded-lg overflow-visible cursor-pointer"
-                      >
-                        {/* HEADER */}
-                        <div className="bg-blue-50 px-4 py-2 text-sm font-medium flex justify-between">
-                          {batch.name}
-                          <span>›</span>
-                        </div>
+            {/* ================= RIGHT : COURSES & BATCHES ================= */}
+            <div className="lg:col-span-9 space-y-6">
 
-                        {/* BODY */}
-                        <div className="p-2 space-y-2 text-sm">
+              {courses.length === 0 ? (
+                <div className="bg-white border border-gray-200 rounded-xl p-6 text-sm text-gray-500">
+                  No courses created for this class
+                </div>
+              ) : (
+                courses.map((course) => (
+                  <div
+                    key={course.id}
+                    className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4"
+                  >
+                    {/* COURSE HEADER */}
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                        <GraduationCap size={20} />
+                      </div>
 
-                          <Row label="Batch id" value={batch.batch_uid} />
-                          <Row label="Academic Year" value={batch.academic_year} />
-                          <Row label="End Date" value={batch.end_date} />
 
-                          {/* SUBJECT TOOLTIP */}
-                          <div className="pt-2 flex gap-2 items-center align-center">
-                            <div className="text-xs font-semibold text-gray-600 mb-1">
-                              Subjects
-                            </div>
-
-                            {batch.subjects?.length === 0 ? (
-                              <p className="text-xs text-gray-400">No subjects assigned</p>
-                            ) : (
-                              <div className="relative group inline-block z-10 flex">
-
-                                {/* compact chip */}
-                                <span className="text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-300 cursor-pointer">
-                                  View Subjects ({batch.subjects.length})
-                                </span>
-                                
-                                {/* Tooltip on hover */}
-                                <div className="absolute top-full left-0 w-52 bg-white shadow-xl border border-gray-200 rounded-lg p-2 hidden group-hover:block z-50">
-                                  <div className="text-xs font-semibold mb-1 text-gray-700">Subjects</div>
-
-                                  <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
-                                    {batch.subjects.map((s)=>(
-                                      <div 
-                                        key={s.id}
-                                        className="text-xs bg-blue-50 border border-blue-200 px-2 py-1 rounded flex flex-col"
-                                      >
-                                        <span className="font-medium text-blue-800">{s.subject?.name}</span>
-                                        <span className="text-[10px] text-gray-500">
-                                          Teacher: {s.teacher?.first_name || "-"}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
+                        <div>
+                          <h2 className="text-md font-semibold">
+                            {course.name}
+                          </h2>
+                          <p className="text-xs text-gray-500">
+                            {course.class_room?.name}
+                          </p>
                         </div>
                       </div>
-                      </a>
-                    ))}
-                </div>
 
-                )}
+                      <div className="flex gap-2">
+                        <button
+                          className="soft-btn-outline"
+                          onClick={() => {
+                            setEditingCourseId(course.id);
+                            setCourseForm({
+                              name: course.name || "",
+                              standard_id: course.standard_id || activeClassId,
+                              short_description: course.short_description || "",
+                              show_on_registration: course.show_on_registration ?? true,
+                            });
+                            setShowCourseModal(true);
+                          }}
+                        >
+                          <EditOutlined />
+                        </button>
 
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+                        <PrimaryButton
+                          name="+ Add Batch"
+                          onClick={() => openAddBatch(course)}
+                        />
 
-      {/* ================= ADD COURSE MODAL ================= */}
+                      </div>
+                    </div>
+
+                    {/* BATCH CARDS */}
+                    {course.batches.length === 0 ? (
+                      <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-500">
+                        No batches created
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {course.batches.map((batch) => (
+                          <a href={`batches/${batch.id}/overview-details`}>
+                          <div
+                            key={batch.id}
+                            className="bg-white border border-gray-200 rounded-lg overflow-visible cursor-pointer"
+                          >
+                            {/* HEADER */}
+                            <div className="bg-blue-50 px-4 py-2 text-sm font-medium flex justify-between">
+                              {batch.name}
+                              <span>›</span>
+                            </div>
+
+                            {/* BODY */}
+                            <div className="p-2 space-y-2 text-sm">
+
+                              <Row label="Batch id" value={batch.batch_uid} />
+                              <Row label="Academic Year" value={batch.academic_year} />
+                              <Row label="End Date" value={batch.end_date} />
+
+                              {/* SUBJECT TOOLTIP */}
+                              <div className="pt-2 flex gap-2 items-center align-center">
+                                <div className="text-xs font-semibold text-gray-600 mb-1">
+                                  Subjects
+                                </div>
+
+                                {batch.subjects?.length === 0 ? (
+                                  <p className="text-xs text-gray-400">No subjects assigned</p>
+                                ) : (
+                                  <div className="relative group inline-block z-10 flex">
+
+                                    {/* compact chip */}
+                                    <span className="text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-300 cursor-pointer">
+                                      View Subjects ({batch.subjects.length})
+                                    </span>
+                                    
+                                    {/* Tooltip on hover */}
+                                    <div className="absolute top-full left-0 w-52 bg-white shadow-xl border border-gray-200 rounded-lg p-2 hidden group-hover:block z-50">
+                                      <div className="text-xs font-semibold mb-1 text-gray-700">Subjects</div>
+
+                                      <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                                        {batch.subjects.map((s)=>(
+                                          <div 
+                                            key={s.id}
+                                            className="text-xs bg-blue-50 border border-blue-200 px-2 py-1 rounded flex flex-col"
+                                          >
+                                            <span className="font-medium text-blue-800">{s.subject?.name}</span>
+                                            <span className="text-[10px] text-gray-500">
+                                              Teacher: {s.teacher?.first_name || "-"}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                            </div>
+                          </div>
+                          </a>
+                        ))}
+                    </div>
+
+                    )}
+
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+        </>
+      )}
+      {type === "standard" && <StandardTab />}
+      {type === "subject" && <SubjectTab />}
+      {type === "topics" && <TopicsTab />}
+
+
+
+     
       {showCourseModal && (
         <Modal
            title={editingCourseId ? "Edit Category/Course" : "Add Category/Course"}
@@ -583,100 +622,100 @@ export default function BatchPage() {
                 </tr>
               </thead>
 
-<tbody className="divide-y">
-  {subjects.map((sub) => {
-    const selected = batchForm.subjects.find(
-      s => s.subject_id === sub.id
-    );
+            <tbody className="divide-y">
+              {subjects.map((sub) => {
+                const selected = batchForm.subjects.find(
+                  s => s.subject_id === sub.id
+                );
 
-    return (
-      <tr key={sub.id}>
-        <td className="p-3">
-          <input
-            type="checkbox"
-            checked={!!selected}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setBatchForm(prev => ({
-                  ...prev,
-                  subjects: [
-                    ...prev.subjects,
-                    {
-                      subject_id: sub.id,
-                      teacher_id: "",
-                      extra_teacher_id: ""
-                    }
-                  ]
-                }));
-              } else {
-                setBatchForm(prev => ({
-                  ...prev,
-                  subjects: prev.subjects.filter(
-                    s => s.subject_id !== sub.id
-                  )
-                }));
-              }
-            }}
-          />
-        </td>
+                return (
+                  <tr key={sub.id}>
+                    <td className="p-3">
+                      <input
+                        type="checkbox"
+                        checked={!!selected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setBatchForm(prev => ({
+                              ...prev,
+                              subjects: [
+                                ...prev.subjects,
+                                {
+                                  subject_id: sub.id,
+                                  teacher_id: "",
+                                  extra_teacher_id: ""
+                                }
+                              ]
+                            }));
+                          } else {
+                            setBatchForm(prev => ({
+                              ...prev,
+                              subjects: prev.subjects.filter(
+                                s => s.subject_id !== sub.id
+                              )
+                            }));
+                          }
+                        }}
+                      />
+                    </td>
 
-        <td className="p-3">{sub.name}</td>
+                    <td className="p-3">{sub.name}</td>
 
-        {/* ASSIGN TEACHER */}
-        <td className="p-3">
-          <select
-            className="soft-select"
-            disabled={!selected}
-            value={selected?.teacher_id || ""}
-            onChange={(e) => {
-              setBatchForm(prev => ({
-                ...prev,
-                subjects: prev.subjects.map(s =>
-                  s.subject_id === sub.id
-                    ? { ...s, teacher_id: Number(e.target.value) }
-                    : s
-                )
-              }));
-            }}
-          >
-            <option value="">Select Teacher</option>
-            {getEligibleTeachers(sub.id).map(t => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </td>
+                    {/* ASSIGN TEACHER */}
+                    <td className="p-3">
+                      <select
+                        className="soft-select"
+                        disabled={!selected}
+                        value={selected?.teacher_id || ""}
+                        onChange={(e) => {
+                          setBatchForm(prev => ({
+                            ...prev,
+                            subjects: prev.subjects.map(s =>
+                              s.subject_id === sub.id
+                                ? { ...s, teacher_id: Number(e.target.value) }
+                                : s
+                            )
+                          }));
+                        }}
+                      >
+                        <option value="">Select Teacher</option>
+                        {getEligibleTeachers(sub.id).map(t => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
 
-        {/* EXTRA TEACHER */}
-        <td className="p-3">
-          <select
-            className="soft-select"
-            disabled={!selected}
-            value={selected?.extra_teacher_id || ""}
-            onChange={(e) => {
-              setBatchForm(prev => ({
-                ...prev,
-                subjects: prev.subjects.map(s =>
-                  s.subject_id === sub.id
-                    ? { ...s, extra_teacher_id: Number(e.target.value) }
-                    : s
-                )
-              }));
-            }}
-          >
-            <option value="">Select Teacher</option>
-            {getEligibleTeachers(sub.id).map(t => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </td>
-      </tr>
-    );
-  })}
-</tbody>
+                    {/* EXTRA TEACHER */}
+                    <td className="p-3">
+                      <select
+                        className="soft-select"
+                        disabled={!selected}
+                        value={selected?.extra_teacher_id || ""}
+                        onChange={(e) => {
+                          setBatchForm(prev => ({
+                            ...prev,
+                            subjects: prev.subjects.map(s =>
+                              s.subject_id === sub.id
+                                ? { ...s, extra_teacher_id: Number(e.target.value) }
+                                : s
+                            )
+                          }));
+                        }}
+                      >
+                        <option value="">Select Teacher</option>
+                        {getEligibleTeachers(sub.id).map(t => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
 
             </table>
           </div>
@@ -693,7 +732,8 @@ export default function BatchPage() {
         </Modal>
       )}
 
-    </div>
+      </div>
+    </>
   );
 }
 
