@@ -69,11 +69,11 @@ export const schoolNav = [
 
   {
     key: "staff",
-    label: "Staff",
+    label: "Teachers",
     icon: <TeamOutlined />,
     children: [
-      { key: "role-manage", label: "Roles Management", href: "/admin/staff/role-manage" },
-      // { key: "staff-list", label: "Staff List", href: "/admin/staff" },
+      // { key: "role-manage", label: "Roles Management", href: "/admin/staff/role-manage" },
+      { key: "staff-list", label: "Manage", href: "/admin/staff" },
       // { key: "attendance", label: "Staff Attendance", href: "/admin/staff/attendance" },
     ],
   },

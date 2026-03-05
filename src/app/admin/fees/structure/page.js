@@ -10,6 +10,8 @@ import SubMenu from "@/components/ui/SubMenu";
 import { useSearchParams } from "next/navigation";
 import FineManagementTab from "@/components/admin/fees/FineManagementTab";
 import RefundReasonTab from "@/components/admin/fees/RefundResonTab";
+import { Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 /* ================= CONSTANTS ================= */
 
 const ASSIGN_DATE_OPTIONS = [
@@ -30,6 +32,7 @@ const inventoryMenus = [
 /* ================= PAGE ================= */
 
 export default function FeesStructurePage() {
+  const router = useRouter();
   /* ================= STATE ================= */
   const searchParams = useSearchParams();
   const type = searchParams.get("type") || "fees-structure";
@@ -305,8 +308,20 @@ const addClassStructure = async () => {
 
   return (
     <>
+    <div className="space-y-3 px-6 py-2">
+      <div className="flex justify-between align-items">
+
        <SubMenu items={inventoryMenus} />
-      
+          <button
+          className="p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+          onClick={() => {
+            router.push("structure/fee-setting")
+          }}
+        >
+          <Settings size={18} />
+        </button>
+      </div>
+
     {type === "fees-structure" && 
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-2">
@@ -760,10 +775,12 @@ const addClassStructure = async () => {
         )}
 
     </div>
-}
 
-    {type === "fine" && <FineManagementTab />}
-    {type === "refund" && <RefundReasonTab />}
+    }
+
+      {type === "fine" && <FineManagementTab />}
+      {type === "refund" && <RefundReasonTab />}
+    </div>
     </>
   );
 }

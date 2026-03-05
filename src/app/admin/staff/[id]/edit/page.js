@@ -30,9 +30,11 @@ export default function EditStaffPage() {
 
   /* ================= LOAD META ================= */
   useEffect(() => {
+    if (!id) return;
+
     loadMeta();
     loadStaff();
-  }, []);
+  }, [id]);
 
   const loadMeta = async () => {
     const [c, s, r] = await Promise.all([
@@ -52,9 +54,11 @@ export default function EditStaffPage() {
       const res = await api.get(`/staff/${id}`);
       const data = res.data?.data;
 
+      if (!data) return;
+
       setForm({
         role_id: data.role_id,
-        role: data.role,
+        role: data.role?.toLowerCase(),
         first_name: data.first_name,
         last_name: data.last_name || "",
         email: data.email,
@@ -63,6 +67,8 @@ export default function EditStaffPage() {
         class_room_ids: data.class_room_ids || [],
         subject_ids: data.subject_ids || [],
       });
+    } catch (err) {
+      console.error("Failed to load staff", err);
     } finally {
       setLoading(false);
     }

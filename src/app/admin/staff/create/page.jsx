@@ -19,12 +19,21 @@ const [roles, setRoles] = useState([]);
     dob: "",
     department: "",
     designation: "",
-   standards: [],   // ✅ MUST exist
-  subjects: [], 
+    standards: [],   // ✅ MUST exist
+    subjects: [], 
     address: "",
     documentTitle: "",
+    document1: null,
+    document2: null
   });
 
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: files[0]
+    }));
+  };
   /* ================= FETCH DROPDOWNS ================= */
   useEffect(() => {
     async function loadMeta() {
@@ -41,7 +50,17 @@ const [roles, setRoles] = useState([]);
   useEffect(() => {
     api.get("/settings/roles").then(res => {
       if (res.data?.status === "success") {
-        setRoles(res.data.data.filter(r => r.is_active));
+        const activeRoles = res.data.data.filter(r => r.is_active);
+        setRoles(activeRoles);
+
+        const teacherRole = activeRoles.find(r => r.slug === "teacher" || r.name.toLowerCase() === "teacher");
+
+        if (teacherRole) {
+          setForm(prev => ({
+            ...prev,
+            role_id: teacherRole.id
+          }));
+        }
       }
     });
   }, []);
@@ -62,78 +81,79 @@ const [roles, setRoles] = useState([]);
     const [first_name, ...last] = form.name.trim().split(" ");
     const last_name = last.join(" ");
 
-    const payload = {
-      first_name,
-      last_name: last_name || null,
-      role_id: Number(form.role_id),
-      phone: form.phone,
-      email: form.email || null,
-      department: form.department || null,
-      designation: form.designation || null,
-      joining_date: form.joiningDate || null,
-      dob: form.dob || null,
-      address: form.address || null,
+    const formData = new FormData();
 
-      // mapping
-      class_room_ids: form.standards,
-      subject_ids: form.subjects,
+    formData.append("first_name", first_name);
+    formData.append("last_name", last_name || "");
+    formData.append("role_id", form.role_id);
+    formData.append("phone", form.phone);
+    formData.append("email", form.email || "");
+    formData.append("department", form.department || "");
+    formData.append("designation", form.designation || "");
+    formData.append("joining_date", form.joiningDate || "");
+    formData.append("dob", form.dob || "");
+    formData.append("address", form.address || "");
 
-    };
+    form.standards.forEach(id => {
+      formData.append("class_room_ids[]", id);
+    });
+
+    form.subjects.forEach(id => {
+      formData.append("subject_ids[]", id);
+    });
+
+    if (form.document1) {
+      formData.append("document1", form.document1);
+    }
+
+    if (form.document2) {
+      formData.append("document2", form.document2);
+    }
 
     try {
-     await api.post("/staff/create", payload);
+      await api.post("/staff/create", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       alert("Teacher saved successfully");
-
-      // reset form
-      setForm({
-        name: "",
-        phone: "",
-        role_id: "",
-        altPhone: "",
-        email: "",
-        joiningDate: "",
-        dob: "",
-        department: "",
-        designation: "",
-        standard: [],
-        subject: [],
-        address: "",
-        documentTitle: "",
-      });
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
       alert("Failed to save teacher");
     }
   };
-const toggleMulti = (field, value) => {
-  setForm(prev => ({
-    ...prev,
-    [field]: prev[field].includes(value)
-      ? prev[field].filter(v => v !== value)
-      : [...prev[field], value],
-  }));
-};
-const handleMultiSelect = (e) => {
-  const { name, options } = e.target;
 
-  const values = Array.from(options)
-    .filter(o => o.selected)
-    .map(o => Number(o.value));
 
-  setForm(prev => ({
-    ...prev,
-    [name]: values,
-  }));
-};
+  const toggleMulti = (field, value) => {
+    setForm(prev => ({
+      ...prev,
+      [field]: prev[field].includes(value)
+        ? prev[field].filter(v => v !== value)
+        : [...prev[field], value],
+    }));
+  };
+
+  const handleMultiSelect = (e) => {
+    const { name, options } = e.target;
+
+    const values = Array.from(options)
+      .filter(o => o.selected)
+      .map(o => Number(o.value));
+
+    setForm(prev => ({
+      ...prev,
+      [name]: values,
+    }));
+  };
 
   return (
     <div className="space-y-6 px-6 py-2">
       {/* HEADER */}
       <div>
-        <h2 className="text-xl font-semibold">Staff Details</h2>
+        <h2 className="text-xl font-semibold">Teacher Details</h2>
         <p className="text-sm text-gray-500">
-          Add Staff personal and professional information
+          Add Teacher personal and professional information
         </p>
       </div>
 
@@ -149,15 +169,16 @@ const handleMultiSelect = (e) => {
               <select
                 name="role_id"
                 value={form.role_id}
-                onChange={handleChange}
-                className="soft-select"
+                className="soft-select bg-gray-100 cursor-not-allowed"
+                disabled
               >
-                <option value="">Select Role</option>
-                {roles.map(r => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
+                {roles
+                  .filter(r => r.slug === "teacher" || r.name.toLowerCase() === "teacher")
+                  .map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
               </select>
             </div>
 
@@ -312,9 +333,33 @@ const handleMultiSelect = (e) => {
 
 
 
+          {/* DOCUMENT 1 */}
+          <div>
+            <label className="text-sm text-gray-600">
+              Upload Id-Card (Optional)
+            </label>
+            <input
+              type="file"
+              name="document1"
+              onChange={handleFileChange}
+              className="soft-input"
+            />
+          </div>
 
+          {/* DOCUMENT 2 */}
+          <div>
+            <label className="text-sm text-gray-600">
+              Upload Document (Optional)
+            </label>
+            <input
+              type="file"
+              name="document2"
+              onChange={handleFileChange}
+              className="soft-input"
+            />
+          </div>
 
-          {/* Address */}
+            {/* Address */}
           <div className="md:col-span-2">
             <label className="text-sm text-gray-600">Current Address</label>
             <textarea
@@ -325,14 +370,15 @@ const handleMultiSelect = (e) => {
               className="soft-input min-h-[90px]"
             />
           </div>
+
         </div>
       </div>
 
       {/* ACTIONS */}
       <div className="flex justify-end gap-3">
-        <button className="px-4 py-2 rounded-md border border-gray-200">
+        {/* <button className="px-4 py-2 rounded-md border border-gray-200">
           Cancel
-        </button>
+        </button> */}
         <button
           onClick={saveStaff}
           className="px-4 py-2 rounded-md bg-blue-600 text-white"
