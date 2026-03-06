@@ -1,142 +1,110 @@
+"use client";
+
 import { useState } from "react";
-import { DownOutlined, SettingOutlined } from "@ant-design/icons";
+import { SettingOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 import PrimaryButton from "../ui/PrimaryButton";
 import { api } from "@/utils/api";
 
 export default function StudentsHeaderActions() {
+
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
-  const handleDownloadTemplate = async () => {
-  try {
-    const response = await api.get("/reports/students/import/template", {
-      responseType: "blob",
-    });
+  const menuItems = [
+    { name: "Quick Student Upload", path: "/admin/students/quick-upload" },
 
-    const url = window.URL.createObjectURL(
-      new Blob([response.data])
-    );
+    { name: "Student Bulk Update", path: "/admin/students/student-bulk-update" },
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "students-import-template.xlsx");
+    { name: "Upload Student", path: "/admin/students/upload-student" },
+    
+    { name: "Export Student", type: "export" },
 
-    document.body.appendChild(link);
-    link.click();
+    { name: "Registered Student", path: "/admin/students/register-students" },
 
-    link.remove();
-    window.URL.revokeObjectURL(url);
+    { name: "Archive Student", path: "/admin/students/archive-students" },
 
-    setOpen(false);
-  } catch (error) {
-    console.error("Template download failed", error);
-  }
-};
+    { name: "Archived Status Report", path: "/admin/students/archive-report" },
 
+    { name: "Inactive Student Report", path: "/admin/students/inactive-student-report" },
 
-  const handleExport = async () => {
+    { name: "Additional Form Field", path: "/admin/students/additional-students-info" },
+    
+    { name: "Sibling Mapping", path: "/admin/students/sibling-mapping" },
+    
+    { name: "Export Student Profile Photos", path: "/admin/students/export-photos" },
+  ];
+
+  const exportStudents = async () => {
     try {
-      const response = await api.get("/reports/students/export", {
-        responseType: "blob", // IMPORTANT
+      const res = await api.get("/reports/students/export/all", {
+        responseType: "blob",
       });
 
-      // Create file URL
-      const url = window.URL.createObjectURL(
-        new Blob([response.data])
-      );
+      const url = window.URL.createObjectURL(new Blob([res.data]));
 
       const link = document.createElement("a");
       link.href = url;
-
-      // File name (you can make dynamic)
-      link.setAttribute("download", "students-list.xlsx");
+      link.setAttribute("download", "students-export.xlsx");
 
       document.body.appendChild(link);
       link.click();
 
       link.remove();
       window.URL.revokeObjectURL(url);
-
-      setOpen(false);
-    } catch (error) {
-      console.error("Export failed", error);
+    } catch (err) {
+      console.error(err);
+      alert("Export failed");
     }
   };
 
+  const handleAction = (item) => {
+    setOpen(false);
+
+    if (item.type === "export") {
+      exportStudents();
+      return;
+    }
+
+    router.push(item.path);
+  };
+
+
+
   return (
     <div className="flex items-center gap-2 relative">
-      
+
       {/* MORE BUTTON */}
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="px-4 py-1 rounded-lg border border-gray-200 text-sm gap-1.5 flex
-                   hover:bg-gray-100 transition"
+        onClick={() => setOpen(!open)}
+        className="px-4 py-1 rounded-lg border border-gray-200 text-sm gap-1.5 flex hover:bg-gray-100 transition"
       >
         More
         <SettingOutlined className="text-xs text-gray-500" />
       </button>
 
+      {/* ADD STUDENT BUTTON */}
       <div className="flex items-center gap-3">
         <a href="/admin/students/admission/new">
-          <PrimaryButton name="+ New Admission" />
+          <PrimaryButton name="Add Student" />
         </a>
       </div>
 
       {/* DROPDOWN */}
       {open && (
         <div
-          className="absolute right-0 top-11 w-48 bg-white border border-gray-200
+          className="absolute right-0 top-11 w-64 bg-white border border-gray-200
                      rounded-lg shadow-lg z-30"
         >
-          {/* Download Template */}
-          <button
-            onClick={handleDownloadTemplate}
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            Download Import Template
-          </button>
-          
-          <button
-            onClick={() => setOpen(false)}
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            Import Students
-          </button>
-
-          {/* ✅ EXCEL EXPORT */}
-          <button
-            onClick={handleExport}
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            Export List
-          </button>
-
-          <button
-            onClick={() => setOpen(false)}
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            Siblings Maping
-          </button>
-
-          <button
-            onClick={() => setOpen(false)}
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            Transfer / TC
-          </button>
-
-          <button
-            onClick={() => setOpen(false)}
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            Archive Students Report
-          </button>
-
-          <button
-            onClick={() => setOpen(false)}
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            Inactive Students Report
-          </button>
+          {menuItems.map((item, index) => (
+            <button
+              key={index}
+             onClick={() => handleAction(item)}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-b border-gray-200 last:border-none"
+            >
+              {item.name}
+            </button>
+          ))}
         </div>
       )}
     </div>
