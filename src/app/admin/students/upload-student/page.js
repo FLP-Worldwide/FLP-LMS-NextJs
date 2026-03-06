@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UploadOutlined, DownloadOutlined } from "@ant-design/icons";
+import { UploadOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 
@@ -45,7 +45,11 @@ console.log(err);
 // FILE SELECT
 
 const handleFileChange = (e)=>{
-setFile(e.target.files[0]);
+const selectedFile = e.target.files?.[0];
+
+if(selectedFile){
+setFile(selectedFile);
+}
 };
 
 
@@ -53,7 +57,10 @@ setFile(e.target.files[0]);
 
 const uploadStudents = async ()=>{
 
-if(!file) return alert("Please choose file");
+if(!file){
+alert("Please choose file");
+return;
+}
 
 const fd = new FormData();
 fd.append("file",file);
@@ -74,7 +81,7 @@ headers:{
 
 alert("Upload Successful");
 
-// fetchReports();
+setFile(null);
 
 }catch(err){
 console.log(err);
@@ -84,23 +91,6 @@ setLoading(false);
 }
 
 };
-
-
-// FETCH REPORT
-
-// const fetchReports = async ()=>{
-
-// try{
-
-// const res = await api.get("/students/import/new/report");
-
-// setReports(res.data?.data || []);
-
-// }catch(err){
-// console.log(err);
-// }
-
-// };
 
 
 return (
@@ -148,6 +138,14 @@ Upload Student Details
 Drag files to upload
 </p>
 
+{/* SHOW SELECTED FILE */}
+
+{file && (
+<p className="text-sm text-green-600 mb-4">
+Selected: {file.name}
+</p>
+)}
+
 <div className="flex justify-center gap-3">
 
 <label className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer">
@@ -166,10 +164,10 @@ className="hidden"
 <button
 onClick={uploadStudents}
 disabled={loading}
-className="bg-blue-300 text-white px-4 py-2 rounded"
+className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
 >
 
-Upload
+{loading ? "Uploading..." : "Upload"}
 
 </button>
 
@@ -238,7 +236,6 @@ Student Upload Report
 </h2>
 
 <button
-onClick={''}
 className="bg-blue-500 text-white px-4 py-1 rounded"
 >
 Refresh
