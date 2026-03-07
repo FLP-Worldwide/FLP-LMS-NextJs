@@ -57,9 +57,9 @@ export const schoolNav = [
     label: "Fees",
     icon: <DollarOutlined />,
     children: [
-      { key: "fee-structure", label: "Setup", href: "/admin/fees/structure" },
+      { key: "fee-structure", label: "Setup", href: "/admin/fees/fees-structure" },
       { key: "fee-assign", label: "Assign", href: "/admin/fees/assign" },
-      { key: "fee-collection", label: "Fee Collection", href: "/admin/fees/collection" },
+      { key: "fee-collection", label: "Update", href: "/admin/fees/collection" },
       { key: "payments-pending", label: "Pending Payments", href: "/admin/fees/pending-payments" },
       { key: "payments-refund", label: "Refund", href: "/admin/fees/refund" },
       { key: "payments-concession", label: "Concession", href: "/admin/fees/concession" },
