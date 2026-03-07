@@ -1,17 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UploadOutlined } from "@ant-design/icons";
 import { api } from "@/utils/api";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 
 export default function StudentUploadPage() {
-
+const fileInputRef = useRef(null);
 const [file,setFile] = useState(null);
 const [loading,setLoading] = useState(false);
 const [reports,setReports] = useState([]);
 
+const [showErrors,setShowErrors] = useState(false);
+const [errorRows,setErrorRows] = useState([]);
+const [loadingErrors,setLoadingErrors] = useState(false);
 
+useEffect(()=>{
+fetchReports();
+},[]);
 // DOWNLOAD TEMPLATE
 
 const downloadTemplate = async () => {
@@ -82,7 +88,8 @@ headers:{
 alert("Upload Successful");
 
 setFile(null);
-
+fileInputRef.current.value = "";
+fetchReports();
 }catch(err){
 console.log(err);
 }
@@ -92,6 +99,58 @@ setLoading(false);
 
 };
 
+const fetchReports = async () => {
+
+try{
+
+const res = await api.get("/reports/import-report");
+
+const list = res.data?.data?.data || [];
+
+const mapped = list.map(r=>({
+
+id:r.id,
+
+created_at:r.created_at,
+
+status:r.failed_rows > 0 ? "Error" : "Completed",
+
+total:r.total_rows,
+
+success:r.success_rows,
+
+failed:r.failed_rows
+
+}));
+
+setReports(mapped);
+
+}catch(err){
+console.log(err);
+}
+
+};
+
+const fetchErrors = async (fileId)=>{
+
+try{
+
+setLoadingErrors(true);
+
+const res = await api.get(`/reports/students/import-report/${fileId}`);
+
+setErrorRows(res.data?.data?.data || []);
+
+setShowErrors(true);
+
+}catch(err){
+console.log(err);
+}
+finally{
+setLoadingErrors(false);
+}
+
+};
 
 return (
 
@@ -154,6 +213,7 @@ Selected: {file.name}
 
 <input
 type="file"
+ref={fileInputRef}
 onChange={handleFileChange}
 className="hidden"
 />
@@ -236,11 +296,11 @@ Student Upload Report
 </h2>
 
 <button
+onClick={fetchReports}
 className="bg-blue-500 text-white px-4 py-1 rounded"
 >
 Refresh
 </button>
-
 </div>
 
 
@@ -283,7 +343,11 @@ No records
 </td>
 
 <td className="p-2">
-<span className="text-green-600">
+<span className={
+r.status === "Completed"
+? "text-green-600"
+: "text-red-500"
+}>
 {r.status}
 </span>
 </td>
@@ -296,7 +360,10 @@ No records
 {r.success}
 </td>
 
-<td className="p-2 text-blue-600 cursor-pointer">
+<td
+onClick={()=> r.failed > 0 && fetchErrors(r.id)}
+className="p-2 text-blue-600 cursor-pointer"
+>
 {r.failed}
 </td>
 
@@ -309,6 +376,99 @@ No records
 </table>
 
 </div>
+
+
+{showErrors && (
+
+<div className="fixed inset-0 bg-black/30 flex items-center justify-center p-6 z-50">
+
+<div className="bg-white w-[800px] max-h-[90vh] rounded-lg border border-gray-200 flex flex-col">
+
+
+{/* HEADER */}
+
+<div className="flex justify-between items-center p-4 border-b border-gray-200">
+
+<h3 className="font-semibold">
+Import Error Report
+</h3>
+
+<button
+onClick={()=>setShowErrors(false)}
+>
+✕
+</button>
+
+</div>
+
+
+{/* BODY */}
+
+<div className="p-6 overflow-y-auto flex-1">
+
+{loadingErrors && (
+<p className="text-sm text-gray-500">Loading...</p>
+)}
+
+{!loadingErrors && errorRows.length === 0 && (
+<p className="text-sm text-gray-500">
+No errors found
+</p>
+)}
+
+{errorRows.map((row,i)=>{
+
+const data = row.raw_data?.data || {};
+const error = row.raw_data?.error;
+
+return(
+
+<div
+key={i}
+className="border border-red-200 bg-red-50 rounded-md p-4 mb-4"
+>
+
+<p className="text-sm text-red-600 mb-2">
+{error}
+</p>
+
+<div className="text-sm text-gray-700 space-y-1">
+
+{Object.entries(data).map(([key,val])=>(
+<div key={key}>
+<b>{key}</b>: {val}
+</div>
+))}
+
+</div>
+
+</div>
+
+);
+
+})}
+
+</div>
+
+
+{/* FOOTER */}
+
+<div className="flex justify-end gap-3 p-4 border-t border-gray-200">
+
+<button
+onClick={()=>setShowErrors(false)}
+className="border border-gray-200 px-4 py-2 rounded"
+>
+Close
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+)}
 
 </div>
 

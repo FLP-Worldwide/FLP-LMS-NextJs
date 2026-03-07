@@ -5,6 +5,8 @@ import StudentsHeaderActions from "@/components/admin/StudentsHeaderActions";
 import React, { useEffect, useState } from "react";
 import { api } from "@/utils/api";
 import { useRouter } from "next/navigation";
+import { Settings } from "lucide-react";
+
 function StatusPill({ status }) {
   const map = {
     active: "bg-blue-50 text-blue-700",
@@ -12,7 +14,6 @@ function StatusPill({ status }) {
     passed: "bg-green-50 text-green-700",
     left: "bg-red-50 text-red-700",
   };
-
   return (
     <span
       className={`text-xs font-medium px-2 py-1 rounded ${
@@ -74,7 +75,16 @@ export default function StudentsPage() {
           </p>
         </div>
 
-        <StudentsHeaderActions />
+        <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/admin/students/student-setting")}
+              className="p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+            >
+              <Settings size={18} />
+            </button>
+            <StudentsHeaderActions />
+        </div>
+
       </div>
 
       {/* CARD */}
