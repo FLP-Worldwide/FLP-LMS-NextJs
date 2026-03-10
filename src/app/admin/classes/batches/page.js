@@ -86,6 +86,8 @@ export default function BatchPage() {
   };
 
   const getEligibleTeachers = (subjectId) => {
+    return teachers;
+    // console.log("Finding teachers for subject", teachers);
     return teachers.filter(t =>
       t.classes?.some(c => c.id === activeClassId) &&
       t.subjects?.some(s => s.id === subjectId)
@@ -679,7 +681,7 @@ export default function BatchPage() {
                         }}
                       >
                         <option value="">Select Teacher</option>
-                        {getEligibleTeachers(sub.id).map(t => (
+                        {getEligibleTeachers().map(t => (
                           <option key={t.id} value={t.id}>
                             {t.name}
                           </option>
