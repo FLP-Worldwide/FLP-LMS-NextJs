@@ -28,6 +28,13 @@ export default function Page() {
   const [scheduleFilter, setScheduleFilter] = useState("MONTH"); // MONTH | WEEK
   const [students, setStudents] = useState([]);
   const [studentLoading, setStudentLoading] = useState(false);
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+
+
+  const [teachers, setTeachers] = useState([]);
+
+
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [allStudents, setAllStudents] = useState([]);
@@ -38,6 +45,91 @@ export default function Page() {
 
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+  const [academicYears, setAcademicYears] = useState([]);
+  const activeCourse = overview?.batch?.course;
+
+  const saveBatch = async () => {
+
+    if (!batchForm.academic_year) {
+      alert("Academic year is required");
+      return;
+    }
+
+    // convert 2025 → 2025-2026
+    const formattedYear = `${batchForm.academic_year}-${Number(batchForm.academic_year) + 1}`;
+
+    const payload = {
+      course_id: overview?.batch?.course?.id, // important
+      name: batchForm.name,
+      academic_year: formattedYear,
+      start_date: batchForm.start_date,
+      end_date: batchForm.end_date,
+      subjects: batchForm.subjects
+        .filter(s => s.teacher_id)
+        .map(s => ({
+          subject_id: s.subject_id,
+          teacher_id: s.teacher_id,
+          extra_teacher_id: s.extra_teacher_id || null
+        }))
+    };
+
+    try {
+
+      if (batchForm.id) {
+        // UPDATE
+        await api.put(`/batches/${batchForm.id}`, payload);
+      } else {
+        // CREATE (fallback)
+        await api.post("/batches", payload);
+      }
+
+      setShowBatchModal(false);
+
+      // refresh overview
+      const res = await api.get(`/batch/${id}/details`);
+      setOverview(res.data?.data);
+
+    } catch (err) {
+      console.error(err.response?.data || err);
+      alert("Failed to update batch");
+    }
+  };
+
+  const fetchSubjects = async () => {
+    const classId = overview?.batch?.class?.id;
+
+    if (!classId) return;
+
+    const res = await api.get(`/subjects?class_id=${classId}`);
+    setSubjects(res.data?.data || []);
+  };
+
+  const fetchTeachers = async () => {
+    const res = await api.get("/teachers");
+    setTeachers(res.data?.data || []);
+  };
+
+  const fetchAcademicYears = async () => {
+    const res = await api.get("/academic-years");
+    setAcademicYears(res.data?.data || []);
+  };
+
+useEffect(() => {
+  fetchAcademicYears();
+}, []);
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  const [batchForm, setBatchForm] = useState({
+    id: null,
+    name: "",
+    academic_year: "",
+    start_date: "",
+    end_date: "",
+    subjects: []
+  });
 
   const [announcementForm, setAnnouncementForm] = useState({
     title: "",
@@ -209,6 +301,10 @@ const openAssignModal = async () => {
   setShowAssignModal(true);
 };
 
+const getEligibleTeachers = (subjectId) => {
+  return teachers;
+};
+
 const assignStudentToBatch = async (studentId) => {
   setAssignLoading(true);
 
@@ -320,7 +416,37 @@ const upcomingExams = React.useMemo(() => {
     }
   };
 
+  
+  const openEditBatch = async () => {
 
+    if (!overview?.batch) return;
+
+    await fetchSubjects();     // subjects list
+    await fetchTeachers();
+    await fetchAcademicYears();
+
+    const batch = overview.batch;
+
+    setBatchForm({
+      id: batch.id,
+      name: batch.name,
+      academic_year: batch.academic_year.split("-")[0],
+      start_date: batch.start_date,
+      end_date: batch.end_date,
+
+      subjects: overview.subjects?.map((s) => {
+        const subjectObj = subjects.find(sub => sub.name === s.subject)
+
+        return {
+          subject_id: subjectObj?.id || null,
+          teacher_id: s.teacher_obj?.id || "",
+          extra_teacher_id: s.extra_teacher_obj?.id || ""
+        }
+      }) || []
+    });
+
+    setShowBatchModal(true);
+  };
 
 
 
@@ -358,7 +484,7 @@ const upcomingExams = React.useMemo(() => {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-semibold">
-                    {overview?.batch?.name}
+                    {overview?.batch?.name} 
                   </h3>
 
                   <p className="text-sm text-gray-500 mt-1">
@@ -366,7 +492,10 @@ const upcomingExams = React.useMemo(() => {
                   </p>
 
                 </div>
-                <button className="text-blue-600">
+                <button
+                  className="text-blue-600"
+                  onClick={openEditBatch}
+                >
                   <Pencil size={16} />
                 </button>
               </div>
@@ -1102,6 +1231,198 @@ const upcomingExams = React.useMemo(() => {
         }}
       />
     )}
+
+          {showBatchModal && (
+            <Modal
+             title={
+                batchForm?.id
+                  ? `Edit batch for Category/Course: ${activeCourse?.name}`
+                  : `Add batch for Category/Course: ${activeCourse?.name}`
+              }
+              onClose={() => setShowBatchModal(false)}
+              className="h-[80vh] max-h-[80vh] w-3/4 overflow-y-scroll" 
+            >
+              <div className="grid grid-cols-4 gap-4">
+    
+                <div className="col-span-1">
+                  <label className="soft-label">Batch Name *</label>
+                  <input
+                    className="soft-input"
+                    value={batchForm.name}
+                    onChange={e =>
+                      setBatchForm({ ...batchForm, name: e.target.value })
+                    }
+                  />
+                </div>
+    
+                <div>
+                  <label className="soft-label">Academic Year *</label>
+                  <select
+                    className="soft-select"
+                    value={batchForm.academic_year}
+                    disabled
+                    onChange={e =>
+                      setBatchForm({ ...batchForm, academic_year: e.target.value })
+                    }
+                  >
+                    <option value="">Select Year</option>
+                    {academicYears.map((year) => (
+                        <option key={year.id} value={year.start_year}>
+                          {year.name}
+                        </option>
+                      ))}
+    
+                  </select>
+                </div>
+    
+                <div>
+                  <label className="soft-label">Start Date *</label>
+                  <input
+                    type="date"
+                    className="soft-input"
+                    value={batchForm.start_date}
+                    disabled
+                    onChange={e =>
+                      setBatchForm({ ...batchForm, start_date: e.target.value })
+                    }
+                  />
+                </div>
+    
+                <div>
+                  <label className="soft-label">End Date *</label>
+                  <input
+                    type="date"
+                    className="soft-input"
+                    value={batchForm.end_date}
+                    onChange={e =>
+                      setBatchForm({ ...batchForm, end_date: e.target.value })
+                    }
+                  />
+                </div>
+    
+              </div>
+    
+              {/* SUBJECT TABLE */}
+              <div className="mt-6 border border-gray-200 rounded-xl overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-blue-50">
+                    <tr>
+                      <th className="p-3">#</th>
+                      <th className="p-3">Subject Name</th>
+                      <th className="p-3">Assign Teacher *</th>
+                      <th className="p-3">Extra Teacher</th>
+                    </tr>
+                  </thead>
+    
+                <tbody className="divide-y">
+                  {subjects.map((sub) => {
+                    const selected = batchForm.subjects.find(
+                      s => s.subject_id === sub.id
+                    );
+    
+                    return (
+                      <tr key={sub.id}>
+                        <td className="p-3">
+                          <input
+                            type="checkbox"
+                            checked={!!selected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setBatchForm(prev => ({
+                                  ...prev,
+                                  subjects: [
+                                    ...prev.subjects,
+                                    {
+                                      subject_id: sub.id,
+                                      teacher_id: "",
+                                      extra_teacher_id: ""
+                                    }
+                                  ]
+                                }));
+                              } else {
+                                setBatchForm(prev => ({
+                                  ...prev,
+                                  subjects: prev.subjects.filter(
+                                    s => s.subject_id !== sub.id
+                                  )
+                                }));
+                              }
+                            }}
+                          />
+                        </td>
+    
+                        <td className="p-3">{sub.name}</td>
+    
+                        {/* ASSIGN TEACHER */}
+                        <td className="p-3">
+                          <select
+                            className="soft-select"
+                            disabled={!selected}
+                            value={selected?.teacher_id || ""}
+                            onChange={(e) => {
+                              setBatchForm(prev => ({
+                                ...prev,
+                                subjects: prev.subjects.map(s =>
+                                  s.subject_id === sub.id
+                                    ? { ...s, teacher_id: Number(e.target.value) }
+                                    : s
+                                )
+                              }));
+                            }}
+                          >
+                            <option value="">Select Teacher</option>
+                            {getEligibleTeachers().map(t => (
+                              <option key={t.id} value={t.id}>
+                                {t.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+    
+                        {/* EXTRA TEACHER */}
+                        <td className="p-3">
+                          <select
+                            className="soft-select"
+                            disabled={!selected}
+                            value={selected?.extra_teacher_id || ""}
+                            onChange={(e) => {
+                              setBatchForm(prev => ({
+                                ...prev,
+                                subjects: prev.subjects.map(s =>
+                                  s.subject_id === sub.id
+                                    ? { ...s, extra_teacher_id: Number(e.target.value) }
+                                    : s
+                                )
+                              }));
+                            }}
+                          >
+                            <option value="">Select Teacher</option>
+                            {getEligibleTeachers(sub.id).map(t => (
+                              <option key={t.id} value={t.id}>
+                                {t.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+    
+                </table>
+              </div>
+    
+              <div className="flex justify-end gap-3 pt-6">
+                <button
+                  className="soft-btn-outline"
+                  onClick={() => setShowBatchModal(false)}
+                >
+                  Cancel
+                </button>
+                <PrimaryButton name="Save" onClick={saveBatch} />
+              </div>
+            </Modal>
+          )}
 </>
   );
 }
