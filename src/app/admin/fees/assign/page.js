@@ -23,12 +23,19 @@ export default function AssignFeesPage() {
   const [batches, setBatches] = useState([]);
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
-
-
+const [academicYears, setAcademicYears] = useState([]);
+const fetchAcademicYears = async () => {
+  try {
+    const res = await api.get("/academic-years");
+    setAcademicYears(res.data?.data || []);
+  } catch (err) {
+    console.error("Failed to load academic years");
+  }
+};
   const [filters, setFilters] = useState({
     course_id: "",
     batch_id: "",
-    academic_year: "2025-26",
+    academic_year: "",
     status: "ALL",
   });
 
@@ -80,9 +87,10 @@ const updateExtraRow = (index, key, value) => {
 
   /* ================= FETCH ================= */
 
-  useEffect(() => {
-    fetchCourses();
-  }, []);
+ useEffect(() => {
+  fetchCourses();
+  fetchAcademicYears();
+}, []);
 
   const fetchCourses = async () => {
     const res = await api.get("/courses");
@@ -257,8 +265,13 @@ const fetchStructuresByClass = async (classId) => {
             setFilters({ ...filters, academic_year: e.target.value })
           }
         >
-          <option>2025-26</option>
-          <option>2024-25</option>
+          <option value="">Academic Year*</option>
+
+          {academicYears.map((year) => (
+            <option key={year.id} value={year.name}>
+              {year.name}
+            </option>
+          ))}
         </select>
 
         <PrimaryButton name="Search" onClick={searchStudents} />

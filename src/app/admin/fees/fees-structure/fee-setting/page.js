@@ -213,7 +213,7 @@ return (
 
 {/* ================= GENERAL ================= */}
 
-<div className="bg-white p-6 border rounded-xl space-y-4">
+<div className="bg-white p-6 border border-gray-200 rounded-xl space-y-4">
 
 <h2 className="font-semibold text-lg">General</h2>
 
@@ -240,7 +240,7 @@ onChange={()=>toggle("auto_apply_default_fee")}
 
 {/* ================= EMAIL SETTINGS ================= */}
 
-<div className="bg-white p-6 border rounded-xl space-y-4">
+<div className="bg-white p-6 border border-gray-200 rounded-xl space-y-4">
 
 <h2 className="font-semibold text-lg">Email Settings</h2>
 
@@ -269,7 +269,7 @@ onChange={handleChange}
 
 {/* ================= FEES NOTIFICATION ================= */}
 
-<div className="bg-white p-6 border rounded-xl space-y-6">
+<div className="bg-white p-6 border border-gray-200 rounded-xl space-y-6">
 
 <h2 className="font-semibold text-lg">Fees Notification</h2>
 
@@ -358,7 +358,7 @@ onChange={()=>toggle("pdc_reminder")}
 
 {/* ================= PUSH ================= */}
 
-<div className="bg-white p-6 border rounded-xl space-y-6">
+<div className="bg-white p-6 border border-gray-200 rounded-xl space-y-6">
 
 <h2 className="font-semibold text-lg">Fees Notification (Push)</h2>
 
@@ -379,7 +379,7 @@ onChange={()=>toggle("pdc_reminder")}
 
 {/* ================= TAX ================= */}
 
-<div className="bg-white p-6 border rounded-xl">
+<div className="bg-white p-6 border border-gray-200 rounded-xl">
 
 <label className="flex justify-between">
 <span>Enable GST</span>
@@ -395,7 +395,7 @@ onChange={()=>toggle("enable_gst")}
 
 {/* ================= ONLINE PAYMENT ================= */}
 
-<div className="bg-white p-6 border rounded-xl space-y-4">
+<div className="bg-white p-6 border border-gray-200 rounded-xl space-y-4">
 
 <h2 className="font-semibold text-lg">Online Payment</h2>
 
@@ -437,7 +437,7 @@ onChange={handleChange}
 
 {/* ================= OFFLINE ================= */}
 
-<div className="bg-white p-6 border rounded-xl space-y-4">
+<div className="bg-white p-6 border border-gray-200 rounded-xl space-y-4">
 
 <h2 className="font-semibold text-lg">Offline Payment</h2>
 
@@ -461,7 +461,7 @@ Restrict Backdated Payments
 
 {/* ================= RECEIPT ================= */}
 
-<div className="bg-white p-6 border rounded-xl space-y-4">
+<div className="bg-white p-6 border border-gray-200 rounded-xl space-y-4">
 
 <h2 className="font-semibold text-lg">Receipt Settings</h2>
 
