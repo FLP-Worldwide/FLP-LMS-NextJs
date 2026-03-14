@@ -14,17 +14,20 @@ const ASSIGN_DATE_OPTIONS = [
   { label: "Months after BAD", value: "MONTH_AFTER_BAD" },
 ];
 
+
 /* ================= PAGE ================= */
 
 export default function AssignFeesPage() {
   /* ================= FILTER STATE ================= */
-
+  
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
-const [academicYears, setAcademicYears] = useState([]);
-const fetchAcademicYears = async () => {
+  const [academicYears, setAcademicYears] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+
+  const fetchAcademicYears = async () => {
   try {
     const res = await api.get("/academic-years");
     setAcademicYears(res.data?.data || []);
@@ -38,6 +41,18 @@ const fetchAcademicYears = async () => {
     academic_year: "",
     status: "ALL",
   });
+
+  const toggleStudent = (student) => {
+    setSelectedStudents((prev) => {
+      const exists = prev.find((s) => s.id === student.id);
+
+      if (exists) {
+        return prev.filter((s) => s.id !== student.id);
+      }
+
+      return [...prev, student];
+    });
+  };
 
   /* ================= ASSIGN MODAL ================= */
 
@@ -175,7 +190,8 @@ const updateExtraRow = (index, key, value) => {
   /* ================= ASSIGN ================= */
 const fetchStructuresByClass = async (classId) => {
   try {
-    const res = await api.get(`/fees/structures/by-class/${classId}`);
+    // const res = await api.get(`/fees/structures/by-class/${classId}`);
+    const res = await api.get(`/fees/structures`);
     setFeeStructures(res.data?.data || []);
   } catch (error) {
     console.error("Failed to load fee structures", error);
@@ -183,41 +199,45 @@ const fetchStructuresByClass = async (classId) => {
   }
 };
 
-  const assignFees = async () => {
-    if (!selectedStructureId) {
-      alert("Please select a Fee Structure");
-      return;
-    }
+const assignFees = async () => {
 
-    try {
-      await api.post("/fees/assign-to-student", {
-        student_id: selectedStudent.id,
-        fees_structure_id: selectedStructureId,
-        extra_installments: extraInstallments
-          .filter((i) => i.fee_type_id && i.amount)
-          .map((i) => ({
-            ...i,
-            offset: Number(i.offset || 0),
-            amount: Number(i.amount),
-          })),
-      });
+  if (!selectedStructureId) {
+    alert("Please select a Fee Structure");
+    return;
+  }
 
-      // ✅ CLOSE MODAL
-      setShowAssignModal(false);
+  const studentIds =
+    selectedStudents.length > 0
+      ? selectedStudents.map((s) => s.id)
+      : [selectedStudent.id];
 
-      // ✅ CLEAR SELECTION (optional but clean)
-      setSelectedStudent(null);
+  try {
 
-      // ✅ REFRESH STUDENT LIST WITH UPDATED FEES
-      await searchStudents();
+    await api.post("/fees/assign-to-student", {
+      student_ids: studentIds,
+      fees_structure_id: selectedStructureId,
+      extra_installments: extraInstallments
+        .filter((i) => i.fee_type_id && i.amount)
+        .map((i) => ({
+          ...i,
+          offset: Number(i.offset || 0),
+          amount: Number(i.amount),
+        })),
+    });
 
-    } catch (error) {
-      alert(
-        error?.response?.data?.message ||
-        "Failed to assign fees"
-      );
-    }
-  };
+    setShowAssignModal(false);
+    setSelectedStudents([]);
+    setSelectedStudent(null);
+
+    await searchStudents();
+
+  } catch (error) {
+    alert(
+      error?.response?.data?.message ||
+      "Failed to assign fees"
+    );
+  }
+};
 
 
 
@@ -282,6 +302,7 @@ const fetchStructuresByClass = async (classId) => {
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
+              <th className="p-3 text-center"></th>
               <th className="p-3 text-left">Student Id</th>
               <th className="p-3 text-left">Name</th>
               <th className="p-3 text-left">Class</th>
@@ -311,6 +332,15 @@ const fetchStructuresByClass = async (classId) => {
             {!loadingStudents &&
               students.map((s) => (
                 <tr key={s.id} className="border-t border-gray-100">
+
+                  <td className="p-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.some(st => st.id === s.id)}
+                      onChange={() => toggleStudent(s)}
+                    />
+                  </td>
+
                   {/* Student ID */}
                   <td className="p-3 font-mono">
                     {s.admission_no}
@@ -367,8 +397,39 @@ const fetchStructuresByClass = async (classId) => {
               ))}
           </tbody>
 
-        </table>
+         </table>
       </div>
+        {selectedStudents.length > 0 && (
+          <div className="flex justify-end mt-4">
+            <PrimaryButton
+              name={`Assign Fees (${selectedStudents.length})`}
+              onClick={() => {
+
+                const firstStudent = selectedStudents[0];
+
+                setSelectedStudent(firstStudent);
+
+                fetchStructuresByClass(firstStudent.class);
+
+                setSelectedStructureId("");
+                setInstallments([]);
+                setTotalAmount(0);
+
+                setExtraInstallments([
+                  {
+                    fee_type_id: "",
+                    assign_type: "TRIGGER",
+                    offset: "",
+                    amount: "",
+                  },
+                ]);
+
+                setShowAssignModal(true);
+              }}
+              />
+          </div>
+        )}
+      
 
       {/* ================= ASSIGN MODAL ================= */}
       {showAssignModal && (
