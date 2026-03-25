@@ -4,14 +4,40 @@ import { useEffect, useState } from "react";
 import { api } from "@/utils/api";
 import Card from "@/components/admin/students/common/Card";
 import SecondaryButton from "@/components/ui/SecodaryButton";
+import PrimaryButton from "@/components/ui/PrimaryButton";
+import { useRouter } from "next/navigation";
 
 export default function FeesTab({ studentId }) {
+  const router = useRouter();
   const [data, setData] = useState(null);
   const [year, setYear] = useState("2025-26");
   const [loading, setLoading] = useState(false);
+  const [academicYears, setAcademicYears] = useState([]);
+
+  const fetchAcademicYears = async () => {
+    try {
+      const res = await api.get("/academic-years");
+      const years = res.data?.data || [];
+
+      setAcademicYears(years);
+
+      // default select first year
+      if (years.length > 0) {
+        setYear(years[0].name);
+      }
+    } catch (err) {
+      console.error("Failed to load academic years");
+    }
+  };
 
   useEffect(() => {
-    fetchFees();
+    fetchAcademicYears();
+  }, []);
+
+  useEffect(() => {
+    if (year) {
+      fetchFees();
+    }
   }, [year]);
 
   const fetchFees = async () => {
@@ -42,11 +68,21 @@ export default function FeesTab({ studentId }) {
             value={year}
             onChange={(e) => setYear(e.target.value)}
           >
-            <option value="2025-26">2025-26</option>
-            <option value="2024-25">2024-25</option>
+            <option value="">Academic Year</option>
+
+            {academicYears.map((y) => (
+              <option key={y.id} value={y.name}>
+                {y.name}
+              </option>
+            ))}
           </select>
 
           <SecondaryButton name="GO" />
+
+
+          <PrimaryButton name="View Full Information"
+            onClick={() => router.push(`/admin/fees/collection/view/${studentId}`)}
+          />
         </div>
 
         {/* PAYMENT HISTORY */}

@@ -145,7 +145,7 @@ const handleFileChange = (e) => {
 
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6 max-w-6xl p-4">
       {/* TITLE */}
       <div>
         <h2 className="text-xl font-semibold">New Student Admission</h2>

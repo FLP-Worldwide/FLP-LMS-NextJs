@@ -8,12 +8,14 @@ import { useRouter } from "next/navigation";
 import { Settings } from "lucide-react";
 
 function StatusPill({ status }) {
+
   const map = {
     active: "bg-blue-50 text-blue-700",
     inactive: "bg-gray-100 text-gray-600",
     passed: "bg-green-50 text-green-700",
     left: "bg-red-50 text-red-700",
   };
+
   return (
     <span
       className={`text-xs font-medium px-2 py-1 rounded ${
@@ -26,9 +28,100 @@ function StatusPill({ status }) {
 }
 
 export default function StudentsPage() {
+const [showQuickFilter, setShowQuickFilter] = useState(false);
+const [showAdvanceFilter, setShowAdvanceFilter] = useState(false);
   const [students, setStudents] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
+  const [search, setSearch] = useState("");
+const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [filters, setFilters] = useState({
+    status: "",
+    class: "",
+    gender: "",
+  });
+
   const [viewStudent, setViewStudent] = useState(null);
   const [loading, setLoading] = useState(false);
+
+ const isFilterActive =
+  search ||
+  filters.status ||
+  filters.class ||
+  filters.gender ||
+  showQuickFilter;
+    
+  const applySearch = (value) => {
+    setSearch(value);
+
+    const term = value.toLowerCase();
+
+    let filtered = [...allStudents];
+
+    if (term) {
+      filtered = filtered.filter((s) =>
+        s.name.toLowerCase().includes(term) ||
+        s.admissionNo?.toLowerCase().includes(term) ||
+        s.mobile?.toLowerCase().includes(term)
+      );
+    }
+
+    if (filters.status) {
+      filtered = filtered.filter((s) => s.status === filters.status);
+    }
+
+    setStudents(filtered);
+  };
+
+const applyFilters = () => {
+
+  let filtered = [...allStudents];
+
+  if (search) {
+    const term = search.toLowerCase();
+
+    filtered = filtered.filter((s) =>
+      s.name.toLowerCase().includes(term) ||
+      s.admissionNo?.toLowerCase().includes(term) ||
+      s.mobile?.toLowerCase().includes(term)
+    );
+  }
+
+  if (filters.status) {
+    filtered = filtered.filter((s) => s.status === filters.status);
+  }
+
+  if (filters.class) {
+    filtered = filtered.filter((s) => s.class === filters.class);
+  }
+
+  setStudents(filtered);
+};
+
+useEffect(() => {
+  const closeMenu = () => setShowFilterMenu(false);
+  window.addEventListener("click", closeMenu);
+
+  return () => window.removeEventListener("click", closeMenu);
+}, []);
+
+const clearFilters = () => {
+
+  setFilters({
+    status: "",
+    class: "",
+    gender: "",
+  });
+
+  setSearch("");
+
+  setStudents(allStudents);
+
+  // reset UI states
+  setShowQuickFilter(false);
+  setShowAdvanceFilter(false);
+};
+
+
   const router = useRouter();
   useEffect(() => {
     fetchStudents();
@@ -57,6 +150,8 @@ export default function StudentsPage() {
       }));
 
       setStudents(mapped);
+      setAllStudents(mapped);
+
     } catch (e) {
       console.error("Failed to load students", e);
     } finally {
@@ -67,6 +162,25 @@ export default function StudentsPage() {
   return (
     <div className="space-y-4 p-6">
       {/* HEADER */}
+      <div className="flex items-center gap-3 mb-3">
+
+        <input
+          placeholder="Search By Name/Contact No/Student ID"
+          value={search}
+          onChange={(e) => applySearch(e.target.value)}
+          className="border border-gray-200 rounded px-3 py-2 text-sm w-72"
+        />
+
+        <button
+          onClick={() => applySearch(search)}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Search
+        </button>
+
+      </div>
+
+
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-xl font-semibold">Students</h2>
@@ -82,11 +196,92 @@ export default function StudentsPage() {
             >
               <Settings size={18} />
             </button>
+
+{isFilterActive && (
+  <button
+    onClick={() => {
+      clearFilters();
+      setShowQuickFilter(false);
+    }}
+    className="px-3 py-1 rounded-md border border-red-300 text-red-500 text-sm hover:bg-red-50"
+  >
+    Clear Filter
+  </button>
+)}
+
+            <div className="relative">
+<button
+  onClick={(e) => {
+    e.stopPropagation();
+    setShowFilterMenu(!showFilterMenu);
+  }}
+  className="px-3 py-1 rounded-md border border-gray-200 text-sm hover:bg-gray-50 flex items-center gap-1"
+>
+  Filter
+</button>
+
+  {showFilterMenu && (
+    <div
+        className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md z-50"
+        onClick={(e) => e.stopPropagation()}
+      >
+      
+    <button
+  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+  onClick={() => {
+    setShowFilterMenu(false);
+    setShowQuickFilter(true);
+  }}
+>
+  Quick Filter
+</button>
+
+<button
+  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+  onClick={() => {
+    setShowFilterMenu(false);
+    setShowAdvanceFilter(true);
+  }}
+>
+  Advance Filter
+</button>
+
+    </div>
+  )}
+</div>
+
+
             <StudentsHeaderActions />
         </div>
 
       </div>
 
+      {showQuickFilter && (
+  <div className="flex items-center gap-3 bg-white p-4 rounded-lg border border-gray-200">
+    
+    <select className="border border-gray-200 rounded px-3 py-2 text-sm">
+      <option>Select Standard</option>
+    </select>
+
+    <select className="border border-gray-200 rounded px-3 py-2 text-sm">
+      <option>Select Category/Courses</option>
+    </select>
+
+    <select className="border border-gray-200  rounded px-3 py-2 text-sm">
+      <option>Select Batch</option>
+    </select>
+
+    <select className="border border-gray-200 rounded px-3 py-2 text-sm">
+      <option>Both</option>
+      <option>Active</option>
+      <option>Inactive</option>
+    </select>
+
+    <button className="px-4 py-2 bg-blue-600 text-white rounded">
+      Search
+    </button>
+  </div>
+)}
       {/* CARD */}
       <div className="bg-white rounded-xl p-4 shadow-xs border border-gray-200">
         <div className="flex items-center justify-between mb-3">
@@ -97,7 +292,7 @@ export default function StudentsPage() {
         </div>
 
         <div className="overflow-x-auto rounded-md">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse border-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="py-2 px-3 text-xs font-medium text-gray-600">
@@ -239,6 +434,145 @@ export default function StudentsPage() {
           </div>
         </div>
       )}
+
+
+     {showAdvanceFilter && (
+  <div className="fixed inset-0 z-50 flex justify-end">
+
+    {/* Overlay */}
+    <div
+      className="absolute inset-0 bg-black/30"
+      onClick={() => setShowAdvanceFilter(false)}
+    />
+
+    {/* Panel */}
+    <div className="relative w-[520px] h-full bg-white shadow-xl overflow-y-auto">
+
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b">
+        <h3 className="text-lg font-semibold">Advance Filter</h3>
+
+        <button
+          onClick={() => setShowAdvanceFilter(false)}
+          className="text-gray-500 text-xl"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="p-6 space-y-6">
+
+        {/* STUDENT DETAILS */}
+        <h4 className="font-semibold text-gray-700">Student Details</h4>
+
+        <div>
+          <label className="text-sm">Is Active</label>
+          <select className="soft-select w-full">
+            <option>Active</option>
+            <option>Inactive</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <select className="soft-select">
+            <option>Select Standard</option>
+          </select>
+
+          <select className="soft-select">
+            <option>Select Category/Course</option>
+          </select>
+
+          <select className="soft-select">
+            <option>Select Batch</option>
+          </select>
+
+          <select className="soft-select">
+            <option>Select Gender</option>
+          </select>
+
+          <select className="soft-select">
+            <option>Select Religion</option>
+          </select>
+
+          <select className="soft-select">
+            <option>Select Category</option>
+          </select>
+
+          <select className="soft-select">
+            <option>Select Mother Tongue</option>
+          </select>
+
+          <select className="soft-select">
+            <option>Select Blood Group</option>
+          </select>
+        </div>
+
+        {/* PARENT DETAILS */}
+        <h4 className="font-semibold text-gray-700">Parent/Guardian Details</h4>
+
+        <select className="soft-select w-full">
+          <option>Select Parent Profession</option>
+        </select>
+
+        {/* ADDRESS */}
+        <h4 className="font-semibold text-gray-700">Address Details</h4>
+
+        <div className="grid grid-cols-2 gap-4">
+          <select className="soft-select">
+            <option>Select Country</option>
+          </select>
+
+          <select className="soft-select">
+            <option>Select State</option>
+          </select>
+
+          <select className="soft-select col-span-2">
+            <option>Select City</option>
+          </select>
+        </div>
+
+        {/* ADMIN DETAILS */}
+        <h4 className="font-semibold text-gray-700">Administration Details</h4>
+
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="date"
+            className="soft-input"
+            placeholder="Admission From Date"
+          />
+
+          <input
+            type="date"
+            className="soft-input"
+            placeholder="Admission To Date"
+          />
+        </div>
+
+      </div>
+
+      {/* FOOTER */}
+      <div className="flex justify-end gap-3 p-6 border-t">
+        <button
+          className="soft-btn-outline"
+          onClick={clearFilters}
+        >
+          Clear Filter
+        </button>
+
+        <button
+          className="soft-btn-primary border bg-blue-500 text-white px-2 py-1 rounded"
+          onClick={() => {
+            applyFilters();
+            setShowAdvanceFilter(false);
+          }}
+        >
+          Apply
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }

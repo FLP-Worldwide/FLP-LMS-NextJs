@@ -17,6 +17,7 @@ export default function Page() {
 
   return (
     <>
+    <div className="p-4">
       {/* TOP TABS */}
       <SubMenu items={menus} />
 
@@ -24,6 +25,7 @@ export default function Page() {
       <div className="mt-4">
         {type === "setup" && <ConcessionSetupTab />}
         {type === "assign" && <AssignConcessionTab />}
+      </div>
       </div>
     </>
   );
