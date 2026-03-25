@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "@/utils/api";
 import { useRouter } from "next/navigation";
 import { Settings } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 function StatusPill({ status }) {
 
@@ -28,12 +29,24 @@ function StatusPill({ status }) {
 }
 
 export default function StudentsPage() {
-const [showQuickFilter, setShowQuickFilter] = useState(false);
-const [showAdvanceFilter, setShowAdvanceFilter] = useState(false);
+  const [showQuickFilter, setShowQuickFilter] = useState(false);
+  const [showAdvanceFilter, setShowAdvanceFilter] = useState(false);
   const [students, setStudents] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
   const [search, setSearch] = useState("");
-const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+
+  const [standards, setStandards] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [batches, setBatches] = useState([]);
+
+  const [quickFilter, setQuickFilter] = useState({
+    class_id: "",
+    course_id: "",
+    batch_id: "",
+    status: "",
+  });
+
   const [filters, setFilters] = useState({
     status: "",
     class: "",
@@ -42,6 +55,26 @@ const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   const [viewStudent, setViewStudent] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchFilterData();
+  }, []);
+
+  const fetchFilterData = async () => {
+    try {
+      const [classRes, courseRes, batchRes] = await Promise.all([
+        api.get("/classes"),
+        api.get("/courses"),
+        api.get("/batches"),
+      ]);
+
+      setStandards(classRes.data?.data || []);
+      setCourses(courseRes.data?.data || []);
+      setBatches(batchRes.data?.data || []);
+    } catch (e) {
+      console.error("Filter data load failed", e);
+    }
+  };
 
  const isFilterActive =
   search ||
@@ -159,6 +192,56 @@ const clearFilters = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this student?")) return;
+
+    try {
+      await api.delete(`/students/${id}`);
+      fetchStudents(); // refresh list
+    } catch (e) {
+      console.error("Delete failed", e);
+    }
+  };
+
+  const applyQuickFilter = async () => {
+    try {
+      setLoading(true);
+
+      const res = await api.get("/students", {
+        params: {
+          class_id: quickFilter.class_id,
+          course_id: quickFilter.course_id,
+          batch_id: quickFilter.batch_id,
+          status: quickFilter.status,
+        },
+      });
+
+      const mapped = (res.data?.data || []).map((s) => ({
+        key: s.id,
+        admissionNo: s.admission_no,
+        name: `${s.first_name} ${s.last_name ?? ""}`.trim(),
+        role: "Student",
+        photo:
+          s.details?.photo ||
+          `https://ui-avatars.com/api/?name=${s.first_name}+${s.last_name ?? ""}`,
+        mobile: s.phone || "-",
+        class: s.classes?.name || "-",
+        section: s.section || "-",
+        fatherName: s.father_name || "-",
+        admissionDate: s.admission_date || "-",
+        status: s.status,
+      }));
+
+      setStudents(mapped);
+
+    } catch (e) {
+      console.error("Quick filter failed", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <div className="space-y-4 p-6">
       {/* HEADER */}
@@ -197,58 +280,58 @@ const clearFilters = () => {
               <Settings size={18} />
             </button>
 
-{isFilterActive && (
-  <button
-    onClick={() => {
-      clearFilters();
-      setShowQuickFilter(false);
-    }}
-    className="px-3 py-1 rounded-md border border-red-300 text-red-500 text-sm hover:bg-red-50"
-  >
-    Clear Filter
-  </button>
-)}
+              {isFilterActive && (
+                <button
+                  onClick={() => {
+                    clearFilters();
+                    setShowQuickFilter(false);
+                  }}
+                  className="px-3 py-1 rounded-md border border-red-300 text-red-500 text-sm hover:bg-red-50"
+                >
+                  Clear Filter
+                </button>
+              )}
 
-            <div className="relative">
-<button
-  onClick={(e) => {
-    e.stopPropagation();
-    setShowFilterMenu(!showFilterMenu);
-  }}
-  className="px-3 py-1 rounded-md border border-gray-200 text-sm hover:bg-gray-50 flex items-center gap-1"
->
-  Filter
-</button>
+                          <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowFilterMenu(!showFilterMenu);
+                }}
+                className="px-3 py-1 rounded-md border border-gray-200 text-sm hover:bg-gray-50 flex items-center gap-1"
+              >
+                Filter
+              </button>
 
-  {showFilterMenu && (
-    <div
-        className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md z-50"
-        onClick={(e) => e.stopPropagation()}
-      >
-      
-    <button
-  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-  onClick={() => {
-    setShowFilterMenu(false);
-    setShowQuickFilter(true);
-  }}
->
-  Quick Filter
-</button>
+                {showFilterMenu && (
+                  <div
+                      className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md z-50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                    
+                  <button
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                onClick={() => {
+                  setShowFilterMenu(false);
+                  setShowQuickFilter(true);
+                }}
+              >
+                Quick Filter
+              </button>
 
-<button
-  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-  onClick={() => {
-    setShowFilterMenu(false);
-    setShowAdvanceFilter(true);
-  }}
->
-  Advance Filter
-</button>
+              <button
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                onClick={() => {
+                  setShowFilterMenu(false);
+                  setShowAdvanceFilter(true);
+                }}
+              >
+                Advance Filter
+              </button>
 
-    </div>
-  )}
-</div>
+                  </div>
+                )}
+              </div>
 
 
             <StudentsHeaderActions />
@@ -257,31 +340,73 @@ const clearFilters = () => {
       </div>
 
       {showQuickFilter && (
-  <div className="flex items-center gap-3 bg-white p-4 rounded-lg border border-gray-200">
-    
-    <select className="border border-gray-200 rounded px-3 py-2 text-sm">
-      <option>Select Standard</option>
-    </select>
+        <div className="flex items-center gap-3 bg-white p-4 rounded-lg border border-gray-200">
+          
+          <select
+            className="border border-gray-200 rounded px-3 py-2 text-sm"
+            value={quickFilter.class_id}
+            onChange={(e) =>
+              setQuickFilter({ ...quickFilter, class_id: e.target.value })
+            }
+          >
+            <option value="">Select Standard</option>
+            {standards.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
 
-    <select className="border border-gray-200 rounded px-3 py-2 text-sm">
-      <option>Select Category/Courses</option>
-    </select>
+          <select
+            className="border border-gray-200 rounded px-3 py-2 text-sm"
+            value={quickFilter.course_id}
+            onChange={(e) =>
+              setQuickFilter({ ...quickFilter, course_id: e.target.value })
+            }
+          >
+            <option value="">Select Category/Courses</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
 
-    <select className="border border-gray-200  rounded px-3 py-2 text-sm">
-      <option>Select Batch</option>
-    </select>
+          <select
+            className="border border-gray-200 rounded px-3 py-2 text-sm"
+            value={quickFilter.batch_id}
+            onChange={(e) =>
+              setQuickFilter({ ...quickFilter, batch_id: e.target.value })
+            }
+          >
+            <option value="">Select Batch</option>
+            {batches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
 
-    <select className="border border-gray-200 rounded px-3 py-2 text-sm">
-      <option>Both</option>
-      <option>Active</option>
-      <option>Inactive</option>
-    </select>
+         <select
+            className="border border-gray-200 rounded px-3 py-2 text-sm"
+            value={quickFilter.status}
+            onChange={(e) =>
+              setQuickFilter({ ...quickFilter, status: e.target.value })
+            }
+          >
+            <option value="">Both</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
 
-    <button className="px-4 py-2 bg-blue-600 text-white rounded">
-      Search
-    </button>
-  </div>
-)}
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+            onClick={applyQuickFilter}
+          >
+            Search
+          </button>
+        </div>
+      )}
       {/* CARD */}
       <div className="bg-white rounded-xl p-4 shadow-xs border border-gray-200">
         <div className="flex items-center justify-between mb-3">
@@ -357,13 +482,34 @@ const clearFilters = () => {
 
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      {/* <a href={`/admin/students/${s.key}`}> */}
-                      <button onClick={() => router.push(`/admin/students/${s.key}`)}
-                        className="px-3 py-1 rounded-md border border-gray-200 text-sm hover:bg-gray-50"
+
+                      {/* VIEW */}
+                      <button
+                        onClick={() => router.push(`/admin/students/${s.key}`)}
+                        className="p-2 rounded-md border hover:bg-gray-50"
+                        title="View"
                       >
-                        View Details
+                        <Eye size={16} />
                       </button>
-                      {/* </a> */}
+
+                      {/* EDIT */}
+                      <button
+                        onClick={() => router.push(`/admin/students/${s.key}/edit`)}
+                        className="p-2 rounded-md border hover:bg-blue-50 text-blue-600"
+                        title="Edit"
+                      >
+                        <Pencil size={16} />
+                      </button>
+
+                      {/* DELETE */}
+                      <button
+                        onClick={() => handleDelete(s.key)}
+                        className="p-2 rounded-md border hover:bg-red-50 text-red-600"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
                     </div>
                   </td>
                 </tr>
@@ -437,142 +583,142 @@ const clearFilters = () => {
 
 
      {showAdvanceFilter && (
-  <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-50 flex justify-end">
 
-    {/* Overlay */}
-    <div
-      className="absolute inset-0 bg-black/30"
-      onClick={() => setShowAdvanceFilter(false)}
-    />
-
-    {/* Panel */}
-    <div className="relative w-[520px] h-full bg-white shadow-xl overflow-y-auto">
-
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
-        <h3 className="text-lg font-semibold">Advance Filter</h3>
-
-        <button
-          onClick={() => setShowAdvanceFilter(false)}
-          className="text-gray-500 text-xl"
-        >
-          ×
-        </button>
-      </div>
-
-      <div className="p-6 space-y-6">
-
-        {/* STUDENT DETAILS */}
-        <h4 className="font-semibold text-gray-700">Student Details</h4>
-
-        <div>
-          <label className="text-sm">Is Active</label>
-          <select className="soft-select w-full">
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <select className="soft-select">
-            <option>Select Standard</option>
-          </select>
-
-          <select className="soft-select">
-            <option>Select Category/Course</option>
-          </select>
-
-          <select className="soft-select">
-            <option>Select Batch</option>
-          </select>
-
-          <select className="soft-select">
-            <option>Select Gender</option>
-          </select>
-
-          <select className="soft-select">
-            <option>Select Religion</option>
-          </select>
-
-          <select className="soft-select">
-            <option>Select Category</option>
-          </select>
-
-          <select className="soft-select">
-            <option>Select Mother Tongue</option>
-          </select>
-
-          <select className="soft-select">
-            <option>Select Blood Group</option>
-          </select>
-        </div>
-
-        {/* PARENT DETAILS */}
-        <h4 className="font-semibold text-gray-700">Parent/Guardian Details</h4>
-
-        <select className="soft-select w-full">
-          <option>Select Parent Profession</option>
-        </select>
-
-        {/* ADDRESS */}
-        <h4 className="font-semibold text-gray-700">Address Details</h4>
-
-        <div className="grid grid-cols-2 gap-4">
-          <select className="soft-select">
-            <option>Select Country</option>
-          </select>
-
-          <select className="soft-select">
-            <option>Select State</option>
-          </select>
-
-          <select className="soft-select col-span-2">
-            <option>Select City</option>
-          </select>
-        </div>
-
-        {/* ADMIN DETAILS */}
-        <h4 className="font-semibold text-gray-700">Administration Details</h4>
-
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            type="date"
-            className="soft-input"
-            placeholder="Admission From Date"
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/30"
+            onClick={() => setShowAdvanceFilter(false)}
           />
 
-          <input
-            type="date"
-            className="soft-input"
-            placeholder="Admission To Date"
-          />
+          {/* Panel */}
+          <div className="relative w-[520px] h-full bg-white shadow-xl overflow-y-auto">
+
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <h3 className="text-lg font-semibold">Advance Filter</h3>
+
+              <button
+                onClick={() => setShowAdvanceFilter(false)}
+                className="text-gray-500 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+
+              {/* STUDENT DETAILS */}
+              <h4 className="font-semibold text-gray-700">Student Details</h4>
+
+              <div>
+                <label className="text-sm">Is Active</label>
+                <select className="soft-select w-full">
+                  <option>Active</option>
+                  <option>Inactive</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <select className="soft-select">
+                  <option>Select Standard</option>
+                </select>
+
+                <select className="soft-select">
+                  <option>Select Category/Course</option>
+                </select>
+
+                <select className="soft-select">
+                  <option>Select Batch</option>
+                </select>
+
+                <select className="soft-select">
+                  <option>Select Gender</option>
+                </select>
+
+                <select className="soft-select">
+                  <option>Select Religion</option>
+                </select>
+
+                <select className="soft-select">
+                  <option>Select Category</option>
+                </select>
+
+                <select className="soft-select">
+                  <option>Select Mother Tongue</option>
+                </select>
+
+                <select className="soft-select">
+                  <option>Select Blood Group</option>
+                </select>
+              </div>
+
+              {/* PARENT DETAILS */}
+              <h4 className="font-semibold text-gray-700">Parent/Guardian Details</h4>
+
+              <select className="soft-select w-full">
+                <option>Select Parent Profession</option>
+              </select>
+
+              {/* ADDRESS */}
+              <h4 className="font-semibold text-gray-700">Address Details</h4>
+
+              <div className="grid grid-cols-2 gap-4">
+                <select className="soft-select">
+                  <option>Select Country</option>
+                </select>
+
+                <select className="soft-select">
+                  <option>Select State</option>
+                </select>
+
+                <select className="soft-select col-span-2">
+                  <option>Select City</option>
+                </select>
+              </div>
+
+              {/* ADMIN DETAILS */}
+              <h4 className="font-semibold text-gray-700">Administration Details</h4>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="date"
+                  className="soft-input"
+                  placeholder="Admission From Date"
+                />
+
+                <input
+                  type="date"
+                  className="soft-input"
+                  placeholder="Admission To Date"
+                />
+              </div>
+
+            </div>
+
+            {/* FOOTER */}
+            <div className="flex justify-end gap-3 p-6 border-t">
+              <button
+                className="soft-btn-outline"
+                onClick={clearFilters}
+              >
+                Clear Filter
+              </button>
+
+              <button
+                className="soft-btn-primary border bg-blue-500 text-white px-2 py-1 rounded"
+                onClick={() => {
+                  applyFilters();
+                  setShowAdvanceFilter(false);
+                }}
+              >
+                Apply
+              </button>
+            </div>
+
+          </div>
         </div>
-
-      </div>
-
-      {/* FOOTER */}
-      <div className="flex justify-end gap-3 p-6 border-t">
-        <button
-          className="soft-btn-outline"
-          onClick={clearFilters}
-        >
-          Clear Filter
-        </button>
-
-        <button
-          className="soft-btn-primary border bg-blue-500 text-white px-2 py-1 rounded"
-          onClick={() => {
-            applyFilters();
-            setShowAdvanceFilter(false);
-          }}
-        >
-          Apply
-        </button>
-      </div>
-
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }

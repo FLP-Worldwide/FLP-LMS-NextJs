@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/utils/api";
-
+import { useRouter } from "next/navigation";
 import { SECTIONS } from "@/constants/sections";
 import { BLOOD_GROUPS } from "@/constants/studentMeta";
 
@@ -30,6 +30,7 @@ const TABS = [
 
 export default function StudentViewPage() {
   const { id } = useParams();
+    const router = useRouter();
   const [classes, setClasses] = useState([]);
 
   useEffect(() => {
@@ -199,10 +200,11 @@ export default function StudentViewPage() {
               <div className="absolute right-0 mt-2 w-40 rounded-md border border-gray-200 bg-white shadow-lg z-50">
                 <button
                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-                  onClick={() => {
-                    setShowModal(true);
-                    setOpenMenu(false);
-                  }}
+                  // onClick={() => {
+                  //   setShowModal(true);
+                  //   setOpenMenu(false);
+                  // }}
+                  onClick={() => router.push(`/admin/students/${id}/edit`)}
                 >
                   Edit Profile
                 </button>
@@ -266,69 +268,69 @@ export default function StudentViewPage() {
         )}
 
         {activeTab === "Fees" && <FeesTab studentId={student.id} />}
-       {activeTab === "Exam" && (
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-blue-50">
-                <tr>
-                  <th className="px-4 py-2 text-left">#</th>
-                  <th className="px-4 py-2 text-left">Title</th>
-                  <th className="px-4 py-2 text-left">Date</th>
-                  <th className="px-4 py-2 text-left">Time</th>
-                  <th className="px-4 py-2 text-left">Status</th>
-                  <th className="px-4 py-2 text-left">Attendance</th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y">
-                {student.exams?.length === 0 ? (
+        {activeTab === "Exam" && (
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-blue-50">
                   <tr>
-                    <td
-                      colSpan="6"
-                      className="px-4 py-10 text-center text-gray-400"
-                    >
-                      No Exams Found
-                    </td>
+                    <th className="px-4 py-2 text-left">#</th>
+                    <th className="px-4 py-2 text-left">Title</th>
+                    <th className="px-4 py-2 text-left">Date</th>
+                    <th className="px-4 py-2 text-left">Time</th>
+                    <th className="px-4 py-2 text-left">Status</th>
+                    <th className="px-4 py-2 text-left">Attendance</th>
                   </tr>
-                ) : (
-                  student.exams.map((exam, index) => (
-                    <tr key={exam.exam_id}>
-                      <td className="px-4 py-2">{index + 1}</td>
+                </thead>
 
-                      <td className="px-4 py-2">
-                        {exam.title || "Untitled Exam"}
-                      </td>
-
-                      <td className="px-4 py-2">
-                        {exam.exam_date}
-                      </td>
-
-                      <td className="px-4 py-2">
-                        {exam.start_time} - {exam.end_time}
-                      </td>
-
-                      <td className="px-4 py-2">
-                        <span
-                          className={`px-2 py-1 text-xs rounded ${
-                            exam.status === "scheduled"
-                              ? "bg-blue-50 text-blue-600"
-                              : "bg-red-50 text-red-600"
-                          }`}
-                        >
-                          {exam.status}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-2">
-                        {renderAttendanceBadge(exam.attendance_status, exam.attended)}
+                <tbody className="divide-y">
+                  {student.exams?.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="px-4 py-10 text-center text-gray-400"
+                      >
+                        No Exams Found
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+                  ) : (
+                    student.exams.map((exam, index) => (
+                      <tr key={exam.exam_id}>
+                        <td className="px-4 py-2">{index + 1}</td>
+
+                        <td className="px-4 py-2">
+                          {exam.title || "Untitled Exam"}
+                        </td>
+
+                        <td className="px-4 py-2">
+                          {exam.exam_date}
+                        </td>
+
+                        <td className="px-4 py-2">
+                          {exam.start_time} - {exam.end_time}
+                        </td>
+
+                        <td className="px-4 py-2">
+                          <span
+                            className={`px-2 py-1 text-xs rounded ${
+                              exam.status === "scheduled"
+                                ? "bg-blue-50 text-blue-600"
+                                : "bg-red-50 text-red-600"
+                            }`}
+                          >
+                            {exam.status}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-2">
+                          {renderAttendanceBadge(exam.attendance_status, exam.attended)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
 
         {activeTab === "Inventory" && <EmptyTab title="Inventory" />}
         {activeTab === "PTM" && <EmptyTab title="PTM" />}
