@@ -40,6 +40,26 @@ export default function StudentsPage() {
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
 
+  const [advanceFilter, setAdvanceFilter] = useState({
+    status: "",
+    class_id: "",
+    course_id: "",
+    batch_id: "",
+    gender: "",
+    religion: "",
+    category: "",
+    mother_tongue: "",
+    blood_group: "",
+    parent_profession: "",
+    country: "",
+    state: "",
+    city: "",
+    admission_from: "",
+    admission_to: "",
+  });
+
+
+
   const [quickFilter, setQuickFilter] = useState({
     class_id: "",
     course_id: "",
@@ -55,6 +75,26 @@ export default function StudentsPage() {
 
   const [viewStudent, setViewStudent] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchAdvanceFilterData();
+  }, []);
+
+  const fetchAdvanceFilterData = async () => {
+    try {
+      const [classRes, courseRes, batchRes] = await Promise.all([
+        api.get("/classes"),
+        api.get("/courses"),
+        api.get("/batches"),
+      ]);
+
+      setStandards(classRes.data?.data || []);
+      setCourses(courseRes.data?.data || []);
+      setBatches(batchRes.data?.data || []);
+    } catch (e) {
+      console.error("Advance filter load failed", e);
+    }
+  };
 
   useEffect(() => {
     fetchFilterData();
@@ -103,7 +143,42 @@ export default function StudentsPage() {
     }
 
     setStudents(filtered);
-  };
+};
+
+const applyAdvancedFilters = async () => {
+  try {
+    setLoading(true);
+
+    const res = await api.get("/students", {
+      params: {
+        ...advanceFilter,
+      },
+    });
+
+    const mapped = (res.data?.data || []).map((s) => ({
+      key: s.id,
+      admissionNo: s.admission_no,
+      name: `${s.first_name} ${s.last_name ?? ""}`.trim(),
+      role: "Student",
+      photo:
+        s.details?.photo ||
+        `https://ui-avatars.com/api/?name=${s.first_name}+${s.last_name ?? ""}`,
+      mobile: s.phone || "-",
+      class: s.classes?.name || "-",
+      section: s.section || "-",
+      fatherName: s.father_name || "-",
+      admissionDate: s.admission_date || "-",
+      status: s.status,
+    }));
+
+    setStudents(mapped);
+
+  } catch (e) {
+    console.error("Advanced filter failed", e);
+  } finally {
+    setLoading(false);
+  }
+};
 
 const applyFilters = () => {
 
@@ -137,22 +212,52 @@ useEffect(() => {
   return () => window.removeEventListener("click", closeMenu);
 }, []);
 
-const clearFilters = () => {
+  const clearFilters = () => {
 
-  setFilters({
-    status: "",
-    class: "",
-    gender: "",
-  });
+    // 🔹 Basic filters
+    setFilters({
+      status: "",
+      class: "",
+      gender: "",
+    });
 
-  setSearch("");
+    // 🔹 Quick filter reset
+    setQuickFilter({
+      class_id: "",
+      course_id: "",
+      batch_id: "",
+      status: "",
+    });
 
-  setStudents(allStudents);
+    // 🔹 Advanced filter reset
+    setAdvanceFilter({
+      status: "",
+      class_id: "",
+      course_id: "",
+      batch_id: "",
+      gender: "",
+      religion: "",
+      category: "",
+      mother_tongue: "",
+      blood_group: "",
+      parent_profession: "",
+      country: "",
+      state: "",
+      city: "",
+      admission_from: "",
+      admission_to: "",
+    });
 
-  // reset UI states
-  setShowQuickFilter(false);
-  setShowAdvanceFilter(false);
-};
+    // 🔹 Search reset
+    setSearch("");
+
+    // 🔹 Reset data (IMPORTANT → reload from API)
+    fetchStudents();
+
+    // 🔹 UI reset
+    setShowQuickFilter(false);
+    setShowAdvanceFilter(false);
+  };
 
 
   const router = useRouter();
@@ -611,86 +716,188 @@ const clearFilters = () => {
               {/* STUDENT DETAILS */}
               <h4 className="font-semibold text-gray-700">Student Details</h4>
 
-              <div>
-                <label className="text-sm">Is Active</label>
-                <select className="soft-select w-full">
-                  <option>Active</option>
-                  <option>Inactive</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <select className="soft-select">
-                  <option>Select Standard</option>
-                </select>
-
-                <select className="soft-select">
-                  <option>Select Category/Course</option>
-                </select>
-
-                <select className="soft-select">
-                  <option>Select Batch</option>
-                </select>
-
-                <select className="soft-select">
-                  <option>Select Gender</option>
-                </select>
-
-                <select className="soft-select">
-                  <option>Select Religion</option>
-                </select>
-
-                <select className="soft-select">
-                  <option>Select Category</option>
-                </select>
-
-                <select className="soft-select">
-                  <option>Select Mother Tongue</option>
-                </select>
-
-                <select className="soft-select">
-                  <option>Select Blood Group</option>
-                </select>
-              </div>
-
-              {/* PARENT DETAILS */}
-              <h4 className="font-semibold text-gray-700">Parent/Guardian Details</h4>
-
-              <select className="soft-select w-full">
-                <option>Select Parent Profession</option>
+              {/* STATUS */}
+              <select
+                className="soft-select w-full"
+                value={advanceFilter.status}
+                onChange={(e) =>
+                  setAdvanceFilter({ ...advanceFilter, status: e.target.value })
+                }
+              >
+                <option value="">Both</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="passed">Passed</option>
+                <option value="left">Left</option>
               </select>
 
-              {/* ADDRESS */}
-              <h4 className="font-semibold text-gray-700">Address Details</h4>
-
               <div className="grid grid-cols-2 gap-4">
-                <select className="soft-select">
-                  <option>Select Country</option>
+
+                {/* STANDARD */}
+                <select
+                  className="soft-select"
+                  value={advanceFilter.class_id}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, class_id: e.target.value })
+                  }
+                >
+                  <option value="">Select Standard</option>
+                  {standards.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
                 </select>
 
-                <select className="soft-select">
-                  <option>Select State</option>
+                {/* COURSE */}
+                <select
+                  className="soft-select"
+                  value={advanceFilter.course_id}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, course_id: e.target.value })
+                  }
+                >
+                  <option value="">Select Course</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
                 </select>
 
-                <select className="soft-select col-span-2">
-                  <option>Select City</option>
+                {/* BATCH */}
+                <select
+                  className="soft-select"
+                  value={advanceFilter.batch_id}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, batch_id: e.target.value })
+                  }
+                >
+                  <option value="">Select Batch</option>
+                  {batches.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+
+                {/* GENDER */}
+                <select
+                  className="soft-select"
+                  value={advanceFilter.gender}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, gender: e.target.value })
+                  }
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+
+                {/* RELIGION */}
+                <input
+                  className="soft-input"
+                  placeholder="Religion"
+                  value={advanceFilter.religion}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, religion: e.target.value })
+                  }
+                />
+
+                {/* CATEGORY */}
+                <input
+                  className="soft-input"
+                  placeholder="Category"
+                  value={advanceFilter.category}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, category: e.target.value })
+                  }
+                />
+
+                {/* MOTHER TONGUE */}
+                <input
+                  className="soft-input"
+                  placeholder="Mother Tongue"
+                  value={advanceFilter.mother_tongue}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, mother_tongue: e.target.value })
+                  }
+                />
+
+                {/* BLOOD GROUP */}
+                <select
+                  className="soft-select"
+                  value={advanceFilter.blood_group}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, blood_group: e.target.value })
+                  }
+                >
+                  <option value="">Blood Group</option>
+                  <option>A+</option>
+                  <option>B+</option>
+                  <option>O+</option>
+                  <option>AB+</option>
                 </select>
               </div>
 
-              {/* ADMIN DETAILS */}
-              <h4 className="font-semibold text-gray-700">Administration Details</h4>
+              {/* PARENT */}
+              <h4 className="font-semibold text-gray-700">Parent Details</h4>
+
+              <input
+                className="soft-input w-full"
+                placeholder="Parent Profession"
+                value={advanceFilter.parent_profession}
+                onChange={(e) =>
+                  setAdvanceFilter({ ...advanceFilter, parent_profession: e.target.value })
+                }
+              />
+
+              {/* ADDRESS */}
+              <h4 className="font-semibold text-gray-700">Address</h4>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  className="soft-input"
+                  placeholder="Country"
+                  value={advanceFilter.country}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, country: e.target.value })
+                  }
+                />
+
+                <input
+                  className="soft-input"
+                  placeholder="State"
+                  value={advanceFilter.state}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, state: e.target.value })
+                  }
+                />
+
+                <input
+                  className="soft-input col-span-2"
+                  placeholder="City"
+                  value={advanceFilter.city}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, city: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* DATE */}
+              <h4 className="font-semibold text-gray-700">Admission Date</h4>
 
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="date"
                   className="soft-input"
-                  placeholder="Admission From Date"
+                  value={advanceFilter.admission_from}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, admission_from: e.target.value })
+                  }
                 />
 
                 <input
                   type="date"
                   className="soft-input"
-                  placeholder="Admission To Date"
+                  value={advanceFilter.admission_to}
+                  onChange={(e) =>
+                    setAdvanceFilter({ ...advanceFilter, admission_to: e.target.value })
+                  }
                 />
               </div>
 
@@ -708,7 +915,7 @@ const clearFilters = () => {
               <button
                 className="soft-btn-primary border bg-blue-500 text-white px-2 py-1 rounded"
                 onClick={() => {
-                  applyFilters();
+                  applyAdvancedFilters();
                   setShowAdvanceFilter(false);
                 }}
               >
